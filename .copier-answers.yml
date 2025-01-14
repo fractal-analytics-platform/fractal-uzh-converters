@@ -1,0 +1,11 @@
+# Do not edit - changes here will be overwritten by Copier
+_commit: v0.4.5
+_src_path: gh:fractal-analytics-platform/fractal-tasks-template
+author_email: lorenzo.cerrone@uzh.ch
+author_name: Lorenzo Cerrone
+package_name: fractal_hcs_converters
+project_name: fractal-hcs-converters
+project_short_description: A collection of fractal tasks to convert HCS Plates to
+    OME-Zarr
+project_url: ''
+

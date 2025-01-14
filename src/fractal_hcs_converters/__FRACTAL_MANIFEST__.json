@@ -1,0 +1,85 @@
+{
+  "manifest_version": "2",
+  "task_list": [
+    {
+      "name": "Thresholding Label Task",
+      "category": "Segmentation",
+      "tags": [
+        "Instance Segmentation",
+        "Classical segmentation"
+      ],
+      "docs_info": "### Purpose\n- Description of task functionality: Threshold an image and find connected components.\n- Bullet points that cover main features of the tasks.\n- Can use **full** *markdown* formatting (including embedding images).\n\n### Outputs\n- Optional section on what kind of outputs the task generates. For the thresholding_task: Generates a new label image named `label_name`.\n\n### Limitations\n- List known limitations of the task (e.g. only works for certain data types).",
+      "executable_parallel": "thresholding_label_task.py",
+      "meta_parallel": {
+        "cpus_per_task": 1,
+        "mem": 4000
+      },
+      "args_schema_parallel": {
+        "$defs": {
+          "ChannelInputModel": {
+            "description": "A channel which is specified by either `wavelength_id` or `label`.",
+            "properties": {
+              "wavelength_id": {
+                "title": "Wavelength Id",
+                "type": "string",
+                "description": "Unique ID for the channel wavelength, e.g. `A01_C01`. Can only be specified if label is not set."
+              },
+              "label": {
+                "title": "Label",
+                "type": "string",
+                "description": "Name of the channel. Can only be specified if wavelength_id is not set."
+              }
+            },
+            "title": "ChannelInputModel",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "zarr_url": {
+            "title": "Zarr Url",
+            "type": "string",
+            "description": "Absolute path to the OME-Zarr image."
+          },
+          "threshold": {
+            "title": "Threshold",
+            "type": "integer",
+            "description": "Threshold value to be applied."
+          },
+          "channel": {
+            "$ref": "#/$defs/ChannelInputModel",
+            "title": "Channel",
+            "description": "Channel to be thresholded."
+          },
+          "label_name": {
+            "title": "Label Name",
+            "type": "string",
+            "description": "Name of the resulting label image"
+          },
+          "min_size": {
+            "default": 50,
+            "title": "Min Size",
+            "type": "integer",
+            "description": "Minimum size of objects. Smaller objects are filtered out."
+          },
+          "overwrite": {
+            "default": true,
+            "title": "Overwrite",
+            "type": "boolean",
+            "description": "Whether to overwrite an existing label image"
+          }
+        },
+        "required": [
+          "zarr_url",
+          "threshold",
+          "channel"
+        ],
+        "type": "object",
+        "title": "ThresholdingLabelTask"
+      }
+    }
+  ],
+  "has_args_schemas": true,
+  "args_schema_version": "pydantic_v2",
+  "authors": "Lorenzo Cerrone"
+}
