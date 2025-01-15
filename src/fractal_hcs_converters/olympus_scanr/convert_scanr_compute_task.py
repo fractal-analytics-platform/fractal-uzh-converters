@@ -46,14 +46,14 @@ def build_tiled_image(
     sample_tile_data = sample_tile.load()
     tile_shape = sample_tile_data.shape
     chunk_shape = (1, 1, 1, sample_tile_data.shape[-2], sample_tile_data.shape[-1])
-    
+
     if shape_t == 1:
         chunk_shape = (1, 1, sample_tile_data.shape[-2], sample_tile_data.shape[-1])
         on_disk_axis = ("c", "z", "y", "x")
         on_disk_shape = (shape_c, shape_z, shape_y, shape_x)
-        
+
     tile_dtype = sample_tile_data.dtype
-    
+
     tile_pixel_sizes = PixelSize(
         x=sample_tile.xy_scale,
         y=sample_tile.xy_scale,
@@ -75,7 +75,7 @@ def build_tiled_image(
         dtype=tile_dtype,
         pixel_sizes=tile_pixel_sizes,
         channel_labels=tiled_image.channel_names,
-        channel_wavelengths=tiled_image.channel_names
+        channel_wavelengths=tiled_image.channel_names,
     )
     logger.info(f"Created empty OME-Zarr image at {new_zarr_url}.")
 

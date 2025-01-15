@@ -1,4 +1,6 @@
+"""Utility functions for Olympus ScanR data."""
 import re
+from logging import getLogger
 from pathlib import Path
 from typing import Any
 
@@ -9,27 +11,20 @@ from fractal_converters_tools.tiled_image import TiledImage
 from ome_types import from_xml
 from tifffile import imread
 
+logger = getLogger(__name__)
+
 
 class TiffLoader:
     """Load a full tile from a list of tiff images."""
 
-    def __init__(self, image: Any, data_dir: Path):
+    def __init__(self, image: Any, data_dir: Path, shapes: dict[str, int]):
         """Initialize the TiffLoader."""
         self.image = image
         self.data_dir = data_dir / "data"
+        self.shapes = shapes
 
     def __call__(self) -> np.ndarray:
         """Return the full tile."""
-        shape_t = len(
-            np.unique([tif.first_t for tif in self.image.pixels.tiff_data_blocks])
-        )
-        shape_z = len(
-            np.unique([tif.first_z for tif in self.image.pixels.tiff_data_blocks])
-        )
-        shape_c = len(
-            np.unique([tif.first_c for tif in self.image.pixels.tiff_data_blocks])
-        )
-
         first_acq = self.image.pixels.tiff_data_blocks[0]
         im = imread(self.data_dir / first_acq.uuid.file_name)
 
@@ -37,14 +32,34 @@ class TiffLoader:
             raise ValueError("Only 2D tiff files are currently supported.")
 
         shape_y, shape_x = im.shape
+        if shape_y != self.shapes["y"] or shape_x != self.shapes["x"]:
+            raise ValueError(
+                "Tiff file shape does not match the expected "
+                "shape from the OME metadata."
+            )
 
-        full_tile = np.zeros(
-            (shape_t, shape_c, shape_z, shape_y, shape_x), dtype=im.dtype
+        tile_shape = (
+            self.shapes["t"],
+            self.shapes["c"],
+            self.shapes["z"],
+            self.shapes["y"],
+            self.shapes["x"],
         )
+        full_tile = np.zeros(shape=tile_shape, dtype=im.dtype)
         full_tile[first_acq.first_t, first_acq.first_z, first_acq.first_c] = im
 
         for tif in self.image.pixels.tiff_data_blocks[1:]:
-            im = imread(self.data_dir / tif.uuid.file_name)
+            try:
+                im = imread(self.data_dir / tif.uuid.file_name)
+            except FileNotFoundError:
+                logger.warning(
+                    f"Tiff tile not found: {self.data_dir / tif.uuid.file_name}"
+                )
+                continue
+            except Exception as e:
+                logger.error(f"Error loading tiff tile: {e}")
+                continue
+
             full_tile[tif.first_t, tif.first_c, tif.first_z] = im
 
         return full_tile
@@ -68,6 +83,16 @@ def _get_z_spacing(image) -> float:
         raise ValueError("Z spacing is not constant.")
 
     return delta_z[0]
+
+
+def _get_tiles_shapes(image) -> dict[str, int]:
+    return {
+        "t": image.pixels.size_t,
+        "c": image.pixels.size_c,
+        "z": image.pixels.size_z,
+        "y": image.pixels.size_y,
+        "x": image.pixels.size_x,
+    }
 
 
 def tile_from_ome_image(
@@ -114,7 +139,9 @@ def tile_from_ome_image(
             z = size_z * physical_size_z
             bot_r = Point(x=x, y=y, z=z, t=size_t, c=size_c)
 
-    tiff_loader = TiffLoader(image=image, data_dir=data_dir)
+    tiff_loader = TiffLoader(
+        image=image, data_dir=data_dir, shapes=_get_tiles_shapes(image)
+    )
 
     origin = OriginDict(
         x_micrometer_original=top_l.x,
