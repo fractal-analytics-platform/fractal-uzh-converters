@@ -70,6 +70,7 @@ def build_tiled_image(
         dtype=tile_dtype,
         pixel_sizes=tile_pixel_sizes,
         channel_labels=tiled_image.channel_names,
+        channel_wavelengths=tiled_image.channel_names
     )
 
     ngff_image = NgffImage(store=new_zarr_url)
