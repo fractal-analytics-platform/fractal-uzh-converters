@@ -32,7 +32,6 @@ def build_tiled_image(
     tiles = standard_stitching_pipe(
         tiles, mode=mode, swap_xy=swap_xy, invert_x=invert_x, invert_y=invert_y
     )
-
     shape_x = max(int(tile.bot_r.x) for tile in tiles)
     shape_y = max(int(tile.bot_r.y) for tile in tiles)
 
@@ -47,18 +46,24 @@ def build_tiled_image(
     sample_tile_data = sample_tile.load()
     tile_shape = sample_tile_data.shape
     chunk_shape = (1, 1, 1, sample_tile_data.shape[-2], sample_tile_data.shape[-1])
-
+    
     if shape_t == 1:
         chunk_shape = (1, 1, sample_tile_data.shape[-2], sample_tile_data.shape[-1])
         on_disk_axis = ("c", "z", "y", "x")
         on_disk_shape = (shape_c, shape_z, shape_y, shape_x)
-
+        
     tile_dtype = sample_tile_data.dtype
+    
     tile_pixel_sizes = PixelSize(
         x=sample_tile.xy_scale,
         y=sample_tile.xy_scale,
         z=sample_tile.z_scale,
     )
+    logger.info(f"Building tiled image with shape {on_disk_shape}.")
+    logger.info(f"Chunk shape: {chunk_shape}")
+    logger.info(f"Tiles shape: {tile_shape}")
+    logger.info(f"Tile dtype: {sample_tile_data.dtype}")
+    logger.info(f"Tile pixel sizes: {tile_pixel_sizes}")
 
     new_zarr_url = str(zarr_dir / tiled_image.acquisition_path)
 
@@ -72,6 +77,7 @@ def build_tiled_image(
         channel_labels=tiled_image.channel_names,
         channel_wavelengths=tiled_image.channel_names
     )
+    logger.info(f"Created empty OME-Zarr image at {new_zarr_url}.")
 
     ngff_image = NgffImage(store=new_zarr_url)
     well_roi_table = ngff_image.tables.new("well_ROI_table", table_type="roi_table")
@@ -87,6 +93,7 @@ def build_tiled_image(
     )
     well_roi_table.set_rois([well_roi])
     well_roi_table.consolidate()
+    logger.info("Created well ROI.")
 
     image = ngff_image.get_image()
     fov_roi_table = ngff_image.tables.new("FOV_ROI_table", table_type="roi_table")
@@ -111,10 +118,13 @@ def build_tiled_image(
             tile_data = tile_data[0]
         image.set_array_from_roi(tile_data, roi)
 
+    logger.info("Image data at high resolution set.")
     image.consolidate(order=1)
+    logger.info("Image data consolidated.")
     ngff_image.update_omero_window(start_percentile=1, end_percentile=99.9)
     fov_roi_table.set_rois(_fov_rois)
     fov_roi_table.consolidate()
+    logger.info("Created FOV ROIs.")
     return new_zarr_url, image.is_3d, f"{tiled_image.row}{tiled_image.column}"
 
 
@@ -135,6 +145,7 @@ def convert_scanr_compute_task(
     acq_path = Path(acq.path)
     tiled_images = parse_scanr_metadata(acq_path, acq_id=acq.acquisition_id)
     tiled_image = tiled_images[init_args.tiled_image_id]
+    logger.info(f"Converting {acq_path} to OME-Zarr.")
     new_zarr_url, is_3d, well = build_tiled_image(
         zarr_dir=Path(zarr_url),
         tiled_image=tiled_image,
