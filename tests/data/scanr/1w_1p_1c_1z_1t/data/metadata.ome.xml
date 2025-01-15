@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<OME Creator="Olympus, scanR 3.3.0  (r4137)" UUID="urn:uuid:115baacc-908f-4bde-a18b-832f05cd6da9" xmlns="http://www.openmicroscopy.org/Schemas/OME/2013-06" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openmicroscopy.org/Schemas/OME/2013-06 http://www.openmicroscopy.org/Schemas/OME/2013-06/ome.xsd">
+
+  <Instrument ID="Instrument:0">
+    <Microscope Manufacturer="Olympus" Model="IX83" Type="Inverted"/>
+    <Detector ID="Detector:0" Manufacturer="Hamamatsu" Model="C14440-20UP" Type="CMOS"/>
+    <Objective ID="Objective:0" LensNA="0.16" Manufacturer="Olympus" Model="UPLSAPO 4x" NominalMagnification="4.0"/>
+    <Objective ID="Objective:1" LensNA="0.80" Manufacturer="Olympus" Model="UPLXAPO 20x" NominalMagnification="20.0"/>
+    <Objective ID="Objective:2" LensNA="0.90" Manufacturer="Olympus" Model="UPLSAPO 2 40x" NominalMagnification="40.0"/>
+    <Objective ID="Objective:3" LensNA="1.05" Manufacturer="Olympus" Model="UPLSAPO S 30x" NominalMagnification="30.0"/>
+    <Objective ID="Objective:4" LensNA="1.30" Manufacturer="Olympus" Model="UPLSAPO S2 60x" NominalMagnification="60.0"/>
+    <Objective ID="Objective:5" LensNA="1.35" Manufacturer="Olympus" Model="UPLSAPO S 100x" NominalMagnification="100.0"/>
+  </Instrument>
+
+  <Image ID="Image:W14P1" Name="Well 14, Position 1 (B2)">
+    <InstrumentRef ID="Instrument:0"/>
+    <ObjectiveSettings ID="Objective:1" RefractiveIndex="1.000"/>
+    <Pixels DimensionOrder="XYCTZ" ID="Pixels:W14P1" Interleaved="false" PhysicalSizeX="0.325000" PhysicalSizeY="0.325000" SignificantBits="16" SizeC="1" SizeT="1" SizeX="2048" SizeY="2048" SizeZ="1" Type="uint16">
+      <Channel AcquisitionMode="SpinningDiskConfocal" ID="Channel:W14P1:0" IlluminationType="Epifluorescence" Name="405 nm #1">
+        <DetectorSettings Binning="1x1" ID="Detector:0"/>
+      </Channel>
+      <TiffData FirstC="0" FirstT="0" FirstZ="0">
+        <UUID FileName="B2--W00014--P00001--Z00000--T00000--405 nm #1.tif">urn:uuid:27e3441f-a7c2-4db7-afe0-201ad3124824</UUID>
+      </TiffData>
+      <Plane DeltaT="4.888" ExposureTime="0.100000" PositionX="100090.000000" PositionY="61827.000000" PositionZ="6275.290000" TheC="0" TheT="0" TheZ="0"/>
+    </Pixels>
+  </Image>
+
+</OME>

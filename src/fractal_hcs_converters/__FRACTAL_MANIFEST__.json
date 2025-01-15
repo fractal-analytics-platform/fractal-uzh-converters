@@ -2,35 +2,204 @@
   "manifest_version": "2",
   "task_list": [
     {
-      "name": "Thresholding Label Task",
-      "category": "Segmentation",
+      "name": "Convert Olympus ScanR Plate to OME-Zarr",
+      "category": "Conversion",
+      "modality": "HCS",
       "tags": [
-        "Instance Segmentation",
-        "Classical segmentation"
+        "Olympus",
+        "ScanR",
+        "Plate converter"
       ],
-      "docs_info": "### Purpose\n- Description of task functionality: Threshold an image and find connected components.\n- Bullet points that cover main features of the tasks.\n- Can use **full** *markdown* formatting (including embedding images).\n\n### Outputs\n- Optional section on what kind of outputs the task generates. For the thresholding_task: Generates a new label image named `label_name`.\n\n### Limitations\n- List known limitations of the task (e.g. only works for certain data types).",
-      "executable_parallel": "thresholding_label_task.py",
-      "meta_parallel": {
+      "executable_non_parallel": "olympus_scanr/convert_scanr_init_task.py",
+      "executable_parallel": "olympus_scanr/convert_scanr_compute_task.py",
+      "meta_non_parallel": {
         "cpus_per_task": 1,
         "mem": 4000
       },
-      "args_schema_parallel": {
+      "meta_parallel": {
+        "cpus_per_task": 1,
+        "mem": 12000
+      },
+      "args_schema_non_parallel": {
         "$defs": {
-          "ChannelInputModel": {
-            "description": "A channel which is specified by either `wavelength_id` or `label`.",
+          "AcquisitionInputModel": {
+            "description": "Acquisition metadata.",
             "properties": {
-              "wavelength_id": {
-                "title": "Wavelength Id",
-                "type": "string",
-                "description": "Unique ID for the channel wavelength, e.g. `A01_C01`. Can only be specified if label is not set."
+              "path": {
+                "title": "Path",
+                "type": "string"
               },
-              "label": {
-                "title": "Label",
-                "type": "string",
-                "description": "Name of the channel. Can only be specified if wavelength_id is not set."
+              "acquisition_id": {
+                "minimum": 0,
+                "title": "Acquisition Id",
+                "type": "integer"
               }
             },
-            "title": "ChannelInputModel",
+            "required": [
+              "path",
+              "acquisition_id"
+            ],
+            "title": "AcquisitionInputModel",
+            "type": "object"
+          },
+          "AdvancedOptions": {
+            "description": "Advanced options for the conversion.",
+            "properties": {
+              "tiling_mode": {
+                "default": "auto",
+                "enum": [
+                  "auto",
+                  "grid",
+                  "free",
+                  "none"
+                ],
+                "title": "Tiling Mode",
+                "type": "string"
+              },
+              "swap_xy": {
+                "default": false,
+                "title": "Swap Xy",
+                "type": "boolean"
+              },
+              "invert_x": {
+                "default": false,
+                "title": "Invert X",
+                "type": "boolean"
+              },
+              "invert_y": {
+                "default": false,
+                "title": "Invert Y",
+                "type": "boolean"
+              }
+            },
+            "title": "AdvancedOptions",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "zarr_urls": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Zarr Urls",
+            "type": "array",
+            "description": "List of Zarr URLs."
+          },
+          "zarr_dir": {
+            "title": "Zarr Dir",
+            "type": "string",
+            "description": "Directory to store the Zarr files."
+          },
+          "list_acq": {
+            "items": {
+              "$ref": "#/$defs/AcquisitionInputModel"
+            },
+            "title": "List Acq",
+            "type": "array",
+            "description": "List of acquisitions to convert."
+          },
+          "plate_name": {
+            "title": "Plate Name",
+            "type": "string",
+            "description": "Name of the plate."
+          },
+          "overwrite": {
+            "default": false,
+            "title": "Overwrite",
+            "type": "boolean",
+            "description": "Overwrite existing Zarr files."
+          },
+          "advanced_options": {
+            "$ref": "#/$defs/AdvancedOptions",
+            "title": "Advanced Options",
+            "description": "Advanced options for the conversion."
+          }
+        },
+        "required": [
+          "zarr_urls",
+          "zarr_dir",
+          "list_acq"
+        ],
+        "type": "object",
+        "title": "ConvertScanrInitTask"
+      },
+      "args_schema_parallel": {
+        "$defs": {
+          "AcquisitionInputModel": {
+            "description": "Acquisition metadata.",
+            "properties": {
+              "path": {
+                "title": "Path",
+                "type": "string"
+              },
+              "acquisition_id": {
+                "minimum": 0,
+                "title": "Acquisition Id",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "path",
+              "acquisition_id"
+            ],
+            "title": "AcquisitionInputModel",
+            "type": "object"
+          },
+          "AdvancedOptions": {
+            "description": "Advanced options for the conversion.",
+            "properties": {
+              "tiling_mode": {
+                "default": "auto",
+                "enum": [
+                  "auto",
+                  "grid",
+                  "free",
+                  "none"
+                ],
+                "title": "Tiling Mode",
+                "type": "string"
+              },
+              "swap_xy": {
+                "default": false,
+                "title": "Swap Xy",
+                "type": "boolean"
+              },
+              "invert_x": {
+                "default": false,
+                "title": "Invert X",
+                "type": "boolean"
+              },
+              "invert_y": {
+                "default": false,
+                "title": "Invert Y",
+                "type": "boolean"
+              }
+            },
+            "title": "AdvancedOptions",
+            "type": "object"
+          },
+          "ConvertScanrInitArgs": {
+            "description": "Arguments for the compute task.",
+            "properties": {
+              "acquision": {
+                "$ref": "#/$defs/AcquisitionInputModel",
+                "title": "Acquision"
+              },
+              "tiled_image_id": {
+                "title": "Tiled Image Id",
+                "type": "string"
+              },
+              "advanced_options": {
+                "$ref": "#/$defs/AdvancedOptions",
+                "title": "Advanced_Options"
+              }
+            },
+            "required": [
+              "acquision",
+              "tiled_image_id"
+            ],
+            "title": "ConvertScanrInitArgs",
             "type": "object"
           }
         },
@@ -39,44 +208,22 @@
           "zarr_url": {
             "title": "Zarr Url",
             "type": "string",
-            "description": "Absolute path to the OME-Zarr image."
+            "description": "URL to the OME-Zarr file."
           },
-          "threshold": {
-            "title": "Threshold",
-            "type": "integer",
-            "description": "Threshold value to be applied."
-          },
-          "channel": {
-            "$ref": "#/$defs/ChannelInputModel",
-            "title": "Channel",
-            "description": "Channel to be thresholded."
-          },
-          "label_name": {
-            "title": "Label Name",
-            "type": "string",
-            "description": "Name of the resulting label image"
-          },
-          "min_size": {
-            "default": 50,
-            "title": "Min Size",
-            "type": "integer",
-            "description": "Minimum size of objects. Smaller objects are filtered out."
-          },
-          "overwrite": {
-            "default": true,
-            "title": "Overwrite",
-            "type": "boolean",
-            "description": "Whether to overwrite an existing label image"
+          "init_args": {
+            "$ref": "#/$defs/ConvertScanrInitArgs",
+            "title": "Init Args",
+            "description": "Arguments for the initialization task."
           }
         },
         "required": [
           "zarr_url",
-          "threshold",
-          "channel"
+          "init_args"
         ],
         "type": "object",
-        "title": "ThresholdingLabelTask"
-      }
+        "title": "ConvertScanrComputeTask"
+      },
+      "docs_info": "## convert_scanr_init_task\nInitialize the task to convert a ScanR dataset to OME-Zarr.\n## convert_scanr_compute_task\nInitialize the task to convert a LIF plate to OME-Zarr.\n"
     }
   ],
   "has_args_schemas": true,

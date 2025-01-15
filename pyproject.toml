@@ -20,18 +20,33 @@ dynamic = ["version"]
 description = "A collection of fractal tasks to convert HCS Plates to OME-Zarr"
 readme = "README.md"
 license = { text = "BSD-3-Clause" }
-authors = [
-    { name = "Lorenzo Cerrone", email = "lorenzo.cerrone@uzh.ch" },
-]
+authors = [{ name = "Lorenzo Cerrone", email = "lorenzo.cerrone@uzh.ch" }]
 
 # Required Python version and dependencies
-requires-python = ">=3.9"
-dependencies = ["fractal-tasks-core == 1.3.4", "scikit-image"]
+requires-python = ">=3.9, <3.13"
+dependencies = [
+    "fractal-tasks-core == 1.4.0",
+    # "fractal-converters-tools == 0.1.1",
+    "ngio==0.1.4",
+    "tqdm",
+    "tifffile",
+    "ome_types",
+]
 
 # Optional dependencies (e.g. for `pip install -e ".[dev]"`, see
 # https://peps.python.org/pep-0621/#dependencies-optional-dependencies)
 [project.optional-dependencies]
-dev = ["devtools", "hatch", "pytest", "requests", "jsonschema", "ruff", "pre-commit"]
+dev = [
+    "notebook",
+    "matplotlib",
+    "devtools",
+    "hatch",
+    "pytest",
+    "requests",
+    "jsonschema",
+    "ruff",
+    "pre-commit",
+]
 
 # https://docs.astral.sh/ruff
 [tool.ruff]
@@ -69,13 +84,14 @@ ignore = [
 [tool.ruff.format]
 docstring-code-format = true
 docstring-code-line-length = 89
-skip-magic-trailing-comma = false  # default is false
+skip-magic-trailing-comma = false # default is false
 [tool.pixi.project]
 channels = ["conda-forge"]
 platforms = ["osx-arm64"]
 
 [tool.pixi.pypi-dependencies]
 fractal-hcs-converters = { path = ".", editable = true }
+fractal-converters-tools = { path = "../fractal-converters-tools", editable = true }
 
 [tool.pixi.environments]
 default = { solve-group = "default" }
