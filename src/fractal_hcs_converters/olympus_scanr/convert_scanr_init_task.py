@@ -26,7 +26,8 @@ class AdvancedOptions(BaseModel):
         tiling_mode (Literal["auto", "grid", "free", "none"]): Specify the tiling mode.
             "auto" will automatically determine the tiling mode.
             "grid" if the input data is a grid, it will be tiled using snap-to-grid.
-            "free" will remove any overlap between tiles using a snap-to-corner approach.
+            "free" will remove any overlap between tiles using a snap-to-corner
+            approach.
         swap_xy (bool): Swap x and y axes.
         invert_x (bool): Invert x axis.
         invert_y (bool): Invert y axis.
@@ -43,6 +44,7 @@ class ConvertScanrInitArgs(BaseModel):
     """Arguments for the compute task."""
 
     acquision: AcquisitionInputModel
+    plate_name: str
     tiled_image_id: str
     advanced_options: AdvancedOptions = Field(default_factory=AdvancedOptions)
 
@@ -57,7 +59,7 @@ def convert_scanr_init_task(
     list_acq: list[AcquisitionInputModel],
     plate_name: Optional[str] = None,
     overwrite: bool = False,
-    advanced_options: AdvancedOptions = Field(default_factory=AdvancedOptions),
+    advanced_options: AdvancedOptions = Field(default_factory=AdvancedOptions),  # noqa: B008
 ):
     """Initialize the task to convert a ScanR dataset to OME-Zarr.
 
@@ -65,7 +67,7 @@ def convert_scanr_init_task(
         zarr_urls (list[str]): List of Zarr URLs.
         zarr_dir (str): Directory to store the Zarr files.
         list_acq (list[AcquisitionInputModel]): List of acquisitions to convert.
-        plate_name (Optional[str]): Name of the plate.
+        plate_name (Optional[str]): Name of the plate (e.g. experiment_2.zarr).
         overwrite (bool): Overwrite existing Zarr files.
         advanced_options (AdvancedOptions): Advanced options for the conversion.
     """
@@ -79,12 +81,16 @@ def convert_scanr_init_task(
         zarr_dir.mkdir(parents=True)
 
     if plate_name is None:
-        plate_name = Path(list_acq[0].path).stem
+        plate_name = Path(list_acq[0].path).name
         logger.info(
             f"No plate name provided. Using the first acquisition name {plate_name}"
         )
+    else:
+        # Ensure the plate name has the correct extension
+        if not plate_name.endswith(".zarr"):
+            plate_name = f"{plate_name}.zarr"
 
-    zarr_store = zarr_dir / f"{plate_name}.zarr"
+    zarr_store = zarr_dir / plate_name
 
     # prepare the parallel list of zarr urls
     tiled_images, parallelization_list = [], []
@@ -106,6 +112,7 @@ def convert_scanr_init_task(
                     "zarr_url": str(zarr_store),
                     "init_args": ConvertScanrInitArgs(
                         acquision=acq,
+                        plate_name=plate_name,
                         tiled_image_id=tile_id,
                         advanced_options=advanced_options,
                     ).model_dump(),

@@ -26,7 +26,7 @@ def build_tiled_image(
     swap_xy: bool = False,
     invert_x: bool = False,
     invert_y: bool = False,
-) -> TiledImage:
+) -> tuple[str, bool, str]:
     """Build a tiled ome-zarr image from a TiledImage object."""
     tiles = tiled_image.tiles
     tiles = standard_stitching_pipe(
@@ -60,8 +60,10 @@ def build_tiled_image(
         z=sample_tile.z_scale,
     )
 
+    new_zarr_url = str(zarr_dir / tiled_image.acquisition_path)
+
     create_empty_ome_zarr_image(
-        store=zarr_dir / tiled_image.acquisition_path,
+        store=new_zarr_url,
         on_disk_shape=on_disk_shape,
         on_disk_axis=on_disk_axis,
         chunks=chunk_shape,
@@ -70,8 +72,8 @@ def build_tiled_image(
         channel_labels=tiled_image.channel_names,
     )
 
-    ngff_image = NgffImage(store=zarr_dir / tiled_image.acquisition_path)
-    well_roi_table = ngff_image.tables.new("Well_ROI_table", table_type="roi_table")
+    ngff_image = NgffImage(store=new_zarr_url)
+    well_roi_table = ngff_image.tables.new("well_ROI_table", table_type="roi_table")
     well_roi = WorldCooROI(
         x=0,
         y=0,
@@ -112,6 +114,7 @@ def build_tiled_image(
     ngff_image.update_omero_window(start_percentile=1, end_percentile=99.9)
     fov_roi_table.set_rois(_fov_rois)
     fov_roi_table.consolidate()
+    return new_zarr_url, image.is_3d, f"{tiled_image.row}{tiled_image.column}"
 
 
 @validate_call
@@ -131,7 +134,7 @@ def convert_scanr_compute_task(
     acq_path = Path(acq.path)
     tiled_images = parse_scanr_metadata(acq_path, acq_id=acq.acquisition_id)
     tiled_image = tiled_images[init_args.tiled_image_id]
-    build_tiled_image(
+    new_zarr_url, is_3d, well = build_tiled_image(
         zarr_dir=Path(zarr_url),
         tiled_image=tiled_image,
         mode=init_args.advanced_options.tiling_mode,
@@ -139,6 +142,15 @@ def convert_scanr_compute_task(
         invert_x=init_args.advanced_options.invert_x,
         invert_y=init_args.advanced_options.invert_y,
     )
+
+    p_types = {"is_3D": is_3d}
+    attributes = {"well": well, "plate": init_args.plate_name}
+
+    return {
+        "image_list_updates": [
+            {"zarr_url": new_zarr_url, "types": p_types, "attributes": attributes}
+        ]
+    }
 
 
 if __name__ == "__main__":
