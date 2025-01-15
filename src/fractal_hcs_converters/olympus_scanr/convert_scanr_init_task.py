@@ -108,7 +108,7 @@ def convert_scanr_init_task(
                         acquision=acq,
                         tiled_image_id=tile_id,
                         advanced_options=advanced_options,
-                    ),
+                    ).model_dump(),
                 }
             )
         tiled_images.extend(list(_tiled_images.values()))
