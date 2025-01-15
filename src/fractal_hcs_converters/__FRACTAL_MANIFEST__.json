@@ -102,7 +102,7 @@
           "plate_name": {
             "title": "Plate Name",
             "type": "string",
-            "description": "Name of the plate."
+            "description": "Name of the plate (e.g. experiment_2.zarr)."
           },
           "overwrite": {
             "default": false,
@@ -186,6 +186,10 @@
                 "$ref": "#/$defs/AcquisitionInputModel",
                 "title": "Acquision"
               },
+              "plate_name": {
+                "title": "Plate Name",
+                "type": "string"
+              },
               "tiled_image_id": {
                 "title": "Tiled Image Id",
                 "type": "string"
@@ -197,6 +201,7 @@
             },
             "required": [
               "acquision",
+              "plate_name",
               "tiled_image_id"
             ],
             "title": "ConvertScanrInitArgs",
