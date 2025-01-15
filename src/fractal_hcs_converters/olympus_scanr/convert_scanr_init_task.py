@@ -81,14 +81,13 @@ def convert_scanr_init_task(
         zarr_dir.mkdir(parents=True)
 
     if plate_name is None:
-        plate_name = Path(list_acq[0].path).name
+        plate_name = Path(list_acq[0].path).stem
         logger.info(
             f"No plate name provided. Using the first acquisition name {plate_name}"
         )
-    else:
-        # Ensure the plate name has the correct extension
-        if not plate_name.endswith(".zarr"):
-            plate_name = f"{plate_name}.zarr"
+
+    if not plate_name.endswith(".zarr"):
+        plate_name = f"{plate_name}.zarr"
 
     zarr_store = zarr_dir / plate_name
 
