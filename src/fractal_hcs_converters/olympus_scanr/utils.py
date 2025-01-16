@@ -1,4 +1,5 @@
 """Utility functions for Olympus ScanR data."""
+
 import re
 from logging import getLogger
 from pathlib import Path
