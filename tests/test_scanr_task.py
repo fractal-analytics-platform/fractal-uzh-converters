@@ -42,7 +42,7 @@ def test_base_workflow(tmp_path):
         updates = results["image_list_updates"]
         assert len(updates) == 1
 
-        assert updates[0]["types"]["is_3D"] == False
+        assert not updates[0]["types"]["is_3D"]
         assert updates[0]["attributes"]["well"] == "B2"
         assert updates[0]["attributes"]["plate"] == "1w_1p_1c_1z_1t.zarr"
 
