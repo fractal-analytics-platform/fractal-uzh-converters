@@ -21,11 +21,12 @@ description = "A collection of fractal tasks to convert HCS Plates to OME-Zarr"
 readme = "README.md"
 license = { text = "BSD-3-Clause" }
 authors = [{ name = "Lorenzo Cerrone", email = "lorenzo.cerrone@uzh.ch" }]
+requires-python = ">=3.9,<3.13"
 
 dependencies = [
     "fractal-tasks-core == 1.4.0",
     "fractal-converters-tools == 0.2.1",
-    "ngio==0.1.4",
+    "ngio==0.1.5",
     "tqdm",
     "tifffile",
     "ome_types",
@@ -95,6 +96,5 @@ fractal-hcs-converters = { path = ".", editable = true }
 default = { solve-group = "default" }
 dev = { features = ["dev"], solve-group = "default" }
 
-requires-python = ">=3.9, <3.13"
 # Required Python version and dependencies
 [tool.pixi.tasks]
