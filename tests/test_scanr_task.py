@@ -25,7 +25,7 @@ def test_base_workflow(tmp_path):
     p_list = convert_scanr_init_task(
         zarr_urls=[],
         zarr_dir=str(zarr_dir),
-        list_acq=[
+        acquisitions=[
             AcquisitionInputModel(
                 path=str(test_data),
                 acquisition_id=0,
@@ -61,7 +61,7 @@ def test_base_workflow(tmp_path):
         p_list = convert_scanr_init_task(
             zarr_urls=[],
             zarr_dir=str(zarr_dir),
-            list_acq=[
+            acquisitions=[
                 AcquisitionInputModel(
                     path=str(test_data),
                     acquisition_id=0,

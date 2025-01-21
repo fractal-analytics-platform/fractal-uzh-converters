@@ -16,10 +16,13 @@ logger = logging.getLogger(__name__)
 class AcquisitionInputModel(BaseModel):
     """Acquisition metadata.
 
-    Args:
-        path (str): Path to the acquisition directory.
-        plate_name (Optional[str]): Custom name for the plate.
-        acquisition_id (int): Acquisition ID,
+    Attributes:
+        path: Path to the acquisition directory.
+            For scanr, this should include a 'data/' directory with the tiff files
+            and a metadata.ome.xml file.
+        plate_name: Optional custom name for the plate. If not provided, the name will
+            be the acquisition directory name.
+        acquisition_id: Acquisition ID,
             used to identify the acquisition in case of multiple acquisitions.
     """
 
@@ -31,15 +34,18 @@ class AcquisitionInputModel(BaseModel):
 class AdvancedOptions(BaseModel):
     """Advanced options for the conversion.
 
-    Args:
+    Attributes:
         tiling_mode (Literal["auto", "grid", "free", "none"]): Specify the tiling mode.
             "auto" will automatically determine the tiling mode.
             "grid" if the input data is a grid, it will be tiled using snap-to-grid.
             "free" will remove any overlap between tiles using a snap-to-corner
             approach.
-        swap_xy (bool): Swap x and y axes.
-        invert_x (bool): Invert x axis.
-        invert_y (bool): Invert y axis.
+        swap_xy (bool): Swap x and y axes coordinates in the metadata. This is sometimes
+            necessary to ensure correct image tiling and registration.
+        invert_x (bool): Invert x axis coordinates in the metadata. This is
+            sometimes necessary to ensure correct image tiling and registration.
+        invert_y (bool): Invert y axis coordinates in the metadata. This is
+            sometimes necessary to ensure correct image tiling and registration.
 
     """
 
@@ -63,21 +69,21 @@ def convert_scanr_init_task(
     zarr_urls: list[str],
     zarr_dir: str,
     # Task parameters
-    list_acq: list[AcquisitionInputModel],
+    acquisitions: list[AcquisitionInputModel],
     overwrite: bool = False,
-    advanced_options: AdvancedOptions = Field(default_factory=AdvancedOptions),  # noqa: B008
+    advanced_options: AdvancedOptions = AdvancedOptions(),  # noqa: B008
 ):
     """Initialize the task to convert a ScanR dataset to OME-Zarr.
 
     Args:
         zarr_urls (list[str]): List of Zarr URLs.
         zarr_dir (str): Directory to store the Zarr files.
-        list_acq (list[AcquisitionInputModel]): List of acquisitions to convert.
-        plate_name (Optional[str]): Name of the plate (e.g. experiment_2.zarr).
+        acquisitions (list[AcquisitionInputModel]): List of raw acquisitions to convert
+            to OME-Zarr.
         overwrite (bool): Overwrite existing Zarr files.
         advanced_options (AdvancedOptions): Advanced options for the conversion.
     """
-    if not list_acq:
+    if not acquisitions:
         raise ValueError("No acquisitions provided.")
 
     zarr_dir = Path(zarr_dir)
@@ -88,7 +94,7 @@ def convert_scanr_init_task(
 
     # prepare the parallel list of zarr urls
     tiled_images, parallelization_list = [], []
-    for acq in list_acq:
+    for acq in acquisitions:
         acq_path = Path(acq.path)
         plate_name = acq_path.stem if acq.plate_name is None else acq.plate_name
 

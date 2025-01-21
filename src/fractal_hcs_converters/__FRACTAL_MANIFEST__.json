@@ -28,11 +28,20 @@
             "properties": {
               "path": {
                 "title": "Path",
-                "type": "string"
+                "type": "string",
+                "description": "Path to the acquisition directory. For scanr, this should include a 'data/' directory with the tiff files and a metadata.ome.xml file."
               },
               "plate_name": {
                 "title": "Plate Name",
-                "type": "string"
+                "type": "string",
+                "description": "Optional custom name for the plate. If not provided, the name will be the acquisition directory name."
+              },
+              "acquisition_id": {
+                "default": 0,
+                "minimum": 0,
+                "title": "Acquisition Id",
+                "type": "integer",
+                "description": "Acquisition ID, used to identify the acquisition in case of multiple acquisitions."
               }
             },
             "required": [
@@ -53,22 +62,26 @@
                   "none"
                 ],
                 "title": "Tiling Mode",
-                "type": "string"
+                "type": "string",
+                "description": "Specify the tiling mode. \"auto\" will automatically determine the tiling mode. \"grid\" if the input data is a grid, it will be tiled using snap-to-grid. \"free\" will remove any overlap between tiles using a snap-to-corner approach."
               },
               "swap_xy": {
                 "default": false,
                 "title": "Swap Xy",
-                "type": "boolean"
+                "type": "boolean",
+                "description": "Swap x and y axes coordinates in the metadata. This is sometimes necessary to ensure correct image tiling and registration."
               },
               "invert_x": {
                 "default": false,
                 "title": "Invert X",
-                "type": "boolean"
+                "type": "boolean",
+                "description": "Invert x axis coordinates in the metadata. This is sometimes necessary to ensure correct image tiling and registration."
               },
               "invert_y": {
                 "default": false,
                 "title": "Invert Y",
-                "type": "boolean"
+                "type": "boolean",
+                "description": "Invert y axis coordinates in the metadata. This is sometimes necessary to ensure correct image tiling and registration."
               }
             },
             "title": "AdvancedOptions",
@@ -90,18 +103,13 @@
             "type": "string",
             "description": "Directory to store the Zarr files."
           },
-          "list_acq": {
+          "acquisitions": {
             "items": {
               "$ref": "#/$defs/AcquisitionInputModel"
             },
-            "title": "List Acq",
+            "title": "Acquisitions",
             "type": "array",
-            "description": "List of acquisitions to convert."
-          },
-          "plate_name": {
-            "title": "Plate Name",
-            "type": "string",
-            "description": "Name of the plate (e.g. experiment_2.zarr)."
+            "description": "List of raw acquisitions to convert to OME-Zarr."
           },
           "overwrite": {
             "default": false,
@@ -110,7 +118,17 @@
             "description": "Overwrite existing Zarr files."
           },
           "advanced_options": {
-            "$ref": "#/$defs/AdvancedOptions",
+            "allOf": [
+              {
+                "$ref": "#/$defs/AdvancedOptions"
+              }
+            ],
+            "default": {
+              "tiling_mode": "auto",
+              "swap_xy": false,
+              "invert_x": false,
+              "invert_y": false
+            },
             "title": "Advanced Options",
             "description": "Advanced options for the conversion."
           }
@@ -118,7 +136,7 @@
         "required": [
           "zarr_urls",
           "zarr_dir",
-          "list_acq"
+          "acquisitions"
         ],
         "type": "object",
         "title": "ConvertScanrInitTask"
@@ -137,22 +155,26 @@
                   "none"
                 ],
                 "title": "Tiling Mode",
-                "type": "string"
+                "type": "string",
+                "description": "Specify the tiling mode. \"auto\" will automatically determine the tiling mode. \"grid\" if the input data is a grid, it will be tiled using snap-to-grid. \"free\" will remove any overlap between tiles using a snap-to-corner approach."
               },
               "swap_xy": {
                 "default": false,
                 "title": "Swap Xy",
-                "type": "boolean"
+                "type": "boolean",
+                "description": "Swap x and y axes coordinates in the metadata. This is sometimes necessary to ensure correct image tiling and registration."
               },
               "invert_x": {
                 "default": false,
                 "title": "Invert X",
-                "type": "boolean"
+                "type": "boolean",
+                "description": "Invert x axis coordinates in the metadata. This is sometimes necessary to ensure correct image tiling and registration."
               },
               "invert_y": {
                 "default": false,
                 "title": "Invert Y",
-                "type": "boolean"
+                "type": "boolean",
+                "description": "Invert y axis coordinates in the metadata. This is sometimes necessary to ensure correct image tiling and registration."
               }
             },
             "title": "AdvancedOptions",
@@ -196,7 +218,8 @@
         ],
         "type": "object",
         "title": "ConvertScanrComputeTask"
-      }
+      },
+      "docs_link": "https://github.com/fractal-analytics-platform/fractal-hcs-converters"
     }
   ],
   "has_args_schemas": true,
