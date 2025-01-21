@@ -1,6 +1,7 @@
 """ScanR to OME-Zarr conversion task initialization."""
 
 import logging
+import pickle
 from pathlib import Path
 from typing import Literal, Optional
 
@@ -8,7 +9,6 @@ from fractal_converters_tools.omezarr_plate_writers import initiate_ome_zarr_pla
 from pydantic import BaseModel, Field, validate_call
 
 from fractal_hcs_converters.olympus_scanr.utils import parse_scanr_metadata
-import pickle
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +43,7 @@ class AdvancedOptions(BaseModel):
 
 class ConvertScanrInitArgs(BaseModel):
     """Arguments for the compute task."""
+
     tiled_image_pickled_path: str
     advanced_options: AdvancedOptions = Field(default_factory=AdvancedOptions)
 
@@ -100,14 +101,17 @@ def convert_scanr_init_task(
 
         logger.info(f"Found {len(_tiled_images)} images in {acq_path})")
         for tile_id, tiled_image in _tiled_images.items():
-            
             # pickle the tiled_image
-            tile_id_pickle_path = zarr_dir / f"_tmp_{tiled_image.path_builder.plate_path}" / f"{tile_id}.pickle"
+            tile_id_pickle_path = (
+                zarr_dir
+                / f"_tmp_{tiled_image.path_builder.plate_path}"
+                / f"{tile_id}.pickle"
+            )
             tile_id_pickle_path.parent.mkdir(parents=True, exist_ok=True)
-            
+
             with open(tile_id_pickle_path, "wb") as f:
                 pickle.dump(tiled_image, f)
-                
+
             parallelization_list.append(
                 {
                     "zarr_url": str(zarr_dir),

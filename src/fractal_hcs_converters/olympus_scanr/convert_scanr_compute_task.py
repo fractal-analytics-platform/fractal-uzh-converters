@@ -59,7 +59,7 @@ def convert_scanr_compute_task(
         }
     else:
         attributes = {}
-    
+
     # Clean up the pickled file and the directory if it is empty
     Path(init_args.tiled_image_pickled_path).unlink()
     if not list(Path(init_args.tiled_image_pickled_path).parent.iterdir()):
