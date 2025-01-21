@@ -91,6 +91,9 @@ skip-magic-trailing-comma = false # default is false
 [tool.pytest.ini_options]
 minversion = "7.0"
 testpaths = ["tests"]
+# The filterwarnings option 
+# caused some unexpected behavior in the tests
+# so it was commented out
 #filterwarnings = [
 #    "error",
 #    #"ignore::FutureWarning",
