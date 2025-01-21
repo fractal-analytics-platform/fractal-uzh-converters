@@ -26,7 +26,7 @@ requires-python = ">=3.9,<3.13"
 dependencies = [
     "fractal-tasks-core>=1.4.2,<1.5.0",
     "ngio>=0.1.5,<0.2",
-    # "fractal-converters-tools == 0.2.1",
+    "fractal-converters-tools >= 0.3.0,<0.4.0",
     "tqdm",
     "tifffile",
     "ome_types",
@@ -92,7 +92,8 @@ platforms = ["osx-arm64"]
 
 [tool.pixi.pypi-dependencies]
 fractal-hcs-converters = { path = ".", editable = true }
-fractal-converters-tools = { path = "../fractal-converters-tools", editable = true }
+# For local development, you can use the following line instead of the one above
+# fractal-converters-tools = { path = "../fractal-converters-tools", editable = true }
 
 [tool.pixi.environments]
 default = { solve-group = "default" }
