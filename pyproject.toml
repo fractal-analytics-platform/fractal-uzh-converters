@@ -24,12 +24,14 @@ authors = [{ name = "Lorenzo Cerrone", email = "lorenzo.cerrone@uzh.ch" }]
 requires-python = ">=3.9,<3.13"
 
 dependencies = [
-    "fractal-tasks-core == 1.4.0",
-    "fractal-converters-tools == 0.2.1",
-    "ngio==0.1.4",
+    "fractal-tasks-core>=1.4.2,<1.5.0",
+    "ngio>=0.1.5,<0.2",
+    # "fractal-converters-tools == 0.2.1",
     "tqdm",
     "tifffile",
     "ome_types",
+    "scikit-image",
+    "dask==2024.11.2",
 ]
 
 # Optional dependencies (e.g. for `pip install -e ".[dev]"`, see
@@ -90,7 +92,7 @@ platforms = ["osx-arm64"]
 
 [tool.pixi.pypi-dependencies]
 fractal-hcs-converters = { path = ".", editable = true }
-# fractal-converters-tools = { path = "../fractal-converters-tools", editable = true }
+fractal-converters-tools = { path = "../fractal-converters-tools", editable = true }
 
 [tool.pixi.environments]
 default = { solve-group = "default" }

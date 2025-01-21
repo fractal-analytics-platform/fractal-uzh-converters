@@ -8,7 +8,8 @@ from typing import Any
 import numpy as np
 from fractal_converters_tools.microplate_utils import get_row_column
 from fractal_converters_tools.tile import OriginDict, Point, Tile
-from fractal_converters_tools.tiled_image import TiledImage
+from fractal_converters_tools.tiled_image import PlatePathBuilder, TiledImage
+from ngio.ngff_meta.fractal_image_meta import PixelSize
 from ome_types import from_xml
 from tifffile import imread
 
@@ -24,7 +25,14 @@ class TiffLoader:
         self.data_dir = data_dir / "data"
         self.shapes = shapes
 
-    def __call__(self) -> np.ndarray:
+    @property
+    def dtype(self) -> np.dtype:
+        """Return the dtype of the tiff files."""
+        first_acq = self.image.pixels.tiff_data_blocks[0]
+        im = imread(self.data_dir / first_acq.uuid.file_name)
+        return im.dtype
+
+    def load(self) -> np.ndarray:
         """Return the full tile."""
         first_acq = self.image.pixels.tiff_data_blocks[0]
         im = imread(self.data_dir / first_acq.uuid.file_name)
@@ -46,7 +54,7 @@ class TiffLoader:
             self.shapes["y"],
             self.shapes["x"],
         )
-        full_tile = np.zeros(shape=tile_shape, dtype=im.dtype)
+        full_tile = np.zeros(shape=tile_shape, dtype=self.dtype)
         full_tile[first_acq.first_t, first_acq.first_z, first_acq.first_c] = im
 
         for tif in self.image.pixels.tiff_data_blocks[1:]:
@@ -66,8 +74,16 @@ class TiffLoader:
         return full_tile
 
 
-def _get_channel_names(image) -> list[str]:
-    return [channel.name for channel in image.pixels.channels]
+def _get_channel_names(image, default_channels: list[str] | None) -> list[str]:
+    parsed_channels = [channel.name for channel in image.pixels.channels]
+    if default_channels is None:
+        return parsed_channels
+    if len(parsed_channels) != len(default_channels):
+        raise ValueError(
+            "Number of channels in the OME metadata does not match "
+            "the number of default channels."
+        )
+    return default_channels
 
 
 def _get_z_spacing(image) -> float:
@@ -106,8 +122,6 @@ def tile_from_ome_image(
         image.pixels.size_t,
     )
 
-    channel_names = _get_channel_names(image)
-
     physical_size_x = scale_xy or image.pixels.physical_size_x or 1
     physical_size_y = scale_xy or image.pixels.physical_size_y or 1
     physical_size_z = scale_z or _get_z_spacing(image)
@@ -115,8 +129,13 @@ def tile_from_ome_image(
     if physical_size_x != physical_size_y:
         raise ValueError("Physical size x and y are not equal. This is not supported.")
 
-    length_x_physical = physical_size_x * image.pixels.size_x
-    length_y_physical = physical_size_y * image.pixels.size_y
+    pixel_size = PixelSize(
+        x=physical_size_x,
+        y=physical_size_y,
+        z=physical_size_z,
+    )
+    length_x_physical = pixel_size.x * image.pixels.size_x
+    length_y_physical = pixel_size.y * image.pixels.size_y
 
     # find top_l point
     for plane in image.pixels.planes:
@@ -137,7 +156,7 @@ def tile_from_ome_image(
             y = plane.position_y or 0
             x += length_x_physical
             y += length_y_physical
-            z = size_z * physical_size_z
+            z = size_z * pixel_size.z
             bot_r = Point(x=x, y=y, z=z, t=size_t, c=size_c)
 
     tiff_loader = TiffLoader(
@@ -154,11 +173,9 @@ def tile_from_ome_image(
     tile = Tile.from_points(
         top_l,
         bot_r,
+        pixel_size=pixel_size,
         origin=origin,
         data_loader=tiff_loader,
-        channel_names=channel_names,
-        xy_scale=physical_size_x,
-        z_scale=physical_size_z,
     )
     return tile
 
@@ -180,8 +197,10 @@ def extract_well_position_id(s: str) -> tuple[int, int]:
 def parse_scanr_metadata(
     data_dir: Path,
     acq_id: int,
+    plate_name: str,
     plate_layout: str = "96-well",
     channel_names: list[str] | None = None,
+    channel_wavelengths: list[str] | None = None,
     num_levels: int = 1,
 ) -> dict[str, TiledImage]:
     """Parse ScanR metadata and return a dictionary of TiledImages."""
@@ -189,6 +208,14 @@ def parse_scanr_metadata(
     if not metadata_path.exists():
         raise FileNotFoundError(f"Metadata file not found: {metadata_path}")
     meta = from_xml(metadata_path)
+
+    channel_names = _get_channel_names(meta.images[0], default_channels=channel_names)
+    if channel_wavelengths is not None:
+        if len(channel_names) != len(channel_wavelengths):
+            raise ValueError(
+                "Number of channels in the OME metadata does not match "
+                "the number of channel wavelengths."
+            )
 
     tiled_images = {}
     for image in meta.images:
@@ -200,15 +227,18 @@ def parse_scanr_metadata(
         if well_acq_id not in tiled_images:
             row, column = get_row_column(well_id, plate_layout)
             name = image.name if image.name else f"{well_id}/{pos_id}"
-            tiled_images[well_acq_id] = TiledImage(
-                name=name,
+            plate_path_builder = PlatePathBuilder(
+                plate_name=plate_name,
                 row=row,
                 column=column,
                 acquisition_id=acq_id,
-                tiles=[tile],
+            )
+            tiled_images[well_acq_id] = TiledImage(
+                name=name,
+                path_builder=plate_path_builder,
                 channel_names=channel_names,
+                wavelength_ids=channel_wavelengths,
                 num_levels=num_levels,
             )
-        else:
-            tiled_images[well_acq_id].tiles.append(tile)
+        tiled_images[well_acq_id].add_tile(tile)
     return tiled_images

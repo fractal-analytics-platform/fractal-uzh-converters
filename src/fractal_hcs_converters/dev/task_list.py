@@ -16,6 +16,6 @@ TASK_LIST = [
             "ScanR",
             "Plate converter",
         ],
-        docs_info="file:docs_info/scanr_task.md"
+        docs_info="file:docs_info/scanr_task.md",
     )
 ]

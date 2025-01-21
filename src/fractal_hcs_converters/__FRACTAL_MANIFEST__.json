@@ -10,6 +10,7 @@
         "ScanR",
         "Plate converter"
       ],
+      "docs_info": "### Purpose\n\n- Convert images acquired with an Olympus ScanR microscope to a OME-Zarr Plate.\n\n### Outputs\n\n- A OME-Zarr Plate.\n\n### Limitations\n\n- This task has been tested on a limited set of acquisitions. It may not work on all Olympus ScanR acquisitions.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\n/plate_dir/\n----/data/\n--------/metadata.ome.xml\n--------/B2--W00014--P00001--Z00000--T00000--DAPi.tif\n--------/B2--W00014--P00001--Z00000--T00000--TRITC.tif\n--------/...\n```\n",
       "executable_non_parallel": "olympus_scanr/convert_scanr_init_task.py",
       "executable_parallel": "olympus_scanr/convert_scanr_compute_task.py",
       "meta_non_parallel": {
@@ -29,15 +30,13 @@
                 "title": "Path",
                 "type": "string"
               },
-              "acquisition_id": {
-                "minimum": 0,
-                "title": "Acquisition Id",
-                "type": "integer"
+              "plate_name": {
+                "title": "Plate Name",
+                "type": "string"
               }
             },
             "required": [
-              "path",
-              "acquisition_id"
+              "path"
             ],
             "title": "AcquisitionInputModel",
             "type": "object"
@@ -126,26 +125,6 @@
       },
       "args_schema_parallel": {
         "$defs": {
-          "AcquisitionInputModel": {
-            "description": "Acquisition metadata.",
-            "properties": {
-              "path": {
-                "title": "Path",
-                "type": "string"
-              },
-              "acquisition_id": {
-                "minimum": 0,
-                "title": "Acquisition Id",
-                "type": "integer"
-              }
-            },
-            "required": [
-              "path",
-              "acquisition_id"
-            ],
-            "title": "AcquisitionInputModel",
-            "type": "object"
-          },
           "AdvancedOptions": {
             "description": "Advanced options for the conversion.",
             "properties": {
@@ -182,16 +161,8 @@
           "ConvertScanrInitArgs": {
             "description": "Arguments for the compute task.",
             "properties": {
-              "acquision": {
-                "$ref": "#/$defs/AcquisitionInputModel",
-                "title": "Acquision"
-              },
-              "plate_name": {
-                "title": "Plate Name",
-                "type": "string"
-              },
-              "tiled_image_id": {
-                "title": "Tiled Image Id",
+              "tiled_image_pickled_path": {
+                "title": "Tiled Image Pickled Path",
                 "type": "string"
               },
               "advanced_options": {
@@ -200,9 +171,7 @@
               }
             },
             "required": [
-              "acquision",
-              "plate_name",
-              "tiled_image_id"
+              "tiled_image_pickled_path"
             ],
             "title": "ConvertScanrInitArgs",
             "type": "object"
@@ -227,8 +196,7 @@
         ],
         "type": "object",
         "title": "ConvertScanrComputeTask"
-      },
-      "docs_info": "## convert_scanr_init_task\nInitialize the task to convert a ScanR dataset to OME-Zarr.\n## convert_scanr_compute_task\nInitialize the task to convert a LIF plate to OME-Zarr.\n"
+      }
     }
   ],
   "has_args_schemas": true,
