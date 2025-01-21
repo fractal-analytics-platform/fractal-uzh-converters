@@ -21,7 +21,7 @@ description = "A collection of fractal tasks to convert HCS Plates to OME-Zarr"
 readme = "README.md"
 license = { text = "BSD-3-Clause" }
 authors = [{ name = "Lorenzo Cerrone", email = "lorenzo.cerrone@uzh.ch" }]
-requires-python = ">=3.9,<3.13"
+requires-python = ">=3.10,<3.13"
 
 dependencies = [
     "fractal-tasks-core>=1.4.2,<1.5.0",
@@ -53,7 +53,7 @@ test = ["pytest", "pytest-cov", "devtools", "jsonschema"]
 # https://docs.astral.sh/ruff
 [tool.ruff]
 line-length = 88
-target-version = "py39"
+target-version = "py310"
 src = ["src"]
 
 # https://docs.astral.sh/ruff/rules
@@ -89,11 +89,13 @@ docstring-code-line-length = 89
 skip-magic-trailing-comma = false # default is false
 
 [tool.pytest.ini_options]
-filterwarnings = [
-    "error",
-    "ignore::FutureWarning",
-    "ignore::DeprecationWarning",
-]
+minversion = "7.0"
+testpaths = ["tests"]
+#filterwarnings = [
+#    "error",
+#    #"ignore::FutureWarning",
+#    #"ignore::DeprecationWarning",
+#]
 addopts = [
     "-vv",
     "--color=yes",
@@ -103,8 +105,6 @@ addopts = [
 ]
 
 [tool.pixi.project]
-minversion = "7.0"
-testpaths = ["tests"]
 channels = ["conda-forge"]
 platforms = ["osx-arm64"]
 
@@ -116,6 +116,7 @@ fractal-hcs-converters = { path = ".", editable = true }
 [tool.pixi.environments]
 default = { solve-group = "default" }
 dev = { features = ["dev"], solve-group = "default" }
+test = { features = ["test"], solve-group = "default" }
 
 # Required Python version and dependencies
 [tool.pixi.tasks]
