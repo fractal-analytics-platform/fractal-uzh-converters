@@ -34,7 +34,7 @@ jobs:
           cache: "pip"
 
       - name: Install package
-        run: python -m pip install -e .[dev]
+        run: python -m pip install -e .[test]
 
       - name: Regenerate the manifest
         run: python src/fractal_hcs_converters/dev/create_manifest.py
