@@ -50,6 +50,13 @@ jobs:
 
       - name: Test core library with pytest
         run: python -m pytest tests
+
+      - name: Coverage
+        if: matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest'
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: /home/runner/work/fractal-hcs-converters/fractal-hcs-converters/coverage.xml
   
   deploy:
     name: Deploy
