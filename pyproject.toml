@@ -48,7 +48,7 @@ dev = [
     "ruff",
     "pre-commit",
 ]
-test = ["pytest", "pytest-cov", "devtools"]
+test = ["pytest", "pytest-cov", "devtools", "jsonschema"]
 
 # https://docs.astral.sh/ruff
 [tool.ruff]
