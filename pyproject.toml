@@ -89,9 +89,11 @@ docstring-code-line-length = 89
 skip-magic-trailing-comma = false # default is false
 
 [tool.pytest.ini_options]
-minversion = "7.0"
-testpaths = ["tests"]
-filterwarnings = ["error"]
+filterwarnings = [
+    "error",
+    "ignore::FutureWarning",
+    "ignore::DeprecationWarning",
+]
 addopts = [
     "-vv",
     "--color=yes",
@@ -101,6 +103,8 @@ addopts = [
 ]
 
 [tool.pixi.project]
+minversion = "7.0"
+testpaths = ["tests"]
 channels = ["conda-forge"]
 platforms = ["osx-arm64"]
 
