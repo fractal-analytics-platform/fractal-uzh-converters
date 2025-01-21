@@ -14,10 +14,18 @@ logger = logging.getLogger(__name__)
 
 
 class AcquisitionInputModel(BaseModel):
-    """Acquisition metadata."""
+    """Acquisition metadata.
+
+    Args:
+        path (str): Path to the acquisition directory.
+        plate_name (Optional[str]): Custom name for the plate.
+        acquisition_id (int): Acquisition ID,
+            used to identify the acquisition in case of multiple acquisitions.
+    """
 
     path: str
-    plate_name: str | None = None
+    plate_name: Optional[str] = None
+    acquisition_id: int = Field(default=0, ge=0)
 
 
 class AdvancedOptions(BaseModel):
@@ -56,7 +64,6 @@ def convert_scanr_init_task(
     zarr_dir: str,
     # Task parameters
     list_acq: list[AcquisitionInputModel],
-    plate_name: Optional[str] = None,
     overwrite: bool = False,
     advanced_options: AdvancedOptions = Field(default_factory=AdvancedOptions),  # noqa: B008
 ):
@@ -79,21 +86,15 @@ def convert_scanr_init_task(
         logger.info(f"Creating directory: {zarr_dir}")
         zarr_dir.mkdir(parents=True)
 
-    if plate_name is None:
-        plate_name = Path(list_acq[0].path).stem
-        logger.info(
-            f"No plate name provided. Using the first acquisition name {plate_name}"
-        )
-
     # prepare the parallel list of zarr urls
     tiled_images, parallelization_list = [], []
     for acq in list_acq:
         acq_path = Path(acq.path)
-        plate_name = acq.plate_name
-        if plate_name is None:
-            plate_name = acq_path.stem
+        plate_name = acq_path.stem if acq.plate_name is None else acq.plate_name
 
-        _tiled_images = parse_scanr_metadata(acq_path, acq_id=0, plate_name=plate_name)
+        _tiled_images = parse_scanr_metadata(
+            acq_path, acq_id=acq.acquisition_id, plate_name=plate_name
+        )
 
         if not _tiled_images:
             logger.warning(f"No images found in {acq_path}")
