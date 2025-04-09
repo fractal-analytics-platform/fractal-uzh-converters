@@ -1,6 +1,20 @@
 """Contains the list of tasks available to fractal."""
 
-from fractal_tasks_core.dev.task_models import CompoundTask
+from fractal_task_tools.task_models import CompoundTask
+
+AUTHORS = "Lorenzo Cerrone"
+INPUT_MODELS = [
+    (
+        "fractal_hcs_converters",
+        "olympus_scanr/convert_scanr_init_task.py",
+        "AcquisitionInputModel",
+    ),
+    (
+        "fractal_hcs_converters",
+        "olympus_scanr/convert_scanr_init_task.py",
+        "AdvancedOptions",
+    ),
+]
 
 TASK_LIST = [
     CompoundTask(

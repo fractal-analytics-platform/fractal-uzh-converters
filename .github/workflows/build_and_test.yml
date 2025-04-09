@@ -37,16 +37,7 @@ jobs:
         run: python -m pip install -e .[test]
 
       - name: Regenerate the manifest
-        run: python src/fractal_hcs_converters/dev/create_manifest.py
-
-      - name: Check if manifest has changed
-        run: |
-          if [ -n "$(git diff --exit-code ./src/fractal_hcs_converters/__FRACTAL_MANIFEST__.json)" ]; then
-          echo "__FRACTAL_MANIFEST__.json has changed. Please run 'python src/fractal_hcs_converters/dev/create_manifest.py' and commit the changes."
-            exit 1
-          else
-            echo "__FRACTAL_MANIFEST__.json has not changed."
-          fi
+        run: fractal-manifest check --package fractal-hcs-converters
 
       - name: Test core library with pytest
         run: python -m pytest tests

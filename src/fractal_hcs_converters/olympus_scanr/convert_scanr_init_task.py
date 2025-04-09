@@ -3,7 +3,7 @@
 import logging
 import pickle
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Literal
 
 from fractal_converters_tools.omezarr_plate_writers import initiate_ome_zarr_plates
 from pydantic import BaseModel, Field, validate_call
@@ -27,7 +27,7 @@ class AcquisitionInputModel(BaseModel):
     """
 
     path: str
-    plate_name: Optional[str] = None
+    plate_name: str | None = None
     acquisition_id: int = Field(default=0, ge=0)
 
 
@@ -145,6 +145,6 @@ def convert_scanr_init_task(
 
 
 if __name__ == "__main__":
-    from fractal_tasks_core.tasks._utils import run_fractal_task
+    from fractal_task_tools.task_wrapper import run_fractal_task
 
     run_fractal_task(task_function=convert_scanr_init_task, logger_name=logger.name)
