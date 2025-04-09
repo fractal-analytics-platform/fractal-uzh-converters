@@ -11,6 +11,7 @@
         "Plate converter"
       ],
       "docs_info": "### Purpose\n\n- Convert images acquired with an Olympus ScanR microscope to a OME-Zarr Plate.\n\n### Outputs\n\n- A OME-Zarr Plate.\n\n### Limitations\n\n- This task has been tested on a limited set of acquisitions. It may not work on all Olympus ScanR acquisitions.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\n/plate_dir/\n----/data/\n--------/metadata.ome.xml\n--------/B2--W00014--P00001--Z00000--T00000--DAPi.tif\n--------/B2--W00014--P00001--Z00000--T00000--TRITC.tif\n--------/...\n```\n",
+      "type": "converter_compound",
       "executable_non_parallel": "olympus_scanr/convert_scanr_init_task.py",
       "executable_parallel": "olympus_scanr/convert_scanr_compute_task.py",
       "meta_non_parallel": {
@@ -90,14 +91,6 @@
         },
         "additionalProperties": false,
         "properties": {
-          "zarr_urls": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Zarr Urls",
-            "type": "array",
-            "description": "List of Zarr URLs."
-          },
           "zarr_dir": {
             "title": "Zarr Dir",
             "type": "string",
@@ -134,7 +127,6 @@
           }
         },
         "required": [
-          "zarr_urls",
           "zarr_dir",
           "acquisitions"
         ],
