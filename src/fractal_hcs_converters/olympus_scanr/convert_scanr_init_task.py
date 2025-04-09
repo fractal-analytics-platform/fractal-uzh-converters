@@ -134,7 +134,7 @@ def convert_scanr_init_task(
     logger.info(f"Total {len(parallelization_list)} images to convert.")
 
     initiate_ome_zarr_plates(
-        store=zarr_dir,
+        zarr_dir=zarr_dir,
         tiled_images=tiled_images,
         overwrite=overwrite,
     )
