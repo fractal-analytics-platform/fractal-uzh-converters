@@ -23,7 +23,6 @@ def test_base_workflow(tmp_path):
     test_data = Path(__file__).parent / "data" / "scanr" / "1w_1p_1c_1z_1t"
 
     p_list = convert_scanr_init_task(
-        zarr_urls=[],
         zarr_dir=str(zarr_dir),
         acquisitions=[
             AcquisitionInputModel(
@@ -59,7 +58,6 @@ def test_base_workflow(tmp_path):
 
     with pytest.raises(FileExistsError):
         p_list = convert_scanr_init_task(
-            zarr_urls=[],
             zarr_dir=str(zarr_dir),
             acquisitions=[
                 AcquisitionInputModel(
