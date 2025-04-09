@@ -66,7 +66,6 @@ class ConvertScanrInitArgs(BaseModel):
 def convert_scanr_init_task(
     *,
     # Fractal parameters
-    zarr_urls: list[str],
     zarr_dir: str,
     # Task parameters
     acquisitions: list[AcquisitionInputModel],
@@ -76,7 +75,6 @@ def convert_scanr_init_task(
     """Initialize the task to convert a ScanR dataset to OME-Zarr.
 
     Args:
-        zarr_urls (list[str]): List of Zarr URLs.
         zarr_dir (str): Directory to store the Zarr files.
         acquisitions (list[AcquisitionInputModel]): List of raw acquisitions to convert
             to OME-Zarr.
