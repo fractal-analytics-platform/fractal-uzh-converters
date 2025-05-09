@@ -2,7 +2,6 @@
 
 import logging
 from pathlib import Path
-from typing import Optional
 
 from fractal_converters_tools.omezarr_plate_writers import initiate_ome_zarr_plates
 from fractal_converters_tools.task_common_models import AdvancedComputeOptions
@@ -28,7 +27,7 @@ class AcquisitionInputModel(BaseModel):
     """
 
     path: str
-    plate_name: Optional[str] = None  # noqa: UP007 (required by fractal_dev_tools)
+    plate_name: str | None = None
     acquisition_id: int = Field(default=0, ge=0)
 
 
