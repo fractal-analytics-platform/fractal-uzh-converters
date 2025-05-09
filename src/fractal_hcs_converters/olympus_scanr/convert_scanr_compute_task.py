@@ -73,6 +73,6 @@ def convert_scanr_compute_task(
 
 
 if __name__ == "__main__":
-    from fractal_tasks_core.tasks._utils import run_fractal_task
+    from fractal_task_tools.task_wrapper import run_fractal_task
 
     run_fractal_task(task_function=convert_scanr_compute_task, logger_name=logger.name)
