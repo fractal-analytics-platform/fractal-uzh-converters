@@ -24,14 +24,14 @@ authors = [{ name = "Lorenzo Cerrone", email = "lorenzo.cerrone@uzh.ch" }]
 requires-python = ">=3.10,<3.13"
 
 dependencies = [
-    "fractal-tasks-core>=1.4.2,<1.5.0",
-    "ngio>=0.1.5,<0.2",
-    "fractal-converters-tools >= 0.3.0,<0.4.0",
+    "fractal-converters-tools >= 0.5.0,<0.6.0",
+    "fractal-task-tools",
     "tqdm",
     "tifffile",
     "ome_types",
     "scikit-image",
     "dask==2024.11.2",
+    "lxml",
 ]
 
 # Optional dependencies (e.g. for `pip install -e ".[dev]"`, see
@@ -47,6 +47,7 @@ dev = [
     "jsonschema",
     "ruff",
     "pre-commit",
+    "pytest-cov",
 ]
 test = ["pytest", "pytest-cov", "devtools", "jsonschema"]
 

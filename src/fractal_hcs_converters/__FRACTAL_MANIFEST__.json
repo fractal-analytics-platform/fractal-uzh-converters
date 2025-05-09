@@ -11,6 +11,7 @@
         "Plate converter"
       ],
       "docs_info": "### Purpose\n\n- Convert images acquired with an Olympus ScanR microscope to a OME-Zarr Plate.\n\n### Outputs\n\n- A OME-Zarr Plate.\n\n### Limitations\n\n- This task has been tested on a limited set of acquisitions. It may not work on all Olympus ScanR acquisitions.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\n/plate_dir/\n----/data/\n--------/metadata.ome.xml\n--------/B2--W00014--P00001--Z00000--T00000--DAPi.tif\n--------/B2--W00014--P00001--Z00000--T00000--TRITC.tif\n--------/...\n```\n",
+      "type": "converter_compound",
       "executable_non_parallel": "olympus_scanr/convert_scanr_init_task.py",
       "executable_parallel": "olympus_scanr/convert_scanr_compute_task.py",
       "meta_non_parallel": {
@@ -50,9 +51,16 @@
             "title": "AcquisitionInputModel",
             "type": "object"
           },
-          "AdvancedOptions": {
+          "AdvancedComputeOptions": {
             "description": "Advanced options for the conversion.",
             "properties": {
+              "num_levels": {
+                "default": 5,
+                "minimum": 1,
+                "title": "Num Levels",
+                "type": "integer",
+                "description": "The number of resolution levels in the pyramid."
+              },
               "tiling_mode": {
                 "default": "auto",
                 "enum": [
@@ -63,7 +71,7 @@
                 ],
                 "title": "Tiling Mode",
                 "type": "string",
-                "description": "Specify the tiling mode. \"auto\" will automatically determine the tiling mode. \"grid\" if the input data is a grid, it will be tiled using snap-to-grid. \"free\" will remove any overlap between tiles using a snap-to-corner approach."
+                "description": "Specify the tiling mode. \"auto\" will automatically determine the tiling mode. \"grid\" if the input data is a grid, it will be tiled using snap-to-grid. \"free\" will remove any overlap between tiles using a snap-to-corner approach. \"none\" will write the positions as is, using the microscope metadata."
               },
               "swap_xy": {
                 "default": false,
@@ -82,22 +90,42 @@
                 "title": "Invert Y",
                 "type": "boolean",
                 "description": "Invert y axis coordinates in the metadata. This is sometimes necessary to ensure correct image tiling and registration."
+              },
+              "max_xy_chunk": {
+                "default": 4096,
+                "minimum": 1,
+                "title": "Max Xy Chunk",
+                "type": "integer",
+                "description": "XY chunk size is set as the minimum of this value and the microscope tile size."
+              },
+              "z_chunk": {
+                "default": 10,
+                "minimum": 1,
+                "title": "Z Chunk",
+                "type": "integer",
+                "description": "Z chunk size."
+              },
+              "c_chunk": {
+                "default": 1,
+                "minimum": 1,
+                "title": "C Chunk",
+                "type": "integer",
+                "description": "C chunk size."
+              },
+              "t_chunk": {
+                "default": 1,
+                "minimum": 1,
+                "title": "T Chunk",
+                "type": "integer",
+                "description": "T chunk size."
               }
             },
-            "title": "AdvancedOptions",
+            "title": "AdvancedComputeOptions",
             "type": "object"
           }
         },
         "additionalProperties": false,
         "properties": {
-          "zarr_urls": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Zarr Urls",
-            "type": "array",
-            "description": "List of Zarr URLs."
-          },
           "zarr_dir": {
             "title": "Zarr Dir",
             "type": "string",
@@ -118,23 +146,23 @@
             "description": "Overwrite existing Zarr files."
           },
           "advanced_options": {
-            "allOf": [
-              {
-                "$ref": "#/$defs/AdvancedOptions"
-              }
-            ],
+            "$ref": "#/$defs/AdvancedComputeOptions",
             "default": {
+              "num_levels": 5,
               "tiling_mode": "auto",
               "swap_xy": false,
               "invert_x": false,
-              "invert_y": false
+              "invert_y": false,
+              "max_xy_chunk": 4096,
+              "z_chunk": 10,
+              "c_chunk": 1,
+              "t_chunk": 1
             },
             "title": "Advanced Options",
             "description": "Advanced options for the conversion."
           }
         },
         "required": [
-          "zarr_urls",
           "zarr_dir",
           "acquisitions"
         ],
@@ -143,9 +171,16 @@
       },
       "args_schema_parallel": {
         "$defs": {
-          "AdvancedOptions": {
+          "AdvancedComputeOptions": {
             "description": "Advanced options for the conversion.",
             "properties": {
+              "num_levels": {
+                "default": 5,
+                "minimum": 1,
+                "title": "Num Levels",
+                "type": "integer",
+                "description": "The number of resolution levels in the pyramid."
+              },
               "tiling_mode": {
                 "default": "auto",
                 "enum": [
@@ -156,7 +191,7 @@
                 ],
                 "title": "Tiling Mode",
                 "type": "string",
-                "description": "Specify the tiling mode. \"auto\" will automatically determine the tiling mode. \"grid\" if the input data is a grid, it will be tiled using snap-to-grid. \"free\" will remove any overlap between tiles using a snap-to-corner approach."
+                "description": "Specify the tiling mode. \"auto\" will automatically determine the tiling mode. \"grid\" if the input data is a grid, it will be tiled using snap-to-grid. \"free\" will remove any overlap between tiles using a snap-to-corner approach. \"none\" will write the positions as is, using the microscope metadata."
               },
               "swap_xy": {
                 "default": false,
@@ -175,9 +210,37 @@
                 "title": "Invert Y",
                 "type": "boolean",
                 "description": "Invert y axis coordinates in the metadata. This is sometimes necessary to ensure correct image tiling and registration."
+              },
+              "max_xy_chunk": {
+                "default": 4096,
+                "minimum": 1,
+                "title": "Max Xy Chunk",
+                "type": "integer",
+                "description": "XY chunk size is set as the minimum of this value and the microscope tile size."
+              },
+              "z_chunk": {
+                "default": 10,
+                "minimum": 1,
+                "title": "Z Chunk",
+                "type": "integer",
+                "description": "Z chunk size."
+              },
+              "c_chunk": {
+                "default": 1,
+                "minimum": 1,
+                "title": "C Chunk",
+                "type": "integer",
+                "description": "C chunk size."
+              },
+              "t_chunk": {
+                "default": 1,
+                "minimum": 1,
+                "title": "T Chunk",
+                "type": "integer",
+                "description": "T chunk size."
               }
             },
-            "title": "AdvancedOptions",
+            "title": "AdvancedComputeOptions",
             "type": "object"
           },
           "ConvertScanrInitArgs": {
@@ -188,7 +251,7 @@
                 "type": "string"
               },
               "advanced_options": {
-                "$ref": "#/$defs/AdvancedOptions",
+                "$ref": "#/$defs/AdvancedComputeOptions",
                 "title": "Advanced_Options"
               }
             },
@@ -218,11 +281,10 @@
         ],
         "type": "object",
         "title": "ConvertScanrComputeTask"
-      },
-      "docs_link": "https://github.com/fractal-analytics-platform/fractal-hcs-converters"
+      }
     }
   ],
   "has_args_schemas": true,
   "args_schema_version": "pydantic_v2",
-  "authors": "Lorenzo Cerrone"
+  "authors": "Fractal Core Team"
 }
