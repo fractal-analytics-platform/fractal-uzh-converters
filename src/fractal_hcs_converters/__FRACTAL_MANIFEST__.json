@@ -243,22 +243,28 @@
             "title": "AdvancedComputeOptions",
             "type": "object"
           },
-          "ConvertScanrInitArgs": {
+          "ConvertParallelInitArgs": {
             "description": "Arguments for the compute task.",
             "properties": {
               "tiled_image_pickled_path": {
                 "title": "Tiled Image Pickled Path",
                 "type": "string"
               },
-              "advanced_options": {
+              "overwrite": {
+                "title": "Overwrite",
+                "type": "boolean"
+              },
+              "advanced_compute_options": {
                 "$ref": "#/$defs/AdvancedComputeOptions",
-                "title": "Advanced_Options"
+                "title": "Advanced_Compute_Options"
               }
             },
             "required": [
-              "tiled_image_pickled_path"
+              "tiled_image_pickled_path",
+              "overwrite",
+              "advanced_compute_options"
             ],
-            "title": "ConvertScanrInitArgs",
+            "title": "ConvertParallelInitArgs",
             "type": "object"
           }
         },
@@ -270,9 +276,9 @@
             "description": "URL to the OME-Zarr file."
           },
           "init_args": {
-            "$ref": "#/$defs/ConvertScanrInitArgs",
+            "$ref": "#/$defs/ConvertParallelInitArgs",
             "title": "Init Args",
-            "description": "Arguments for the initialization task."
+            "description": "Arguments for the compute task."
           }
         },
         "required": [
