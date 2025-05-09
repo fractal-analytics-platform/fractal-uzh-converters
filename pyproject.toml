@@ -29,9 +29,8 @@ dependencies = [
     "tqdm",
     "tifffile",
     "ome_types",
-    "scikit-image",
     "dask==2024.11.2",
-    "lxml",
+    "lxml",                                     # hidden dep of ome_types
 ]
 
 # Optional dependencies (e.g. for `pip install -e ".[dev]"`, see
