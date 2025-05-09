@@ -1,9 +1,24 @@
 """Contains the list of tasks available to fractal."""
 
-from fractal_tasks_core.dev.task_models import CompoundTask
+from fractal_task_tools.task_models import ConverterCompoundTask
+
+AUTHORS = "Fractal Core Team"
+DOCS_LINK = None
+INPUT_MODELS = [
+    (
+        "fractal_hcs_converters",
+        "olympus_scanr/convert_scanr_init_task.py",
+        "AcquisitionInputModel",
+    ),
+    (
+        "fractal_converters_tools",
+        "task_common_models.py",
+        "AdvancedComputeOptions",
+    ),
+]
 
 TASK_LIST = [
-    CompoundTask(
+    ConverterCompoundTask(
         name="Convert Olympus ScanR Plate to OME-Zarr",
         executable_init="olympus_scanr/convert_scanr_init_task.py",
         executable="olympus_scanr/convert_scanr_compute_task.py",

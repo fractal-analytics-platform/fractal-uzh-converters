@@ -17,7 +17,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-22.04, macos-latest]
-        python-version: ["3.10", "3.12"]
+        python-version: ["3.11", "3.12"]
     name: "Core, Python ${{ matrix.python-version }}, ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
@@ -36,17 +36,8 @@ jobs:
       - name: Install package
         run: python -m pip install -e .[test]
 
-      - name: Regenerate the manifest
-        run: python src/fractal_hcs_converters/dev/create_manifest.py
-
-      - name: Check if manifest has changed
-        run: |
-          if [ -n "$(git diff --exit-code ./src/fractal_hcs_converters/__FRACTAL_MANIFEST__.json)" ]; then
-          echo "__FRACTAL_MANIFEST__.json has changed. Please run 'python src/fractal_hcs_converters/dev/create_manifest.py' and commit the changes."
-            exit 1
-          else
-            echo "__FRACTAL_MANIFEST__.json has not changed."
-          fi
+      - name: Check if manifest is up to date
+        run: fractal-manifest check --package fractal_hcs_converters
 
       - name: Test core library with pytest
         run: python -m pytest tests

@@ -1,11 +1,11 @@
 """ScanR to OME-Zarr conversion task initialization."""
 
 import logging
-import pickle
 from pathlib import Path
-from typing import Literal, Optional
 
 from fractal_converters_tools.omezarr_plate_writers import initiate_ome_zarr_plates
+from fractal_converters_tools.task_common_models import AdvancedComputeOptions
+from fractal_converters_tools.task_init_tools import build_parallelization_list
 from pydantic import BaseModel, Field, validate_call
 
 from fractal_hcs_converters.olympus_scanr.utils import parse_scanr_metadata
@@ -27,51 +27,28 @@ class AcquisitionInputModel(BaseModel):
     """
 
     path: str
-    plate_name: Optional[str] = None
+    plate_name: str | None = None
     acquisition_id: int = Field(default=0, ge=0)
-
-
-class AdvancedOptions(BaseModel):
-    """Advanced options for the conversion.
-
-    Attributes:
-        tiling_mode (Literal["auto", "grid", "free", "none"]): Specify the tiling mode.
-            "auto" will automatically determine the tiling mode.
-            "grid" if the input data is a grid, it will be tiled using snap-to-grid.
-            "free" will remove any overlap between tiles using a snap-to-corner
-            approach.
-        swap_xy (bool): Swap x and y axes coordinates in the metadata. This is sometimes
-            necessary to ensure correct image tiling and registration.
-        invert_x (bool): Invert x axis coordinates in the metadata. This is
-            sometimes necessary to ensure correct image tiling and registration.
-        invert_y (bool): Invert y axis coordinates in the metadata. This is
-            sometimes necessary to ensure correct image tiling and registration.
-
-    """
-
-    tiling_mode: Literal["auto", "grid", "free", "none"] = "auto"
-    swap_xy: bool = False
-    invert_x: bool = False
-    invert_y: bool = False
 
 
 class ConvertScanrInitArgs(BaseModel):
     """Arguments for the compute task."""
 
     tiled_image_pickled_path: str
-    advanced_options: AdvancedOptions = Field(default_factory=AdvancedOptions)
+    advanced_options: AdvancedComputeOptions = Field(
+        default_factory=AdvancedComputeOptions
+    )
 
 
 @validate_call
 def convert_scanr_init_task(
     *,
     # Fractal parameters
-    zarr_urls: list[str],
     zarr_dir: str,
     # Task parameters
     acquisitions: list[AcquisitionInputModel],
     overwrite: bool = False,
-    advanced_options: AdvancedOptions = AdvancedOptions(),  # noqa: B008
+    advanced_options: AdvancedComputeOptions = AdvancedComputeOptions(),  # noqa: B008
 ):
     """Initialize the task to convert a ScanR dataset to OME-Zarr.
 
@@ -86,14 +63,14 @@ def convert_scanr_init_task(
     if not acquisitions:
         raise ValueError("No acquisitions provided.")
 
-    zarr_dir = Path(zarr_dir)
+    zarr_dir_path = Path(zarr_dir)
 
-    if not zarr_dir.exists():
-        logger.info(f"Creating directory: {zarr_dir}")
-        zarr_dir.mkdir(parents=True)
+    if not zarr_dir_path.exists():
+        logger.info(f"Creating directory: {zarr_dir_path}")
+        zarr_dir_path.mkdir(parents=True)
 
     # prepare the parallel list of zarr urls
-    tiled_images, parallelization_list = [], []
+    tiled_images = []
     for acq in acquisitions:
         acq_path = Path(acq.path)
         plate_name = acq_path.stem if acq.plate_name is None else acq.plate_name
@@ -106,45 +83,29 @@ def convert_scanr_init_task(
             logger.warning(f"No images found in {acq_path}")
             continue
 
-        logger.info(f"Found {len(_tiled_images)} images in {acq_path})")
-        for tile_id, tiled_image in _tiled_images.items():
-            # pickle the tiled_image
-            tile_id_pickle_path = (
-                zarr_dir
-                / f"_tmp_{tiled_image.path_builder.plate_path}"
-                / f"{tile_id}.pickle"
-            )
-            tile_id_pickle_path.parent.mkdir(parents=True, exist_ok=True)
-
-            with open(tile_id_pickle_path, "wb") as f:
-                pickle.dump(tiled_image, f)
-
-            parallelization_list.append(
-                {
-                    "zarr_url": str(zarr_dir),
-                    "init_args": ConvertScanrInitArgs(
-                        tiled_image_pickled_path=str(tile_id_pickle_path),
-                        advanced_options=advanced_options,
-                    ).model_dump(),
-                }
-            )
         tiled_images.extend(list(_tiled_images.values()))
 
     if not tiled_images:
         raise ValueError("No images found in the acquisitions.")
 
+    parallelization_list = build_parallelization_list(
+        zarr_dir=zarr_dir_path,
+        tiled_images=tiled_images,
+        overwrite=overwrite,
+        advanced_compute_options=advanced_options,
+    )
     logger.info(f"Total {len(parallelization_list)} images to convert.")
 
     initiate_ome_zarr_plates(
-        store=zarr_dir,
+        zarr_dir=zarr_dir_path,
         tiled_images=tiled_images,
         overwrite=overwrite,
     )
-    logger.info(f"Initialized OME-Zarr Plate at: {zarr_dir}")
+    logger.info(f"Initialized OME-Zarr Plate at: {zarr_dir_path}")
     return {"parallelization_list": parallelization_list}
 
 
 if __name__ == "__main__":
-    from fractal_tasks_core.tasks._utils import run_fractal_task
+    from fractal_task_tools.task_wrapper import run_fractal_task
 
     run_fractal_task(task_function=convert_scanr_init_task, logger_name=logger.name)

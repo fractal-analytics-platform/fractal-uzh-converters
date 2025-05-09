@@ -9,7 +9,7 @@ import numpy as np
 from fractal_converters_tools.microplate_utils import get_row_column
 from fractal_converters_tools.tile import OriginDict, Point, Tile
 from fractal_converters_tools.tiled_image import PlatePathBuilder, TiledImage
-from ngio.ngff_meta.fractal_image_meta import PixelSize
+from ngio import PixelSize
 from ome_types import from_xml
 from tifffile import imread
 
@@ -26,11 +26,11 @@ class TiffLoader:
         self.shapes = shapes
 
     @property
-    def dtype(self) -> np.dtype:
+    def dtype(self) -> "str":
         """Return the dtype of the tiff files."""
         first_acq = self.image.pixels.tiff_data_blocks[0]
         im = imread(self.data_dir / first_acq.uuid.file_name)
-        return im.dtype
+        return str(im.dtype)
 
     def load(self) -> np.ndarray:
         """Return the full tile."""
@@ -138,6 +138,10 @@ def tile_from_ome_image(
     length_y_physical = pixel_size.y * image.pixels.size_y
 
     # find top_l point
+    top_l = None
+    bot_r = None
+    top_l_z_real = None
+    top_l_t_real = None
     for plane in image.pixels.planes:
         # find top_l point
         if plane.the_z == 0 and plane.the_c == 0 and plane.the_t == 0:
@@ -162,6 +166,13 @@ def tile_from_ome_image(
     tiff_loader = TiffLoader(
         image=image, data_dir=data_dir, shapes=_get_tiles_shapes(image)
     )
+
+    if top_l is None or top_l_t_real is None or top_l_z_real is None:
+        raise ValueError("Could not find top left point in the ScanR image metadata.")
+    if bot_r is None:
+        raise ValueError(
+            "Could not find bottom right point in the ScanR image metadata."
+        )
 
     origin = OriginDict(
         x_micrometer_original=top_l.x,
@@ -201,7 +212,6 @@ def parse_scanr_metadata(
     plate_layout: str = "96-well",
     channel_names: list[str] | None = None,
     channel_wavelengths: list[str] | None = None,
-    num_levels: int = 1,
 ) -> dict[str, TiledImage]:
     """Parse ScanR metadata and return a dictionary of TiledImages."""
     metadata_path = data_dir / "data" / "metadata.ome.xml"
@@ -238,7 +248,6 @@ def parse_scanr_metadata(
                 path_builder=plate_path_builder,
                 channel_names=channel_names,
                 wavelength_ids=channel_wavelengths,
-                num_levels=num_levels,
             )
         tiled_images[well_acq_id].add_tile(tile)
     return tiled_images

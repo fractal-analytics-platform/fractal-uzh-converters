@@ -2,10 +2,8 @@ import json
 from pathlib import Path
 
 import pytest
-from fractal_tasks_core.dev.lib_args_schemas import (
-    create_schema_for_single_task,
-)
-from fractal_tasks_core.dev.lib_signature_constraints import (
+from fractal_task_tools._args_schemas import create_schema_for_single_task
+from fractal_task_tools._signature_constraints import (
     _extract_function,
     _validate_function_signature,
 )
