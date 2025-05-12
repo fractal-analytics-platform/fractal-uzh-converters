@@ -26,6 +26,7 @@ requires-python = ">=3.11,<3.13"
 dependencies = [
     "fractal-converters-tools >= 0.5.0,<0.6.0",
     "fractal-task-tools==0.0.12",
+    "ngio>=0.2.7",
     "tqdm",
     "tifffile",
     "ome_types",

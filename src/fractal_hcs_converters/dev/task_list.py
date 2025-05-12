@@ -3,7 +3,7 @@
 from fractal_task_tools.task_models import ConverterCompoundTask
 
 AUTHORS = "Fractal Core Team"
-DOCS_LINK = None
+DOCS_LINK = "https://github.com/fractal-analytics-platform/fractal-hcs-converters"
 INPUT_MODELS = [
     (
         "fractal_hcs_converters",
