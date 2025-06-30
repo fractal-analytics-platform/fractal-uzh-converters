@@ -3,10 +3,10 @@ from pathlib import Path
 import pytest
 from ngio import open_ome_zarr_container
 
-from fractal_hcs_converters.olympus_scanr.convert_scanr_compute_task import (
+from fractal_uzh_converters.olympus_scanr.convert_scanr_compute_task import (
     convert_scanr_compute_task,
 )
-from fractal_hcs_converters.olympus_scanr.convert_scanr_init_task import (
+from fractal_uzh_converters.olympus_scanr.convert_scanr_init_task import (
     AcquisitionInputModel,
     convert_scanr_init_task,
 )

@@ -8,7 +8,7 @@ from fractal_converters_tools.task_common_models import AdvancedComputeOptions
 from fractal_converters_tools.task_init_tools import build_parallelization_list
 from pydantic import BaseModel, Field, validate_call
 
-from fractal_hcs_converters.olympus_scanr.utils import parse_scanr_metadata
+from fractal_uzh_converters.olympus_scanr.utils import parse_scanr_metadata
 
 logger = logging.getLogger(__name__)
 

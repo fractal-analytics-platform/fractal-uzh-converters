@@ -3,10 +3,10 @@
 from fractal_task_tools.task_models import ConverterCompoundTask
 
 AUTHORS = "Fractal Core Team"
-DOCS_LINK = "https://github.com/fractal-analytics-platform/fractal-hcs-converters"
+DOCS_LINK = "https://github.com/fractal-analytics-platform/fractal-uzh-converters"
 INPUT_MODELS = [
     (
-        "fractal_hcs_converters",
+        "fractal_uzh_converters",
         "olympus_scanr/convert_scanr_init_task.py",
         "AcquisitionInputModel",
     ),

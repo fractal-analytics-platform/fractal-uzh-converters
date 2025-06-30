@@ -288,7 +288,7 @@
         "type": "object",
         "title": "ConvertScanrComputeTask"
       },
-      "docs_link": "https://github.com/fractal-analytics-platform/fractal-hcs-converters"
+      "docs_link": "https://github.com/fractal-analytics-platform/fractal-uzh-converters"
     }
   ],
   "has_args_schemas": true,

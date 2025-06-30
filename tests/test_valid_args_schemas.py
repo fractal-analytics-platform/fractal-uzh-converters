@@ -27,7 +27,7 @@ def test_task_functions_have_valid_signatures():
                 continue
             function_name = Path(executable).with_suffix("").name
             task_function = _extract_function(
-                executable, function_name, package_name="fractal_hcs_converters"
+                executable, function_name, package_name="fractal_uzh_converters"
             )
             _validate_function_signature(task_function)
 
@@ -44,7 +44,7 @@ def test_args_schemas_are_up_to_date():
             print(f"Now handling {executable}")
             old_schema = task[f"args_schema_{kind}"]
             new_schema = create_schema_for_single_task(
-                executable, package="fractal_hcs_converters"
+                executable, package="fractal_uzh_converters"
             )
             # The following step is required because some arguments may have a
             # default which has a non-JSON type (e.g. a tuple), which we need

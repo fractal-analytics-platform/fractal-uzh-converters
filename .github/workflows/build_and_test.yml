@@ -37,7 +37,7 @@ jobs:
         run: python -m pip install -e .[test]
 
       - name: Check if manifest is up to date
-        run: fractal-manifest check --package fractal_hcs_converters
+        run: fractal-manifest check --package fractal_uzh_converters
 
       - name: Test core library with pytest
         run: python -m pytest tests
@@ -47,7 +47,7 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: /home/runner/work/fractal-hcs-converters/fractal-hcs-converters/coverage.xml
+          files: /home/runner/work/fractal-uzh-converters/fractal-uzh-converters/coverage.xml
   
   deploy:
     name: Deploy

@@ -1,4 +1,4 @@
-# fractal-hcs-converters
+# fractal-uzh-converters
 
 A collection of fractal tasks to convert HCS Plates to OME-Zarr
 
