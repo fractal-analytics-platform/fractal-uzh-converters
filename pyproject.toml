@@ -32,6 +32,7 @@ dependencies = [
     "ome_types",
     "dask==2024.11.2",
     "lxml",                                    # hidden dep of ome_types
+    "xmltodict",
 ]
 
 # Optional dependencies (e.g. for `pip install -e ".[dev]"`, see
