@@ -23,11 +23,13 @@ class CQ3KTiffLoader:
         image: list["ImageMeasurementRecord"],
         data_dir: Path,
         shapes: dict[str, int],
+        channel_map: dict[int, int],
     ):
         """Initialize the TiffLoader."""
         self.image = image
         self.data_dir = data_dir
         self.shapes = shapes
+        self.channel_map = channel_map
 
     @property
     def dtype(self) -> "str":
@@ -59,9 +61,8 @@ class CQ3KTiffLoader:
             self.shapes["x"],
         )
         full_tile = np.zeros(shape=tile_shape, dtype=self.dtype)
-        full_tile[first_acq.time_point - 1, first_acq.ch - 1, first_acq.z_index - 1] = (
-            im
-        )
+        ch_index = self.channel_map[first_acq.ch]
+        full_tile[first_acq.time_point - 1, ch_index, first_acq.z_index - 1] = im
 
         for tif in self.image[1:]:
             try:
@@ -73,7 +74,9 @@ class CQ3KTiffLoader:
                 logger.error(f"Error loading tiff tile: {e}")
                 continue
 
-            full_tile[tif.time_point - 1, tif.ch - 1, tif.z_index - 1] = im
+            full_tile[tif.time_point - 1, self.channel_map[tif.ch], tif.z_index - 1] = (
+                im
+            )
 
         return full_tile
 
@@ -173,7 +176,7 @@ class MeasurementDetail(Base):
     release_number: str
     status: str
     measurement_sample_plate: MeasurementSamplePlate
-    measurement_channel: list[MeasurementChannel]
+    measurement_channel: list[MeasurementChannel] | MeasurementChannel
 
 
 def _parse(path: Path) -> dict[str, Any]:
@@ -230,12 +233,15 @@ def parse_cq3k_metadata(
             plates_groups[key] = []
         plates_groups[key].append(img)
 
-    _channel = detail.measurement_channel[0]
+    if isinstance(detail.measurement_channel, list):
+        first_channel = detail.measurement_channel[0]
+    else:
+        first_channel = detail.measurement_channel
     pixel_size_x, pixel_size_y = (
-        _channel.horizontal_pixel_dimension,
-        _channel.vertical_pixel_dimension,
+        first_channel.horizontal_pixel_dimension,
+        first_channel.vertical_pixel_dimension,
     )
-    shape_x, shape_y = (_channel.horizontal_pixels, _channel.vertical_pixels)
+    shape_x, shape_y = (first_channel.horizontal_pixels, first_channel.vertical_pixels)
 
     tiled_images = []
     for z_type in z_type_keys:
@@ -245,7 +251,7 @@ def parse_cq3k_metadata(
             for key, value in plates_groups.items()
             if key[0] == z_type
         }
-        if z_type is not None:
+        if z_type is not None and len(z_type_keys) > 1:
             plate_name_z_type = f"{plate_name}_{z_type}"
         else:
             plate_name_z_type = plate_name
@@ -284,6 +290,12 @@ def parse_cq3k_metadata(
 
                 t = [img.time_point for img in imgs]
                 c = [img.ch for img in imgs]
+
+                # Channels are not necessarily sequentially numbered
+                # And may start from an arbitrary number
+                unique_c = sorted(set(c))
+                channel_map = {ch: idx for idx, ch in enumerate(unique_c)}
+
                 z = [img.z_index for img in imgs]
                 x = [img.x for img in imgs]
                 y = [img.y for img in imgs]
@@ -317,6 +329,7 @@ def parse_cq3k_metadata(
                             "y": shape_tile[3],
                             "x": shape_tile[4],
                         },
+                        channel_map=channel_map,
                     ),
                 )
                 tiled_image.add_tile(tile)

@@ -1,6 +1,4 @@
-"""
-A collection of fractal tasks to convert HCS Plates to OME-Zarr
-"""
+"""A collection of fractal tasks to convert HCS Plates to OME-Zarr"""
 
 from importlib.metadata import PackageNotFoundError, version
 

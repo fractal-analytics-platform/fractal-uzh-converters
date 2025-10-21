@@ -4,9 +4,9 @@ import logging
 from pathlib import Path
 
 from ome_zarr_converters_tools import (
-    initiate_ome_zarr_plates,
     AdvancedComputeOptions,
     build_parallelization_list,
+    initiate_ome_zarr_plates,
 )
 from pydantic import BaseModel, Field, validate_call
 
