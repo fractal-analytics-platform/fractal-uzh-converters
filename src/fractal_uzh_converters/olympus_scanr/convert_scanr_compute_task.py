@@ -3,11 +3,11 @@
 import logging
 import time
 
-from fractal_converters_tools.task_common_models import ConvertParallelInitArgs
-from fractal_converters_tools.task_compute_tools import generic_compute_task
+from ome_zarr_converters_tools import ConvertParallelInitArgs, generic_compute_task
 from pydantic import validate_call
 
 logger = logging.getLogger(__name__)
+
 
 @validate_call
 def convert_scanr_compute_task(
@@ -31,7 +31,6 @@ def convert_scanr_compute_task(
     run_time = time.time() - timer
     logger.info(f"Succesfully converted: {zarr_output}, in {run_time:.2f}[s]")
     return img_list_update
-
 
 
 if __name__ == "__main__":

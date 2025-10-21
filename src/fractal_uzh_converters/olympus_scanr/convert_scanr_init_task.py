@@ -3,9 +3,11 @@
 import logging
 from pathlib import Path
 
-from fractal_converters_tools.omezarr_plate_writers import initiate_ome_zarr_plates
-from fractal_converters_tools.task_common_models import AdvancedComputeOptions
-from fractal_converters_tools.task_init_tools import build_parallelization_list
+from ome_zarr_converters_tools import (
+    initiate_ome_zarr_plates,
+    AdvancedComputeOptions,
+    build_parallelization_list,
+)
 from pydantic import BaseModel, Field, validate_call
 
 from fractal_uzh_converters.olympus_scanr.utils import parse_scanr_metadata

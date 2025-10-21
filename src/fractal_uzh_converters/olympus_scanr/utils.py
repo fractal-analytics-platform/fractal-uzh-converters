@@ -6,11 +6,16 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-from fractal_converters_tools.microplate_utils import get_row_column
-from fractal_converters_tools.tile import OriginDict, Point, Tile
-from fractal_converters_tools.tiled_image import PlatePathBuilder, TiledImage
 from ngio import PixelSize
 from ome_types import from_xml
+from ome_zarr_converters_tools import (
+    OriginDict,
+    PlatePathBuilder,
+    Point,
+    Tile,
+    TiledImage,
+)
+from ome_zarr_converters_tools._microplate_utils import wellid_to_row_column
 from tifffile import imread
 
 logger = getLogger(__name__)
@@ -178,7 +183,6 @@ def tile_from_ome_image(
         x_micrometer_original=top_l.x,
         y_micrometer_original=top_l.y,
         z_micrometer_original=top_l_z_real,
-        t_original=top_l_t_real,
     )
 
     tile = Tile.from_points(
@@ -235,7 +239,7 @@ def parse_scanr_metadata(
         tile = tile_from_ome_image(image, data_dir)
 
         if well_acq_id not in tiled_images:
-            row, column = get_row_column(well_id, plate_layout)
+            row, column = wellid_to_row_column(well_id, plate_layout)
             name = image.name if image.name else f"{well_id}/{pos_id}"
             plate_path_builder = PlatePathBuilder(
                 plate_name=plate_name,
