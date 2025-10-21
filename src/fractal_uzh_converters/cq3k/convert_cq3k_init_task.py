@@ -11,26 +11,11 @@ from ome_zarr_converters_tools import (
 from pydantic import BaseModel, Field, validate_call
 
 from fractal_uzh_converters.cq3k.utils import parse_cq3k_metadata
+from fractal_uzh_converters.olympus_scanr.convert_scanr_init_task import (
+    AcquisitionInputModel,
+)
 
 logger = logging.getLogger(__name__)
-
-
-class AcquisitionInputModel(BaseModel):
-    """Acquisition metadata.
-
-    Attributes:
-        path: Path to the acquisition directory.
-            For scanr, this should include a 'data/' directory with the tiff files
-            and a metadata.ome.xml file.
-        plate_name: Optional custom name for the plate. If not provided, the name will
-            be the acquisition directory name.
-        acquisition_id: Acquisition ID,
-            used to identify the acquisition in case of multiple acquisitions.
-    """
-
-    path: str
-    plate_name: str | None = None
-    acquisition_id: int = Field(default=0, ge=0)
 
 
 class ConvertCQ3KInitArgs(BaseModel):
