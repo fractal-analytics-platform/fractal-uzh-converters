@@ -24,14 +24,15 @@ authors = [{ name = "Lorenzo Cerrone", email = "lorenzo.cerrone@uzh.ch" }]
 requires-python = ">=3.11,<3.13"
 
 dependencies = [
-    "fractal-converters-tools >= 0.5.0,<0.6.0",
-    "fractal-task-tools==0.0.12",
-    "ngio>=0.2.7",
+    "ome-zarr-converters-tools>=0.6.3,<0.7.0",
+    "fractal-task-tools>=0.0.12",
+    "ngio>=0.4.2,<0.5.0",
     "tqdm",
     "tifffile",
     "ome_types",
     "dask==2024.11.2",
-    "lxml",                                     # hidden dep of ome_types
+    "lxml",                                    # hidden dep of ome_types
+    "xmltodict",
 ]
 
 # Optional dependencies (e.g. for `pip install -e ".[dev]"`, see
@@ -48,6 +49,7 @@ dev = [
     "ruff",
     "pre-commit",
     "pytest-cov",
+    "xmltodict",
 ]
 test = ["pytest", "pytest-cov", "devtools", "jsonschema"]
 
@@ -115,7 +117,8 @@ platforms = ["osx-arm64"]
 [tool.pixi.pypi-dependencies]
 fractal-uzh-converters = { path = ".", editable = true }
 # For local development, you can use the following line instead of the one above
-# fractal-converters-tools = { path = "../fractal-converters-tools", editable = true }
+# ome-zarr-converters-tools = { path = "../ome-zarr-converters-tools", editable = true }
+# ngio = { path = "../ngio", editable = true }
 
 [tool.pixi.environments]
 default = { solve-group = "default" }

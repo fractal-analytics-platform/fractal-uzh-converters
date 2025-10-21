@@ -117,3 +117,4 @@ ENV/
 *.lock
 *.ipynb
 *.ipynb_checkpoints
+*.zarr

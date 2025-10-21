@@ -1,4 +1,4 @@
-"""ScanR to OME-Zarr conversion task compute."""
+"""CQ3K to OME-Zarr conversion task compute."""
 
 import logging
 import time
@@ -10,13 +10,13 @@ logger = logging.getLogger(__name__)
 
 
 @validate_call
-def convert_scanr_compute_task(
+def convert_cq3k_compute_task(
     *,
     # Fractal parameters
     zarr_url: str,
     init_args: ConvertParallelInitArgs,
 ):
-    """Convert a single ScanR acquisition to OME-Zarr.
+    """Convert a single CQ3K acquisition to OME-Zarr.
 
     Args:
         zarr_url (str): URL to the OME-Zarr file.
@@ -36,4 +36,4 @@ def convert_scanr_compute_task(
 if __name__ == "__main__":
     from fractal_task_tools.task_wrapper import run_fractal_task
 
-    run_fractal_task(task_function=convert_scanr_compute_task, logger_name=logger.name)
+    run_fractal_task(task_function=convert_cq3k_compute_task, logger_name=logger.name)

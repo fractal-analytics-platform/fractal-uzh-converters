@@ -1,4 +1,4 @@
-"""ScanR to OME-Zarr conversion task initialization."""
+"""Convert Yokogawa CQ3K acquisitions to OME-Zarr format."""
 
 import logging
 from pathlib import Path
@@ -10,30 +10,15 @@ from ome_zarr_converters_tools import (
 )
 from pydantic import BaseModel, Field, validate_call
 
-from fractal_uzh_converters.olympus_scanr.utils import parse_scanr_metadata
+from fractal_uzh_converters.cq3k.utils import parse_cq3k_metadata
+from fractal_uzh_converters.olympus_scanr.convert_scanr_init_task import (
+    AcquisitionInputModel,
+)
 
 logger = logging.getLogger(__name__)
 
 
-class AcquisitionInputModel(BaseModel):
-    """Acquisition metadata.
-
-    Attributes:
-        path: Path to the acquisition directory.
-            For scanr, this should include a 'data/' directory with the tiff files
-            and a metadata.ome.xml file.
-        plate_name: Optional custom name for the plate. If not provided, the name will
-            be the acquisition directory name.
-        acquisition_id: Acquisition ID,
-            used to identify the acquisition in case of multiple acquisitions.
-    """
-
-    path: str
-    plate_name: str | None = None
-    acquisition_id: int = Field(default=0, ge=0)
-
-
-class ConvertScanrInitArgs(BaseModel):
+class ConvertCQ3KInitArgs(BaseModel):
     """Arguments for the compute task."""
 
     tiled_image_pickled_path: str
@@ -43,7 +28,7 @@ class ConvertScanrInitArgs(BaseModel):
 
 
 @validate_call
-def convert_scanr_init_task(
+def convert_cq3k_init_task(
     *,
     # Fractal parameters
     zarr_dir: str,
@@ -52,7 +37,7 @@ def convert_scanr_init_task(
     overwrite: bool = False,
     advanced_options: AdvancedComputeOptions = AdvancedComputeOptions(),  # noqa: B008
 ):
-    """Initialize the task to convert a ScanR dataset to OME-Zarr.
+    """Initialize the task to convert a CQ3K dataset to OME-Zarr.
 
     Args:
         zarr_urls (list[str]): List of Zarr URLs.
@@ -77,7 +62,7 @@ def convert_scanr_init_task(
         acq_path = Path(acq.path)
         plate_name = acq_path.stem if acq.plate_name is None else acq.plate_name
 
-        _tiled_images = parse_scanr_metadata(
+        _tiled_images = parse_cq3k_metadata(
             acq_path, acq_id=acq.acquisition_id, plate_name=plate_name
         )
 
@@ -85,7 +70,7 @@ def convert_scanr_init_task(
             logger.warning(f"No images found in {acq_path}")
             continue
 
-        tiled_images.extend(list(_tiled_images.values()))
+        tiled_images.extend(_tiled_images)
 
     if not tiled_images:
         raise ValueError("No images found in the acquisitions.")
@@ -110,4 +95,4 @@ def convert_scanr_init_task(
 if __name__ == "__main__":
     from fractal_task_tools.task_wrapper import run_fractal_task
 
-    run_fractal_task(task_function=convert_scanr_init_task, logger_name=logger.name)
+    run_fractal_task(task_function=convert_cq3k_init_task, logger_name=logger.name)
