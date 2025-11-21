@@ -436,17 +436,6 @@
           },
           "advanced_options": {
             "$ref": "#/$defs/AdvancedComputeOptions",
-            "default": {
-              "num_levels": 5,
-              "tiling_mode": "auto",
-              "swap_xy": false,
-              "invert_x": false,
-              "invert_y": false,
-              "max_xy_chunk": 4096,
-              "z_chunk": 10,
-              "c_chunk": 1,
-              "t_chunk": 1
-            },
             "title": "Advanced Options",
             "description": "Advanced options for the conversion."
           }

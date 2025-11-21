@@ -35,7 +35,9 @@ def convert_cq3k_init_task(
     # Task parameters
     acquisitions: list[AcquisitionInputModel],
     overwrite: bool = False,
-    advanced_options: AdvancedComputeOptions = AdvancedComputeOptions(),  # noqa: B008
+    advanced_options: AdvancedComputeOptions = Field(
+        default_factory=lambda: AdvancedComputeOptions(invert_y=True)
+    ),
 ):
     """Initialize the task to convert a CQ3K dataset to OME-Zarr.
 
