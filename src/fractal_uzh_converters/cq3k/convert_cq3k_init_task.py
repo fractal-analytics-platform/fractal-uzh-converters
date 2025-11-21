@@ -27,6 +27,11 @@ class ConvertCQ3KInitArgs(BaseModel):
     )
 
 
+class CQ3KAdvancedComputeOptions(AdvancedComputeOptions):
+    # Overwrites the invert_y default to adapt to CQ3K metadata orientation
+    invert_y: bool = True
+
+
 @validate_call
 def convert_cq3k_init_task(
     *,
@@ -35,9 +40,7 @@ def convert_cq3k_init_task(
     # Task parameters
     acquisitions: list[AcquisitionInputModel],
     overwrite: bool = False,
-    advanced_options: AdvancedComputeOptions = Field(
-        default_factory=lambda: AdvancedComputeOptions(invert_y=True)
-    ),
+    advanced_options: CQ3KAdvancedComputeOptions = CQ3KAdvancedComputeOptions(),
 ):
     """Initialize the task to convert a CQ3K dataset to OME-Zarr.
 

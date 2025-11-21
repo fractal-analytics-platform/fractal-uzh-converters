@@ -340,15 +340,13 @@
             "title": "AcquisitionInputModel",
             "type": "object"
           },
-          "AdvancedComputeOptions": {
-            "description": "Advanced options for the conversion.",
+          "CQ3KAdvancedComputeOptions": {
             "properties": {
               "num_levels": {
                 "default": 5,
                 "minimum": 1,
                 "title": "Num Levels",
-                "type": "integer",
-                "description": "The number of resolution levels in the pyramid."
+                "type": "integer"
               },
               "tiling_mode": {
                 "default": "auto",
@@ -359,58 +357,51 @@
                   "none"
                 ],
                 "title": "Tiling Mode",
-                "type": "string",
-                "description": "Specify the tiling mode. \"auto\" will automatically determine the tiling mode. \"grid\" if the input data is a grid, it will be tiled using snap-to-grid. \"free\" will remove any overlap between tiles using a snap-to-corner approach. \"none\" will write the positions as is, using the microscope metadata."
+                "type": "string"
               },
               "swap_xy": {
                 "default": false,
                 "title": "Swap Xy",
-                "type": "boolean",
-                "description": "Swap x and y axes coordinates in the metadata. This is sometimes necessary to ensure correct image tiling and registration."
+                "type": "boolean"
               },
               "invert_x": {
                 "default": false,
                 "title": "Invert X",
-                "type": "boolean",
-                "description": "Invert x axis coordinates in the metadata. This is sometimes necessary to ensure correct image tiling and registration."
+                "type": "boolean"
               },
               "invert_y": {
-                "default": false,
+                "default": true,
                 "title": "Invert Y",
-                "type": "boolean",
-                "description": "Invert y axis coordinates in the metadata. This is sometimes necessary to ensure correct image tiling and registration."
+                "type": "boolean"
               },
               "max_xy_chunk": {
                 "default": 4096,
                 "minimum": 1,
                 "title": "Max Xy Chunk",
-                "type": "integer",
-                "description": "XY chunk size is set as the minimum of this value and the microscope tile size."
+                "type": "integer"
               },
               "z_chunk": {
                 "default": 10,
                 "minimum": 1,
                 "title": "Z Chunk",
-                "type": "integer",
-                "description": "Z chunk size."
+                "type": "integer"
               },
               "c_chunk": {
                 "default": 1,
                 "minimum": 1,
                 "title": "C Chunk",
-                "type": "integer",
-                "description": "C chunk size."
+                "type": "integer"
               },
               "t_chunk": {
                 "default": 1,
                 "minimum": 1,
                 "title": "T Chunk",
-                "type": "integer",
-                "description": "T chunk size."
+                "type": "integer"
               }
             },
-            "title": "AdvancedComputeOptions",
-            "type": "object"
+            "title": "CQ3KAdvancedComputeOptions",
+            "type": "object",
+            "description": "Missing description for CQ3KAdvancedComputeOptions."
           }
         },
         "additionalProperties": false,
@@ -435,7 +426,18 @@
             "description": "Overwrite existing Zarr files."
           },
           "advanced_options": {
-            "$ref": "#/$defs/AdvancedComputeOptions",
+            "$ref": "#/$defs/CQ3KAdvancedComputeOptions",
+            "default": {
+              "num_levels": 5,
+              "tiling_mode": "auto",
+              "swap_xy": false,
+              "invert_x": false,
+              "invert_y": true,
+              "max_xy_chunk": 4096,
+              "z_chunk": 10,
+              "c_chunk": 1,
+              "t_chunk": 1
+            },
             "title": "Advanced Options",
             "description": "Advanced options for the conversion."
           }
