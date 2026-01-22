@@ -3,7 +3,8 @@
 import logging
 import time
 
-from ome_zarr_converters_tools import ConvertParallelInitArgs, generic_compute_task
+# from ome_zarr_converters_tools import ConvertParallelInitArgs, generic_compute_task
+from ome_zarr_converters_tools.models import ConvertParallelInitArgs
 from pydantic import validate_call
 
 logger = logging.getLogger(__name__)

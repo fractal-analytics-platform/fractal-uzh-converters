@@ -7,7 +7,9 @@ from typing import Annotated, Any, Literal
 import numpy as np
 import xmltodict
 from ngio import PixelSize
-from ome_zarr_converters_tools import PlatePathBuilder, Point, Tile, TiledImage, Vector
+from ome_zarr_converters_tools.models import TiledImage
+
+# from ome_zarr_converters_tools import PlatePathBuilder, Point, Tile, TiledImage, Vector
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_pascal
 from tifffile import imread

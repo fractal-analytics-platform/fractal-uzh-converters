@@ -3,7 +3,15 @@
 import logging
 import time
 
-from ome_zarr_converters_tools import ConvertParallelInitArgs, generic_compute_task
+from ome_zarr_converters_tools.fractal_tasks_api import (
+    ImageListUpdateDict,
+    generic_compute_task,
+)
+from ome_zarr_converters_tools.models import (
+    ConvertParallelInitArgs,
+    DefaultImageLoader,
+    ImageInPlate,
+)
 from pydantic import validate_call
 
 logger = logging.getLogger(__name__)
@@ -15,7 +23,7 @@ def convert_scanr_compute_task(
     # Fractal parameters
     zarr_url: str,
     init_args: ConvertParallelInitArgs,
-):
+) -> ImageListUpdateDict:
     """Convert a single ScanR acquisition to OME-Zarr.
 
     Args:
@@ -26,6 +34,8 @@ def convert_scanr_compute_task(
     img_list_update = generic_compute_task(
         zarr_url=zarr_url,
         init_args=init_args,
+        collection_type=ImageInPlate,
+        image_loader_type=DefaultImageLoader,
     )
     zarr_output = img_list_update["image_list_updates"][0]["zarr_url"]
     run_time = time.time() - timer

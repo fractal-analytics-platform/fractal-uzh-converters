@@ -7,13 +7,8 @@ DOCS_LINK = "https://github.com/fractal-analytics-platform/fractal-uzh-converter
 INPUT_MODELS = [
     (
         "fractal_uzh_converters",
-        "olympus_scanr/convert_scanr_init_task.py",
+        "olympus_scanr/utils.py",
         "AcquisitionInputModel",
-    ),
-    (
-        "ome_zarr_converters_tools",
-        "_task_common_models.py",
-        "AdvancedComputeOptions",
     ),
 ]
 
@@ -47,5 +42,5 @@ TASK_LIST = [
             "Plate converter",
         ],
         docs_info="file:docs_info/cq3k_task.md",
-    )
+    ),
 ]

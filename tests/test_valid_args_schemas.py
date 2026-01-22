@@ -41,7 +41,6 @@ def test_args_schemas_are_up_to_date():
             executable = task.get(f"executable_{kind}")
             if executable is None:
                 continue
-            print(f"Now handling {executable}")
             old_schema = task[f"args_schema_{kind}"]
             new_schema = create_schema_for_single_task(
                 executable, package="fractal_uzh_converters"
@@ -67,11 +66,6 @@ def test_args_schema_comply_with_jsonschema_specs(jsonschema_validator):
             executable = task.get(f"executable_{kind}")
             if executable is None:
                 continue
-            print(f"Now handling {executable}")
             schema = task[f"args_schema_{kind}"]
             my_validator = jsonschema_validator(schema=schema)
             my_validator.check_schema(my_validator.schema)
-            print(
-                f"Schema for task {task['executable']} is valid for "
-                f"{jsonschema_validator}."
-            )

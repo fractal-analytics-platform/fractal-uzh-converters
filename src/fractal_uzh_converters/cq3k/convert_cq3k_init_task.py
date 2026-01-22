@@ -3,11 +3,11 @@
 import logging
 from pathlib import Path
 
-from ome_zarr_converters_tools import (
-    AdvancedComputeOptions,
-    build_parallelization_list,
-    initiate_ome_zarr_plates,
-)
+# from ome_zarr_converters_tools import (
+#    AdvancedComputeOptions,
+#    build_parallelization_list,
+#    initiate_ome_zarr_plates,
+# )
 from pydantic import BaseModel, Field, validate_call
 
 from fractal_uzh_converters.cq3k.utils import parse_cq3k_metadata
@@ -16,6 +16,10 @@ from fractal_uzh_converters.olympus_scanr.convert_scanr_init_task import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+class AdvancedComputeOptions(BaseModel):
+    pass
 
 
 class ConvertCQ3KInitArgs(BaseModel):

@@ -43,85 +43,255 @@
                 "title": "Acquisition Id",
                 "type": "integer",
                 "description": "Acquisition ID, used to identify the acquisition in case of multiple acquisitions."
+              },
+              "layout": {
+                "default": "96-well",
+                "enum": [
+                  "24-well",
+                  "48-well",
+                  "96-well",
+                  "384-well"
+                ],
+                "title": "Layout",
+                "type": "string",
+                "description": "Plate layout type."
+              },
+              "advanced": {
+                "$ref": "#/$defs/AdvancedAcquisitionOptions",
+                "default": {
+                  "channels": null,
+                  "pixel_info": null
+                },
+                "title": "Advanced",
+                "description": "Advanced acquisition options."
               }
             },
             "required": [
-              "path"
+              "path",
+              "plate_name"
             ],
             "title": "AcquisitionInputModel",
             "type": "object"
           },
-          "AdvancedComputeOptions": {
-            "description": "Advanced options for the conversion.",
+          "AdvancedAcquisitionOptions": {
+            "description": "Advanced acquisition options.",
+            "properties": {
+              "channels": {
+                "items": {
+                  "$ref": "#/$defs/ChannelInfo"
+                },
+                "title": "Channels",
+                "type": "array"
+              },
+              "pixel_info": {
+                "$ref": "#/$defs/PixelSizeModel",
+                "title": "Pixel_Info"
+              }
+            },
+            "title": "AdvancedAcquisitionOptions",
+            "type": "object"
+          },
+          "AlignmentCorrections": {
+            "additionalProperties": false,
+            "properties": {
+              "align_xy": {
+                "default": false,
+                "title": "Align Xy",
+                "type": "boolean"
+              },
+              "align_z": {
+                "default": false,
+                "title": "Align Z",
+                "type": "boolean"
+              },
+              "align_t": {
+                "default": false,
+                "title": "Align T",
+                "type": "boolean"
+              }
+            },
+            "title": "AlignmentCorrections",
+            "type": "object",
+            "description": "Missing description for AlignmentCorrections."
+          },
+          "BackendType": {
+            "enum": [
+              "anndata",
+              "json",
+              "csv",
+              "parquet"
+            ],
+            "title": "BackendType",
+            "type": "string",
+            "description": "Missing description for BackendType."
+          },
+          "ChannelInfo": {
+            "description": "Channel information.",
+            "properties": {
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "wavelength_id": {
+                "title": "Wavelength Id",
+                "type": "string"
+              },
+              "colors": {
+                "title": "Colors",
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "title": "ChannelInfo",
+            "type": "object"
+          },
+          "ConverterOptions": {
+            "additionalProperties": false,
+            "properties": {
+              "tiling_mode": {
+                "$ref": "#/$defs/TilingMode",
+                "default": "Auto",
+                "title": "Tiling_Mode"
+              },
+              "stage_correction": {
+                "$ref": "#/$defs/StageCorrections",
+                "title": "Stage_Correction"
+              },
+              "alignment_correction": {
+                "$ref": "#/$defs/AlignmentCorrections",
+                "title": "Alignment_Correction"
+              },
+              "omezarr_options": {
+                "$ref": "#/$defs/OmeZarrOptions",
+                "title": "Omezarr_Options"
+              }
+            },
+            "title": "ConverterOptions",
+            "type": "object",
+            "description": "Missing description for ConverterOptions."
+          },
+          "OmeZarrOptions": {
+            "additionalProperties": false,
             "properties": {
               "num_levels": {
                 "default": 5,
                 "minimum": 1,
                 "title": "Num Levels",
-                "type": "integer",
-                "description": "The number of resolution levels in the pyramid."
-              },
-              "tiling_mode": {
-                "default": "auto",
-                "enum": [
-                  "auto",
-                  "grid",
-                  "free",
-                  "none"
-                ],
-                "title": "Tiling Mode",
-                "type": "string",
-                "description": "Specify the tiling mode. \"auto\" will automatically determine the tiling mode. \"grid\" if the input data is a grid, it will be tiled using snap-to-grid. \"free\" will remove any overlap between tiles using a snap-to-corner approach. \"none\" will write the positions as is, using the microscope metadata."
-              },
-              "swap_xy": {
-                "default": false,
-                "title": "Swap Xy",
-                "type": "boolean",
-                "description": "Swap x and y axes coordinates in the metadata. This is sometimes necessary to ensure correct image tiling and registration."
-              },
-              "invert_x": {
-                "default": false,
-                "title": "Invert X",
-                "type": "boolean",
-                "description": "Invert x axis coordinates in the metadata. This is sometimes necessary to ensure correct image tiling and registration."
-              },
-              "invert_y": {
-                "default": false,
-                "title": "Invert Y",
-                "type": "boolean",
-                "description": "Invert y axis coordinates in the metadata. This is sometimes necessary to ensure correct image tiling and registration."
+                "type": "integer"
               },
               "max_xy_chunk": {
                 "default": 4096,
                 "minimum": 1,
                 "title": "Max Xy Chunk",
-                "type": "integer",
-                "description": "XY chunk size is set as the minimum of this value and the microscope tile size."
+                "type": "integer"
               },
               "z_chunk": {
                 "default": 10,
                 "minimum": 1,
                 "title": "Z Chunk",
-                "type": "integer",
-                "description": "Z chunk size."
+                "type": "integer"
               },
               "c_chunk": {
                 "default": 1,
                 "minimum": 1,
                 "title": "C Chunk",
-                "type": "integer",
-                "description": "C chunk size."
+                "type": "integer"
               },
               "t_chunk": {
                 "default": 1,
                 "minimum": 1,
                 "title": "T Chunk",
-                "type": "integer",
-                "description": "T chunk size."
+                "type": "integer"
+              },
+              "ngff_version": {
+                "default": "0.4",
+                "enum": [
+                  "0.4",
+                  "0.5"
+                ],
+                "title": "Ngff Version",
+                "type": "string"
+              },
+              "table_backend": {
+                "$ref": "#/$defs/BackendType",
+                "default": "anndata",
+                "title": "Table_Backend"
               }
             },
-            "title": "AdvancedComputeOptions",
+            "title": "OmeZarrOptions",
+            "type": "object",
+            "description": "Missing description for OmeZarrOptions."
+          },
+          "OverwriteMode": {
+            "enum": [
+              "No Overwrite",
+              "Overwrite",
+              "Extend"
+            ],
+            "title": "OverwriteMode",
+            "type": "string",
+            "description": "Missing description for OverwriteMode."
+          },
+          "PixelSizeModel": {
+            "description": "Pixel size model 2.",
+            "properties": {
+              "pixelsize": {
+                "title": "Pixelsize",
+                "type": "number"
+              },
+              "z_spacing": {
+                "title": "Z Spacing",
+                "type": "number"
+              },
+              "t_spacing": {
+                "title": "T Spacing",
+                "type": "number"
+              }
+            },
+            "required": [
+              "pixelsize",
+              "z_spacing",
+              "t_spacing"
+            ],
+            "title": "PixelSizeModel",
             "type": "object"
+          },
+          "StageCorrections": {
+            "additionalProperties": false,
+            "properties": {
+              "flip_x": {
+                "default": false,
+                "title": "Flip X",
+                "type": "boolean"
+              },
+              "flip_y": {
+                "default": false,
+                "title": "Flip Y",
+                "type": "boolean"
+              },
+              "swap_xy": {
+                "default": false,
+                "title": "Swap Xy",
+                "type": "boolean"
+              }
+            },
+            "title": "StageCorrections",
+            "type": "object",
+            "description": "Missing description for StageCorrections."
+          },
+          "TilingMode": {
+            "enum": [
+              "Auto",
+              "Snap to Grid",
+              "Snap to Corners",
+              "Inplace",
+              "No Tiling"
+            ],
+            "title": "TilingMode",
+            "type": "string",
+            "description": "Missing description for TilingMode."
           }
         },
         "additionalProperties": false,
@@ -140,26 +310,37 @@
             "description": "List of raw acquisitions to convert to OME-Zarr."
           },
           "overwrite": {
-            "default": false,
+            "$ref": "#/$defs/OverwriteMode",
+            "default": "No Overwrite",
             "title": "Overwrite",
-            "type": "boolean",
-            "description": "Overwrite existing Zarr files."
+            "description": "Overwrite mode for existing data. - \"No Overwrite\": Do not overwrite existing data. - \"Overwrite\": Remove and replace existing data. - \"Extend\": Extend existing data without removing it. Default is \"No Overwrite\"."
           },
-          "advanced_options": {
-            "$ref": "#/$defs/AdvancedComputeOptions",
+          "converter_options": {
+            "$ref": "#/$defs/ConverterOptions",
             "default": {
-              "num_levels": 5,
-              "tiling_mode": "auto",
-              "swap_xy": false,
-              "invert_x": false,
-              "invert_y": false,
-              "max_xy_chunk": 4096,
-              "z_chunk": 10,
-              "c_chunk": 1,
-              "t_chunk": 1
+              "tiling_mode": "Auto",
+              "stage_correction": {
+                "flip_x": false,
+                "flip_y": false,
+                "swap_xy": false
+              },
+              "alignment_correction": {
+                "align_t": false,
+                "align_xy": false,
+                "align_z": false
+              },
+              "omezarr_options": {
+                "c_chunk": 1,
+                "max_xy_chunk": 4096,
+                "ngff_version": "0.4",
+                "num_levels": 5,
+                "t_chunk": 1,
+                "table_backend": "anndata",
+                "z_chunk": 10
+              }
             },
-            "title": "Advanced Options",
-            "description": "Advanced options for the conversion."
+            "title": "Converter Options",
+            "description": "Advanced converter options."
           }
         },
         "required": [
@@ -171,101 +352,199 @@
       },
       "args_schema_parallel": {
         "$defs": {
-          "AdvancedComputeOptions": {
-            "description": "Advanced options for the conversion.",
+          "AlignmentCorrections": {
+            "additionalProperties": false,
+            "properties": {
+              "align_xy": {
+                "default": false,
+                "title": "Align Xy",
+                "type": "boolean"
+              },
+              "align_z": {
+                "default": false,
+                "title": "Align Z",
+                "type": "boolean"
+              },
+              "align_t": {
+                "default": false,
+                "title": "Align T",
+                "type": "boolean"
+              }
+            },
+            "title": "AlignmentCorrections",
+            "type": "object",
+            "description": "Missing description for AlignmentCorrections."
+          },
+          "BackendType": {
+            "enum": [
+              "anndata",
+              "json",
+              "csv",
+              "parquet"
+            ],
+            "title": "BackendType",
+            "type": "string",
+            "description": "Missing description for BackendType."
+          },
+          "ConvertParallelInitArgs": {
+            "description": "Arguments for the compute task.",
+            "properties": {
+              "store_url": {
+                "title": "Store Url",
+                "type": "string"
+              },
+              "json_file_name": {
+                "title": "Json File Name",
+                "type": "string"
+              },
+              "store_type": {
+                "default": "local",
+                "enum": [
+                  "local",
+                  "fsspec"
+                ],
+                "title": "Store Type",
+                "type": "string"
+              },
+              "converter_options": {
+                "$ref": "#/$defs/ConverterOptions",
+                "title": "Converter_Options"
+              },
+              "overwrite_mode": {
+                "$ref": "#/$defs/OverwriteMode",
+                "default": "No Overwrite",
+                "title": "Overwrite_Mode"
+              }
+            },
+            "required": [
+              "store_url",
+              "json_file_name",
+              "converter_options"
+            ],
+            "title": "ConvertParallelInitArgs",
+            "type": "object"
+          },
+          "ConverterOptions": {
+            "additionalProperties": false,
+            "properties": {
+              "tiling_mode": {
+                "$ref": "#/$defs/TilingMode",
+                "default": "Auto",
+                "title": "Tiling_Mode"
+              },
+              "stage_correction": {
+                "$ref": "#/$defs/StageCorrections",
+                "title": "Stage_Correction"
+              },
+              "alignment_correction": {
+                "$ref": "#/$defs/AlignmentCorrections",
+                "title": "Alignment_Correction"
+              },
+              "omezarr_options": {
+                "$ref": "#/$defs/OmeZarrOptions",
+                "title": "Omezarr_Options"
+              }
+            },
+            "title": "ConverterOptions",
+            "type": "object",
+            "description": "Missing description for ConverterOptions."
+          },
+          "OmeZarrOptions": {
+            "additionalProperties": false,
             "properties": {
               "num_levels": {
                 "default": 5,
                 "minimum": 1,
                 "title": "Num Levels",
-                "type": "integer",
-                "description": "The number of resolution levels in the pyramid."
-              },
-              "tiling_mode": {
-                "default": "auto",
-                "enum": [
-                  "auto",
-                  "grid",
-                  "free",
-                  "none"
-                ],
-                "title": "Tiling Mode",
-                "type": "string",
-                "description": "Specify the tiling mode. \"auto\" will automatically determine the tiling mode. \"grid\" if the input data is a grid, it will be tiled using snap-to-grid. \"free\" will remove any overlap between tiles using a snap-to-corner approach. \"none\" will write the positions as is, using the microscope metadata."
-              },
-              "swap_xy": {
-                "default": false,
-                "title": "Swap Xy",
-                "type": "boolean",
-                "description": "Swap x and y axes coordinates in the metadata. This is sometimes necessary to ensure correct image tiling and registration."
-              },
-              "invert_x": {
-                "default": false,
-                "title": "Invert X",
-                "type": "boolean",
-                "description": "Invert x axis coordinates in the metadata. This is sometimes necessary to ensure correct image tiling and registration."
-              },
-              "invert_y": {
-                "default": false,
-                "title": "Invert Y",
-                "type": "boolean",
-                "description": "Invert y axis coordinates in the metadata. This is sometimes necessary to ensure correct image tiling and registration."
+                "type": "integer"
               },
               "max_xy_chunk": {
                 "default": 4096,
                 "minimum": 1,
                 "title": "Max Xy Chunk",
-                "type": "integer",
-                "description": "XY chunk size is set as the minimum of this value and the microscope tile size."
+                "type": "integer"
               },
               "z_chunk": {
                 "default": 10,
                 "minimum": 1,
                 "title": "Z Chunk",
-                "type": "integer",
-                "description": "Z chunk size."
+                "type": "integer"
               },
               "c_chunk": {
                 "default": 1,
                 "minimum": 1,
                 "title": "C Chunk",
-                "type": "integer",
-                "description": "C chunk size."
+                "type": "integer"
               },
               "t_chunk": {
                 "default": 1,
                 "minimum": 1,
                 "title": "T Chunk",
-                "type": "integer",
-                "description": "T chunk size."
-              }
-            },
-            "title": "AdvancedComputeOptions",
-            "type": "object"
-          },
-          "ConvertParallelInitArgs": {
-            "description": "Arguments for the compute task.",
-            "properties": {
-              "tiled_image_pickled_path": {
-                "title": "Tiled Image Pickled Path",
+                "type": "integer"
+              },
+              "ngff_version": {
+                "default": "0.4",
+                "enum": [
+                  "0.4",
+                  "0.5"
+                ],
+                "title": "Ngff Version",
                 "type": "string"
               },
-              "overwrite": {
-                "title": "Overwrite",
-                "type": "boolean"
-              },
-              "advanced_compute_options": {
-                "$ref": "#/$defs/AdvancedComputeOptions",
-                "title": "Advanced_Compute_Options"
+              "table_backend": {
+                "$ref": "#/$defs/BackendType",
+                "default": "anndata",
+                "title": "Table_Backend"
               }
             },
-            "required": [
-              "tiled_image_pickled_path",
-              "overwrite",
-              "advanced_compute_options"
+            "title": "OmeZarrOptions",
+            "type": "object",
+            "description": "Missing description for OmeZarrOptions."
+          },
+          "OverwriteMode": {
+            "enum": [
+              "No Overwrite",
+              "Overwrite",
+              "Extend"
             ],
-            "title": "ConvertParallelInitArgs",
-            "type": "object"
+            "title": "OverwriteMode",
+            "type": "string",
+            "description": "Missing description for OverwriteMode."
+          },
+          "StageCorrections": {
+            "additionalProperties": false,
+            "properties": {
+              "flip_x": {
+                "default": false,
+                "title": "Flip X",
+                "type": "boolean"
+              },
+              "flip_y": {
+                "default": false,
+                "title": "Flip Y",
+                "type": "boolean"
+              },
+              "swap_xy": {
+                "default": false,
+                "title": "Swap Xy",
+                "type": "boolean"
+              }
+            },
+            "title": "StageCorrections",
+            "type": "object",
+            "description": "Missing description for StageCorrections."
+          },
+          "TilingMode": {
+            "enum": [
+              "Auto",
+              "Snap to Grid",
+              "Snap to Corners",
+              "Inplace",
+              "No Tiling"
+            ],
+            "title": "TilingMode",
+            "type": "string",
+            "description": "Missing description for TilingMode."
           }
         },
         "additionalProperties": false,
@@ -332,84 +611,104 @@
                 "title": "Acquisition Id",
                 "type": "integer",
                 "description": "Acquisition ID, used to identify the acquisition in case of multiple acquisitions."
+              },
+              "layout": {
+                "default": "96-well",
+                "enum": [
+                  "24-well",
+                  "48-well",
+                  "96-well",
+                  "384-well"
+                ],
+                "title": "Layout",
+                "type": "string",
+                "description": "Plate layout type."
+              },
+              "advanced": {
+                "$ref": "#/$defs/AdvancedAcquisitionOptions",
+                "default": {
+                  "channels": null,
+                  "pixel_info": null
+                },
+                "title": "Advanced",
+                "description": "Advanced acquisition options."
               }
             },
             "required": [
-              "path"
+              "path",
+              "plate_name"
             ],
             "title": "AcquisitionInputModel",
             "type": "object"
           },
-          "AdvancedComputeOptions": {
-            "description": "Advanced options for the conversion.",
+          "AdvancedAcquisitionOptions": {
+            "description": "Advanced acquisition options.",
             "properties": {
-              "num_levels": {
-                "default": 5,
-                "minimum": 1,
-                "title": "Num Levels",
-                "type": "integer",
-                "description": "The number of resolution levels in the pyramid."
+              "channels": {
+                "items": {
+                  "$ref": "#/$defs/ChannelInfo"
+                },
+                "title": "Channels",
+                "type": "array"
               },
-              "tiling_mode": {
-                "default": "auto",
-                "enum": [
-                  "auto",
-                  "grid",
-                  "free",
-                  "none"
-                ],
-                "title": "Tiling Mode",
-                "type": "string",
-                "description": "Specify the tiling mode. \"auto\" will automatically determine the tiling mode. \"grid\" if the input data is a grid, it will be tiled using snap-to-grid. \"free\" will remove any overlap between tiles using a snap-to-corner approach. \"none\" will write the positions as is, using the microscope metadata."
-              },
-              "swap_xy": {
-                "default": false,
-                "title": "Swap Xy",
-                "type": "boolean",
-                "description": "Swap x and y axes coordinates in the metadata. This is sometimes necessary to ensure correct image tiling and registration."
-              },
-              "invert_x": {
-                "default": false,
-                "title": "Invert X",
-                "type": "boolean",
-                "description": "Invert x axis coordinates in the metadata. This is sometimes necessary to ensure correct image tiling and registration."
-              },
-              "invert_y": {
-                "default": false,
-                "title": "Invert Y",
-                "type": "boolean",
-                "description": "Invert y axis coordinates in the metadata. This is sometimes necessary to ensure correct image tiling and registration."
-              },
-              "max_xy_chunk": {
-                "default": 4096,
-                "minimum": 1,
-                "title": "Max Xy Chunk",
-                "type": "integer",
-                "description": "XY chunk size is set as the minimum of this value and the microscope tile size."
-              },
-              "z_chunk": {
-                "default": 10,
-                "minimum": 1,
-                "title": "Z Chunk",
-                "type": "integer",
-                "description": "Z chunk size."
-              },
-              "c_chunk": {
-                "default": 1,
-                "minimum": 1,
-                "title": "C Chunk",
-                "type": "integer",
-                "description": "C chunk size."
-              },
-              "t_chunk": {
-                "default": 1,
-                "minimum": 1,
-                "title": "T Chunk",
-                "type": "integer",
-                "description": "T chunk size."
+              "pixel_info": {
+                "$ref": "#/$defs/PixelSizeModel",
+                "title": "Pixel_Info"
               }
             },
+            "title": "AdvancedAcquisitionOptions",
+            "type": "object"
+          },
+          "AdvancedComputeOptions": {
+            "properties": {},
             "title": "AdvancedComputeOptions",
+            "type": "object",
+            "description": "Missing description for AdvancedComputeOptions."
+          },
+          "ChannelInfo": {
+            "description": "Channel information.",
+            "properties": {
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "wavelength_id": {
+                "title": "Wavelength Id",
+                "type": "string"
+              },
+              "colors": {
+                "title": "Colors",
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "title": "ChannelInfo",
+            "type": "object"
+          },
+          "PixelSizeModel": {
+            "description": "Pixel size model 2.",
+            "properties": {
+              "pixelsize": {
+                "title": "Pixelsize",
+                "type": "number"
+              },
+              "z_spacing": {
+                "title": "Z Spacing",
+                "type": "number"
+              },
+              "t_spacing": {
+                "title": "T Spacing",
+                "type": "number"
+              }
+            },
+            "required": [
+              "pixelsize",
+              "z_spacing",
+              "t_spacing"
+            ],
+            "title": "PixelSizeModel",
             "type": "object"
           }
         },
@@ -436,17 +735,7 @@
           },
           "advanced_options": {
             "$ref": "#/$defs/AdvancedComputeOptions",
-            "default": {
-              "num_levels": 5,
-              "tiling_mode": "auto",
-              "swap_xy": false,
-              "invert_x": false,
-              "invert_y": false,
-              "max_xy_chunk": 4096,
-              "z_chunk": 10,
-              "c_chunk": 1,
-              "t_chunk": 1
-            },
+            "default": {},
             "title": "Advanced Options",
             "description": "Advanced options for the conversion."
           }
@@ -460,101 +749,199 @@
       },
       "args_schema_parallel": {
         "$defs": {
-          "AdvancedComputeOptions": {
-            "description": "Advanced options for the conversion.",
+          "AlignmentCorrections": {
+            "additionalProperties": false,
+            "properties": {
+              "align_xy": {
+                "default": false,
+                "title": "Align Xy",
+                "type": "boolean"
+              },
+              "align_z": {
+                "default": false,
+                "title": "Align Z",
+                "type": "boolean"
+              },
+              "align_t": {
+                "default": false,
+                "title": "Align T",
+                "type": "boolean"
+              }
+            },
+            "title": "AlignmentCorrections",
+            "type": "object",
+            "description": "Missing description for AlignmentCorrections."
+          },
+          "BackendType": {
+            "enum": [
+              "anndata",
+              "json",
+              "csv",
+              "parquet"
+            ],
+            "title": "BackendType",
+            "type": "string",
+            "description": "Missing description for BackendType."
+          },
+          "ConvertParallelInitArgs": {
+            "description": "Arguments for the compute task.",
+            "properties": {
+              "store_url": {
+                "title": "Store Url",
+                "type": "string"
+              },
+              "json_file_name": {
+                "title": "Json File Name",
+                "type": "string"
+              },
+              "store_type": {
+                "default": "local",
+                "enum": [
+                  "local",
+                  "fsspec"
+                ],
+                "title": "Store Type",
+                "type": "string"
+              },
+              "converter_options": {
+                "$ref": "#/$defs/ConverterOptions",
+                "title": "Converter_Options"
+              },
+              "overwrite_mode": {
+                "$ref": "#/$defs/OverwriteMode",
+                "default": "No Overwrite",
+                "title": "Overwrite_Mode"
+              }
+            },
+            "required": [
+              "store_url",
+              "json_file_name",
+              "converter_options"
+            ],
+            "title": "ConvertParallelInitArgs",
+            "type": "object"
+          },
+          "ConverterOptions": {
+            "additionalProperties": false,
+            "properties": {
+              "tiling_mode": {
+                "$ref": "#/$defs/TilingMode",
+                "default": "Auto",
+                "title": "Tiling_Mode"
+              },
+              "stage_correction": {
+                "$ref": "#/$defs/StageCorrections",
+                "title": "Stage_Correction"
+              },
+              "alignment_correction": {
+                "$ref": "#/$defs/AlignmentCorrections",
+                "title": "Alignment_Correction"
+              },
+              "omezarr_options": {
+                "$ref": "#/$defs/OmeZarrOptions",
+                "title": "Omezarr_Options"
+              }
+            },
+            "title": "ConverterOptions",
+            "type": "object",
+            "description": "Missing description for ConverterOptions."
+          },
+          "OmeZarrOptions": {
+            "additionalProperties": false,
             "properties": {
               "num_levels": {
                 "default": 5,
                 "minimum": 1,
                 "title": "Num Levels",
-                "type": "integer",
-                "description": "The number of resolution levels in the pyramid."
-              },
-              "tiling_mode": {
-                "default": "auto",
-                "enum": [
-                  "auto",
-                  "grid",
-                  "free",
-                  "none"
-                ],
-                "title": "Tiling Mode",
-                "type": "string",
-                "description": "Specify the tiling mode. \"auto\" will automatically determine the tiling mode. \"grid\" if the input data is a grid, it will be tiled using snap-to-grid. \"free\" will remove any overlap between tiles using a snap-to-corner approach. \"none\" will write the positions as is, using the microscope metadata."
-              },
-              "swap_xy": {
-                "default": false,
-                "title": "Swap Xy",
-                "type": "boolean",
-                "description": "Swap x and y axes coordinates in the metadata. This is sometimes necessary to ensure correct image tiling and registration."
-              },
-              "invert_x": {
-                "default": false,
-                "title": "Invert X",
-                "type": "boolean",
-                "description": "Invert x axis coordinates in the metadata. This is sometimes necessary to ensure correct image tiling and registration."
-              },
-              "invert_y": {
-                "default": false,
-                "title": "Invert Y",
-                "type": "boolean",
-                "description": "Invert y axis coordinates in the metadata. This is sometimes necessary to ensure correct image tiling and registration."
+                "type": "integer"
               },
               "max_xy_chunk": {
                 "default": 4096,
                 "minimum": 1,
                 "title": "Max Xy Chunk",
-                "type": "integer",
-                "description": "XY chunk size is set as the minimum of this value and the microscope tile size."
+                "type": "integer"
               },
               "z_chunk": {
                 "default": 10,
                 "minimum": 1,
                 "title": "Z Chunk",
-                "type": "integer",
-                "description": "Z chunk size."
+                "type": "integer"
               },
               "c_chunk": {
                 "default": 1,
                 "minimum": 1,
                 "title": "C Chunk",
-                "type": "integer",
-                "description": "C chunk size."
+                "type": "integer"
               },
               "t_chunk": {
                 "default": 1,
                 "minimum": 1,
                 "title": "T Chunk",
-                "type": "integer",
-                "description": "T chunk size."
-              }
-            },
-            "title": "AdvancedComputeOptions",
-            "type": "object"
-          },
-          "ConvertParallelInitArgs": {
-            "description": "Arguments for the compute task.",
-            "properties": {
-              "tiled_image_pickled_path": {
-                "title": "Tiled Image Pickled Path",
+                "type": "integer"
+              },
+              "ngff_version": {
+                "default": "0.4",
+                "enum": [
+                  "0.4",
+                  "0.5"
+                ],
+                "title": "Ngff Version",
                 "type": "string"
               },
-              "overwrite": {
-                "title": "Overwrite",
-                "type": "boolean"
-              },
-              "advanced_compute_options": {
-                "$ref": "#/$defs/AdvancedComputeOptions",
-                "title": "Advanced_Compute_Options"
+              "table_backend": {
+                "$ref": "#/$defs/BackendType",
+                "default": "anndata",
+                "title": "Table_Backend"
               }
             },
-            "required": [
-              "tiled_image_pickled_path",
-              "overwrite",
-              "advanced_compute_options"
+            "title": "OmeZarrOptions",
+            "type": "object",
+            "description": "Missing description for OmeZarrOptions."
+          },
+          "OverwriteMode": {
+            "enum": [
+              "No Overwrite",
+              "Overwrite",
+              "Extend"
             ],
-            "title": "ConvertParallelInitArgs",
-            "type": "object"
+            "title": "OverwriteMode",
+            "type": "string",
+            "description": "Missing description for OverwriteMode."
+          },
+          "StageCorrections": {
+            "additionalProperties": false,
+            "properties": {
+              "flip_x": {
+                "default": false,
+                "title": "Flip X",
+                "type": "boolean"
+              },
+              "flip_y": {
+                "default": false,
+                "title": "Flip Y",
+                "type": "boolean"
+              },
+              "swap_xy": {
+                "default": false,
+                "title": "Swap Xy",
+                "type": "boolean"
+              }
+            },
+            "title": "StageCorrections",
+            "type": "object",
+            "description": "Missing description for StageCorrections."
+          },
+          "TilingMode": {
+            "enum": [
+              "Auto",
+              "Snap to Grid",
+              "Snap to Corners",
+              "Inplace",
+              "No Tiling"
+            ],
+            "title": "TilingMode",
+            "type": "string",
+            "description": "Missing description for TilingMode."
           }
         },
         "additionalProperties": false,
