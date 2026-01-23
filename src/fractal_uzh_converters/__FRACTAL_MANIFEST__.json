@@ -33,6 +33,7 @@
                 "description": "Path to the acquisition directory. For scanr, this should include a 'data/' directory with the tiff files and a metadata.ome.xml file."
               },
               "plate_name": {
+                "default": "",
                 "title": "Plate Name",
                 "type": "string",
                 "description": "Optional custom name for the plate. If not provided, the name will be the acquisition directory name."
@@ -57,24 +58,19 @@
                 "description": "Plate layout type."
               },
               "advanced": {
-                "$ref": "#/$defs/AdvancedAcquisitionOptions",
-                "default": {
-                  "channels": null,
-                  "pixel_info": null
-                },
+                "$ref": "#/$defs/AcquisitionOptions",
                 "title": "Advanced",
                 "description": "Advanced acquisition options."
               }
             },
             "required": [
-              "path",
-              "plate_name"
+              "path"
             ],
             "title": "AcquisitionInputModel",
             "type": "object"
           },
-          "AdvancedAcquisitionOptions": {
-            "description": "Advanced acquisition options.",
+          "AcquisitionOptions": {
+            "description": "Acquisition options for conversion.",
             "properties": {
               "channels": {
                 "items": {
@@ -86,9 +82,17 @@
               "pixel_info": {
                 "$ref": "#/$defs/PixelSizeModel",
                 "title": "Pixel_Info"
+              },
+              "axes": {
+                "title": "Axes",
+                "type": "string"
+              },
+              "data_type": {
+                "title": "Data Type",
+                "type": "string"
               }
             },
-            "title": "AdvancedAcquisitionOptions",
+            "title": "AcquisitionOptions",
             "type": "object"
           },
           "AlignmentCorrections": {
@@ -166,6 +170,15 @@
               "omezarr_options": {
                 "$ref": "#/$defs/OmeZarrOptions",
                 "title": "Omezarr_Options"
+              },
+              "writer_mode": {
+                "$ref": "#/$defs/WriterMode",
+                "default": "By FOV",
+                "title": "Writer_Mode"
+              },
+              "temp_json_options": {
+                "$ref": "#/$defs/TempJsonOptions",
+                "title": "Temp_Json_Options"
               }
             },
             "title": "ConverterOptions",
@@ -281,6 +294,18 @@
             "type": "object",
             "description": "Missing description for StageCorrections."
           },
+          "TempJsonOptions": {
+            "properties": {
+              "temp_url": {
+                "default": "{zarr_dir}/_tmp_json",
+                "title": "Temp Url",
+                "type": "string"
+              }
+            },
+            "title": "TempJsonOptions",
+            "type": "object",
+            "description": "Missing description for TempJsonOptions."
+          },
           "TilingMode": {
             "enum": [
               "Auto",
@@ -292,6 +317,17 @@
             "title": "TilingMode",
             "type": "string",
             "description": "Missing description for TilingMode."
+          },
+          "WriterMode": {
+            "enum": [
+              "By Tile",
+              "By FOV",
+              "By Tile (Using Dask)",
+              "In Memory"
+            ],
+            "title": "WriterMode",
+            "type": "string",
+            "description": "Missing description for WriterMode."
           }
         },
         "additionalProperties": false,
@@ -337,6 +373,10 @@
                 "t_chunk": 1,
                 "table_backend": "anndata",
                 "z_chunk": 10
+              },
+              "writer_mode": "By FOV",
+              "temp_json_options": {
+                "temp_url": "{zarr_dir}/_tmp_json"
               }
             },
             "title": "Converter Options",
@@ -389,21 +429,8 @@
           "ConvertParallelInitArgs": {
             "description": "Arguments for the compute task.",
             "properties": {
-              "store_url": {
-                "title": "Store Url",
-                "type": "string"
-              },
-              "json_file_name": {
-                "title": "Json File Name",
-                "type": "string"
-              },
-              "store_type": {
-                "default": "local",
-                "enum": [
-                  "local",
-                  "fsspec"
-                ],
-                "title": "Store Type",
+              "tiled_image_json_dump_url": {
+                "title": "Tiled Image Json Dump Url",
                 "type": "string"
               },
               "converter_options": {
@@ -417,8 +444,7 @@
               }
             },
             "required": [
-              "store_url",
-              "json_file_name",
+              "tiled_image_json_dump_url",
               "converter_options"
             ],
             "title": "ConvertParallelInitArgs",
@@ -443,6 +469,15 @@
               "omezarr_options": {
                 "$ref": "#/$defs/OmeZarrOptions",
                 "title": "Omezarr_Options"
+              },
+              "writer_mode": {
+                "$ref": "#/$defs/WriterMode",
+                "default": "By FOV",
+                "title": "Writer_Mode"
+              },
+              "temp_json_options": {
+                "$ref": "#/$defs/TempJsonOptions",
+                "title": "Temp_Json_Options"
               }
             },
             "title": "ConverterOptions",
@@ -534,6 +569,18 @@
             "type": "object",
             "description": "Missing description for StageCorrections."
           },
+          "TempJsonOptions": {
+            "properties": {
+              "temp_url": {
+                "default": "{zarr_dir}/_tmp_json",
+                "title": "Temp Url",
+                "type": "string"
+              }
+            },
+            "title": "TempJsonOptions",
+            "type": "object",
+            "description": "Missing description for TempJsonOptions."
+          },
           "TilingMode": {
             "enum": [
               "Auto",
@@ -545,6 +592,17 @@
             "title": "TilingMode",
             "type": "string",
             "description": "Missing description for TilingMode."
+          },
+          "WriterMode": {
+            "enum": [
+              "By Tile",
+              "By FOV",
+              "By Tile (Using Dask)",
+              "In Memory"
+            ],
+            "title": "WriterMode",
+            "type": "string",
+            "description": "Missing description for WriterMode."
           }
         },
         "additionalProperties": false,
@@ -593,7 +651,7 @@
       "args_schema_non_parallel": {
         "$defs": {
           "AcquisitionInputModel": {
-            "description": "Acquisition metadata.",
+            "description": "Acquisition metadata for CQ3K data.",
             "properties": {
               "path": {
                 "title": "Path",
@@ -601,6 +659,7 @@
                 "description": "Path to the acquisition directory. For scanr, this should include a 'data/' directory with the tiff files and a metadata.ome.xml file."
               },
               "plate_name": {
+                "default": "",
                 "title": "Plate Name",
                 "type": "string",
                 "description": "Optional custom name for the plate. If not provided, the name will be the acquisition directory name."
@@ -612,37 +671,20 @@
                 "type": "integer",
                 "description": "Acquisition ID, used to identify the acquisition in case of multiple acquisitions."
               },
-              "layout": {
-                "default": "96-well",
-                "enum": [
-                  "24-well",
-                  "48-well",
-                  "96-well",
-                  "384-well"
-                ],
-                "title": "Layout",
-                "type": "string",
-                "description": "Plate layout type."
-              },
               "advanced": {
-                "$ref": "#/$defs/AdvancedAcquisitionOptions",
-                "default": {
-                  "channels": null,
-                  "pixel_info": null
-                },
+                "$ref": "#/$defs/AcquisitionOptions",
                 "title": "Advanced",
                 "description": "Advanced acquisition options."
               }
             },
             "required": [
-              "path",
-              "plate_name"
+              "path"
             ],
             "title": "AcquisitionInputModel",
             "type": "object"
           },
-          "AdvancedAcquisitionOptions": {
-            "description": "Advanced acquisition options.",
+          "AcquisitionOptions": {
+            "description": "Acquisition options for conversion.",
             "properties": {
               "channels": {
                 "items": {
@@ -654,16 +696,52 @@
               "pixel_info": {
                 "$ref": "#/$defs/PixelSizeModel",
                 "title": "Pixel_Info"
+              },
+              "axes": {
+                "title": "Axes",
+                "type": "string"
+              },
+              "data_type": {
+                "title": "Data Type",
+                "type": "string"
               }
             },
-            "title": "AdvancedAcquisitionOptions",
+            "title": "AcquisitionOptions",
             "type": "object"
           },
-          "AdvancedComputeOptions": {
-            "properties": {},
-            "title": "AdvancedComputeOptions",
+          "AlignmentCorrections": {
+            "additionalProperties": false,
+            "properties": {
+              "align_xy": {
+                "default": false,
+                "title": "Align Xy",
+                "type": "boolean"
+              },
+              "align_z": {
+                "default": false,
+                "title": "Align Z",
+                "type": "boolean"
+              },
+              "align_t": {
+                "default": false,
+                "title": "Align T",
+                "type": "boolean"
+              }
+            },
+            "title": "AlignmentCorrections",
             "type": "object",
-            "description": "Missing description for AdvancedComputeOptions."
+            "description": "Missing description for AlignmentCorrections."
+          },
+          "BackendType": {
+            "enum": [
+              "anndata",
+              "json",
+              "csv",
+              "parquet"
+            ],
+            "title": "BackendType",
+            "type": "string",
+            "description": "Missing description for BackendType."
           },
           "ChannelInfo": {
             "description": "Channel information.",
@@ -686,6 +764,102 @@
             ],
             "title": "ChannelInfo",
             "type": "object"
+          },
+          "ConverterOptions": {
+            "additionalProperties": false,
+            "properties": {
+              "tiling_mode": {
+                "$ref": "#/$defs/TilingMode",
+                "default": "Auto",
+                "title": "Tiling_Mode"
+              },
+              "stage_correction": {
+                "$ref": "#/$defs/StageCorrections",
+                "title": "Stage_Correction"
+              },
+              "alignment_correction": {
+                "$ref": "#/$defs/AlignmentCorrections",
+                "title": "Alignment_Correction"
+              },
+              "omezarr_options": {
+                "$ref": "#/$defs/OmeZarrOptions",
+                "title": "Omezarr_Options"
+              },
+              "writer_mode": {
+                "$ref": "#/$defs/WriterMode",
+                "default": "By FOV",
+                "title": "Writer_Mode"
+              },
+              "temp_json_options": {
+                "$ref": "#/$defs/TempJsonOptions",
+                "title": "Temp_Json_Options"
+              }
+            },
+            "title": "ConverterOptions",
+            "type": "object",
+            "description": "Missing description for ConverterOptions."
+          },
+          "OmeZarrOptions": {
+            "additionalProperties": false,
+            "properties": {
+              "num_levels": {
+                "default": 5,
+                "minimum": 1,
+                "title": "Num Levels",
+                "type": "integer"
+              },
+              "max_xy_chunk": {
+                "default": 4096,
+                "minimum": 1,
+                "title": "Max Xy Chunk",
+                "type": "integer"
+              },
+              "z_chunk": {
+                "default": 10,
+                "minimum": 1,
+                "title": "Z Chunk",
+                "type": "integer"
+              },
+              "c_chunk": {
+                "default": 1,
+                "minimum": 1,
+                "title": "C Chunk",
+                "type": "integer"
+              },
+              "t_chunk": {
+                "default": 1,
+                "minimum": 1,
+                "title": "T Chunk",
+                "type": "integer"
+              },
+              "ngff_version": {
+                "default": "0.4",
+                "enum": [
+                  "0.4",
+                  "0.5"
+                ],
+                "title": "Ngff Version",
+                "type": "string"
+              },
+              "table_backend": {
+                "$ref": "#/$defs/BackendType",
+                "default": "anndata",
+                "title": "Table_Backend"
+              }
+            },
+            "title": "OmeZarrOptions",
+            "type": "object",
+            "description": "Missing description for OmeZarrOptions."
+          },
+          "OverwriteMode": {
+            "enum": [
+              "No Overwrite",
+              "Overwrite",
+              "Extend"
+            ],
+            "title": "OverwriteMode",
+            "type": "string",
+            "description": "Missing description for OverwriteMode."
           },
           "PixelSizeModel": {
             "description": "Pixel size model 2.",
@@ -710,6 +884,64 @@
             ],
             "title": "PixelSizeModel",
             "type": "object"
+          },
+          "StageCorrections": {
+            "additionalProperties": false,
+            "properties": {
+              "flip_x": {
+                "default": false,
+                "title": "Flip X",
+                "type": "boolean"
+              },
+              "flip_y": {
+                "default": false,
+                "title": "Flip Y",
+                "type": "boolean"
+              },
+              "swap_xy": {
+                "default": false,
+                "title": "Swap Xy",
+                "type": "boolean"
+              }
+            },
+            "title": "StageCorrections",
+            "type": "object",
+            "description": "Missing description for StageCorrections."
+          },
+          "TempJsonOptions": {
+            "properties": {
+              "temp_url": {
+                "default": "{zarr_dir}/_tmp_json",
+                "title": "Temp Url",
+                "type": "string"
+              }
+            },
+            "title": "TempJsonOptions",
+            "type": "object",
+            "description": "Missing description for TempJsonOptions."
+          },
+          "TilingMode": {
+            "enum": [
+              "Auto",
+              "Snap to Grid",
+              "Snap to Corners",
+              "Inplace",
+              "No Tiling"
+            ],
+            "title": "TilingMode",
+            "type": "string",
+            "description": "Missing description for TilingMode."
+          },
+          "WriterMode": {
+            "enum": [
+              "By Tile",
+              "By FOV",
+              "By Tile (Using Dask)",
+              "In Memory"
+            ],
+            "title": "WriterMode",
+            "type": "string",
+            "description": "Missing description for WriterMode."
           }
         },
         "additionalProperties": false,
@@ -728,16 +960,41 @@
             "description": "List of raw acquisitions to convert to OME-Zarr."
           },
           "overwrite": {
-            "default": false,
+            "$ref": "#/$defs/OverwriteMode",
+            "default": "No Overwrite",
             "title": "Overwrite",
-            "type": "boolean",
-            "description": "Overwrite existing Zarr files."
+            "description": "Overwrite mode for existing data. - \"No Overwrite\": Do not overwrite existing data. - \"Overwrite\": Remove and replace existing data. - \"Extend\": Extend existing data without removing it. Default is \"No Overwrite\"."
           },
-          "advanced_options": {
-            "$ref": "#/$defs/AdvancedComputeOptions",
-            "default": {},
-            "title": "Advanced Options",
-            "description": "Advanced options for the conversion."
+          "converter_options": {
+            "$ref": "#/$defs/ConverterOptions",
+            "default": {
+              "tiling_mode": "Auto",
+              "stage_correction": {
+                "flip_x": false,
+                "flip_y": false,
+                "swap_xy": false
+              },
+              "alignment_correction": {
+                "align_t": false,
+                "align_xy": false,
+                "align_z": false
+              },
+              "omezarr_options": {
+                "c_chunk": 1,
+                "max_xy_chunk": 4096,
+                "ngff_version": "0.4",
+                "num_levels": 5,
+                "t_chunk": 1,
+                "table_backend": "anndata",
+                "z_chunk": 10
+              },
+              "writer_mode": "By FOV",
+              "temp_json_options": {
+                "temp_url": "{zarr_dir}/_tmp_json"
+              }
+            },
+            "title": "Converter Options",
+            "description": "Advanced converter options."
           }
         },
         "required": [
@@ -786,21 +1043,8 @@
           "ConvertParallelInitArgs": {
             "description": "Arguments for the compute task.",
             "properties": {
-              "store_url": {
-                "title": "Store Url",
-                "type": "string"
-              },
-              "json_file_name": {
-                "title": "Json File Name",
-                "type": "string"
-              },
-              "store_type": {
-                "default": "local",
-                "enum": [
-                  "local",
-                  "fsspec"
-                ],
-                "title": "Store Type",
+              "tiled_image_json_dump_url": {
+                "title": "Tiled Image Json Dump Url",
                 "type": "string"
               },
               "converter_options": {
@@ -814,8 +1058,7 @@
               }
             },
             "required": [
-              "store_url",
-              "json_file_name",
+              "tiled_image_json_dump_url",
               "converter_options"
             ],
             "title": "ConvertParallelInitArgs",
@@ -840,6 +1083,15 @@
               "omezarr_options": {
                 "$ref": "#/$defs/OmeZarrOptions",
                 "title": "Omezarr_Options"
+              },
+              "writer_mode": {
+                "$ref": "#/$defs/WriterMode",
+                "default": "By FOV",
+                "title": "Writer_Mode"
+              },
+              "temp_json_options": {
+                "$ref": "#/$defs/TempJsonOptions",
+                "title": "Temp_Json_Options"
               }
             },
             "title": "ConverterOptions",
@@ -931,6 +1183,18 @@
             "type": "object",
             "description": "Missing description for StageCorrections."
           },
+          "TempJsonOptions": {
+            "properties": {
+              "temp_url": {
+                "default": "{zarr_dir}/_tmp_json",
+                "title": "Temp Url",
+                "type": "string"
+              }
+            },
+            "title": "TempJsonOptions",
+            "type": "object",
+            "description": "Missing description for TempJsonOptions."
+          },
           "TilingMode": {
             "enum": [
               "Auto",
@@ -942,6 +1206,17 @@
             "title": "TilingMode",
             "type": "string",
             "description": "Missing description for TilingMode."
+          },
+          "WriterMode": {
+            "enum": [
+              "By Tile",
+              "By FOV",
+              "By Tile (Using Dask)",
+              "In Memory"
+            ],
+            "title": "WriterMode",
+            "type": "string",
+            "description": "Missing description for WriterMode."
           }
         },
         "additionalProperties": false,
