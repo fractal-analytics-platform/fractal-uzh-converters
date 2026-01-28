@@ -9,7 +9,7 @@ INPUT_MODELS = [
     (
         "fractal_uzh_converters",
         "olympus_scanr/utils.py",
-        "AcquisitionInputModel",
+        "ScanRAcquisitionInputModel",
     ),
     (
         "fractal_uzh_converters",

@@ -13,6 +13,7 @@ from ome_zarr_converters_tools import (
     ConverterOptions,
     DefaultImageLoader,
     ImageInPlate,
+    StageCorrections,
     Tile,
     TiledImage,
     tiles_preprocessing_pipeline,
@@ -44,7 +45,7 @@ STANDARD_ROWS_NAMES = "ABCDEFGHIJKLMNOP"
 logger = logging.getLogger(__name__)
 
 
-class AcquisitionInputModel(BaseModel):
+class ScanRAcquisitionInputModel(BaseModel):
     """Acquisition metadata.
 
     Attributes:
@@ -148,7 +149,7 @@ def _mean_z_spacing(list_images) -> float:
 
 
 def build_acquisition_details(
-    image_meta, acquisition_model: AcquisitionInputModel
+    image_meta, acquisition_model: ScanRAcquisitionInputModel
 ) -> AcquisitionDetails:
     """Build AcquisitionDetails from AcquisitionInputModel."""
     pixelsize_x = image_meta.pixels.physical_size_x or 1
@@ -173,7 +174,7 @@ def build_acquisition_details(
 
 
 def build_image_in_plate(
-    acquisition_model: AcquisitionInputModel,
+    acquisition_model: ScanRAcquisitionInputModel,
     row: str,
     column: int,
 ) -> ImageInPlate:
@@ -228,7 +229,7 @@ def _match_tiff_to_plane(tiff_data_block: list, planes: list) -> list:
 
 def _build_tiles(
     image_meta,
-    acquisition_model: AcquisitionInputModel,
+    acquisition_model: ScanRAcquisitionInputModel,
     converter_options: ConverterOptions,
     mean_z_spacing: float,
 ) -> list[Tile]:
@@ -298,7 +299,7 @@ def _build_tiles(
 
 def parse_scanr_metadata(
     *,
-    acquisition_model: AcquisitionInputModel,
+    acquisition_model: ScanRAcquisitionInputModel,
     converter_options: ConverterOptions,
 ) -> list[TiledImage]:
     """Parse ScanR metadata and return a dictionary of TiledImages."""
@@ -328,3 +329,12 @@ def parse_scanr_metadata(
         resource=data_dir,
     )
     return tiled_images
+
+
+default_scanr_converter_options = ConverterOptions(
+    stage_correction=StageCorrections(
+        flip_x=False,
+        flip_y=True,
+        swap_xy=False,
+    ),
+)

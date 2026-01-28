@@ -24,51 +24,6 @@
       },
       "args_schema_non_parallel": {
         "$defs": {
-          "AcquisitionInputModel": {
-            "description": "Acquisition metadata.",
-            "properties": {
-              "path": {
-                "title": "Path",
-                "type": "string",
-                "description": "Path to the acquisition directory. For scanr, this should include a 'data/' directory with the tiff files and a metadata.ome.xml file."
-              },
-              "plate_name": {
-                "default": "",
-                "title": "Plate Name",
-                "type": "string",
-                "description": "Optional custom name for the plate. If not provided, the name will be the acquisition directory name."
-              },
-              "acquisition_id": {
-                "default": 0,
-                "minimum": 0,
-                "title": "Acquisition Id",
-                "type": "integer",
-                "description": "Acquisition ID, used to identify the acquisition in case of multiple acquisitions."
-              },
-              "layout": {
-                "default": "96-well",
-                "enum": [
-                  "24-well",
-                  "48-well",
-                  "96-well",
-                  "384-well"
-                ],
-                "title": "Layout",
-                "type": "string",
-                "description": "Plate layout type."
-              },
-              "advanced": {
-                "$ref": "#/$defs/AcquisitionOptions",
-                "title": "Advanced",
-                "description": "Advanced acquisition options."
-              }
-            },
-            "required": [
-              "path"
-            ],
-            "title": "AcquisitionInputModel",
-            "type": "object"
-          },
           "AcquisitionOptions": {
             "description": "Acquisition options for conversion.",
             "properties": {
@@ -457,6 +412,51 @@
             "type": "string",
             "description": "Missing description for Scalings."
           },
+          "ScanRAcquisitionInputModel": {
+            "description": "Acquisition metadata.",
+            "properties": {
+              "path": {
+                "title": "Path",
+                "type": "string",
+                "description": "Path to the acquisition directory. For scanr, this should include a 'data/' directory with the tiff files and a metadata.ome.xml file."
+              },
+              "plate_name": {
+                "default": "",
+                "title": "Plate Name",
+                "type": "string",
+                "description": "Optional custom name for the plate. If not provided, the name will be the acquisition directory name."
+              },
+              "acquisition_id": {
+                "default": 0,
+                "minimum": 0,
+                "title": "Acquisition Id",
+                "type": "integer",
+                "description": "Acquisition ID, used to identify the acquisition in case of multiple acquisitions."
+              },
+              "layout": {
+                "default": "96-well",
+                "enum": [
+                  "24-well",
+                  "48-well",
+                  "96-well",
+                  "384-well"
+                ],
+                "title": "Layout",
+                "type": "string",
+                "description": "Plate layout type."
+              },
+              "advanced": {
+                "$ref": "#/$defs/AcquisitionOptions",
+                "title": "Advanced",
+                "description": "Advanced acquisition options."
+              }
+            },
+            "required": [
+              "path"
+            ],
+            "title": "ScanRAcquisitionInputModel",
+            "type": "object"
+          },
           "StageCorrections": {
             "additionalProperties": false,
             "description": "Stage orientation corrections.",
@@ -554,7 +554,7 @@
           },
           "acquisitions": {
             "items": {
-              "$ref": "#/$defs/AcquisitionInputModel"
+              "$ref": "#/$defs/ScanRAcquisitionInputModel"
             },
             "title": "Acquisitions",
             "type": "array",
@@ -567,7 +567,7 @@
               "writer_mode": "By FOV",
               "stage_correction": {
                 "flip_x": false,
-                "flip_y": false,
+                "flip_y": true,
                 "swap_xy": false
               },
               "alignment_correction": {
@@ -980,7 +980,7 @@
               "path": {
                 "title": "Path",
                 "type": "string",
-                "description": "Path to the acquisition directory. For scanr, this should include a 'data/' directory with the tiff files and a metadata.ome.xml file."
+                "description": "Path to the acquisition directory. Should contain MeasurementData.mlf and MeasurementDetail.mrf files."
               },
               "plate_name": {
                 "default": "",

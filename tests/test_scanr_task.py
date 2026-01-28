@@ -7,7 +7,7 @@ from fractal_uzh_converters.olympus_scanr.convert_scanr_compute_task import (
     convert_scanr_compute_task,
 )
 from fractal_uzh_converters.olympus_scanr.convert_scanr_init_task import (
-    AcquisitionInputModel,
+    ScanRAcquisitionInputModel,
     convert_scanr_init_task,
 )
 
@@ -25,7 +25,7 @@ def test_base_workflow(tmp_path):
     p_list = convert_scanr_init_task(
         zarr_dir=str(zarr_dir),
         acquisitions=[
-            AcquisitionInputModel(
+            ScanRAcquisitionInputModel(
                 path=str(test_data),
                 acquisition_id=0,
             ),
@@ -60,7 +60,7 @@ def test_base_workflow(tmp_path):
         p_list = convert_scanr_init_task(
             zarr_dir=str(zarr_dir),
             acquisitions=[
-                AcquisitionInputModel(
+                ScanRAcquisitionInputModel(
                     path=str(test_data),
                     acquisition_id=0,
                 ),
