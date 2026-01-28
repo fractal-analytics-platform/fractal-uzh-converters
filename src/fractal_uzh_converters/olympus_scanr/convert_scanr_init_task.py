@@ -73,7 +73,7 @@ def convert_scanr_init_task(
     logger.info(
         f"Prepared parallelization list with {len(parallelization_list)} items."
     )
-    return {"parallelization_list": parallelization_list}, tiled_images
+    return {"parallelization_list": parallelization_list}
 
 
 if __name__ == "__main__":
