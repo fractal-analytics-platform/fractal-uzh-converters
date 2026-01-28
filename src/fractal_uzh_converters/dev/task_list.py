@@ -9,12 +9,12 @@ INPUT_MODELS = [
     (
         "fractal_uzh_converters",
         "olympus_scanr/utils.py",
-        "ScanRAcquisitionInputModel",
+        "ScanRAcquisitionModel",
     ),
     (
         "fractal_uzh_converters",
         "cq3k/utils.py",
-        "AcquisitionInputModel",
+        "CQ3KAcquisitionModel",
     ),
 ]
 INPUT_MODELS += converters_tools_models()
@@ -49,5 +49,21 @@ TASK_LIST = [
             "Plate converter",
         ],
         docs_info="file:docs_info/cq3k_task.md",
+    ),
+    ConverterCompoundTask(
+        name="Convert Operetta Compose Plate to OME-Zarr",
+        executable_init="operetta_compose/convert_operetta_init_task.py",
+        executable="operetta_compose/convert_operetta_compute_task.py",
+        meta_init={"cpus_per_task": 1, "mem": 4000},
+        meta={"cpus_per_task": 1, "mem": 12000},
+        category="Conversion",
+        modality="HCS",
+        tags=[
+            "Operetta",
+            "Compose",
+            "Plate converter",
+        ],
+        docs_info=None,
+        # docs_info="file:docs_info/operetta_compose_task.md",
     ),
 ]

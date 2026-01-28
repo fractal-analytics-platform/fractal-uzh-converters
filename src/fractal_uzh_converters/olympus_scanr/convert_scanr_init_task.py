@@ -10,9 +10,9 @@ from ome_zarr_converters_tools import (
 from pydantic import validate_call
 
 from fractal_uzh_converters.olympus_scanr.utils import (
-    ScanRAcquisitionInputModel,
-    parse_scanr_metadata,
+    ScanRAcquisitionModel,
     default_scanr_converter_options,
+    parse_scanr_metadata,
 )
 
 logger = logging.getLogger(__name__)
@@ -24,7 +24,7 @@ def convert_scanr_init_task(
     # Fractal parameters
     zarr_dir: str,
     # Task parameters
-    acquisitions: list[ScanRAcquisitionInputModel],
+    acquisitions: list[ScanRAcquisitionModel],
     converter_options: ConverterOptions = default_scanr_converter_options,
     overwrite: OverwriteMode = OverwriteMode.NO_OVERWRITE,
 ):

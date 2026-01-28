@@ -45,7 +45,7 @@ STANDARD_ROWS_NAMES = "ABCDEFGHIJKLMNOP"
 logger = logging.getLogger(__name__)
 
 
-class ScanRAcquisitionInputModel(BaseModel):
+class ScanRAcquisitionModel(BaseModel):
     """Acquisition metadata.
 
     Attributes:
@@ -149,7 +149,7 @@ def _mean_z_spacing(list_images) -> float:
 
 
 def build_acquisition_details(
-    image_meta, acquisition_model: ScanRAcquisitionInputModel
+    image_meta, acquisition_model: ScanRAcquisitionModel
 ) -> AcquisitionDetails:
     """Build AcquisitionDetails from AcquisitionInputModel."""
     pixelsize_x = image_meta.pixels.physical_size_x or 1
@@ -174,7 +174,7 @@ def build_acquisition_details(
 
 
 def build_image_in_plate(
-    acquisition_model: ScanRAcquisitionInputModel,
+    acquisition_model: ScanRAcquisitionModel,
     row: str,
     column: int,
 ) -> ImageInPlate:
@@ -229,7 +229,7 @@ def _match_tiff_to_plane(tiff_data_block: list, planes: list) -> list:
 
 def _build_tiles(
     image_meta,
-    acquisition_model: ScanRAcquisitionInputModel,
+    acquisition_model: ScanRAcquisitionModel,
     converter_options: ConverterOptions,
     mean_z_spacing: float,
 ) -> list[Tile]:
@@ -299,7 +299,7 @@ def _build_tiles(
 
 def parse_scanr_metadata(
     *,
-    acquisition_model: ScanRAcquisitionInputModel,
+    acquisition_model: ScanRAcquisitionModel,
     converter_options: ConverterOptions,
 ) -> list[TiledImage]:
     """Parse ScanR metadata and return a dictionary of TiledImages."""

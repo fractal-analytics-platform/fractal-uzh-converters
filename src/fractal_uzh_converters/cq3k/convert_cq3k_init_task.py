@@ -11,7 +11,7 @@ from ome_zarr_converters_tools import (
 from pydantic import validate_call
 
 from fractal_uzh_converters.cq3k.utils import (
-    AcquisitionInputModel,
+    CQ3KAcquisitionModel,
     parse_cq3k_metadata,
 )
 
@@ -24,7 +24,7 @@ def convert_cq3k_init_task(
     # Fractal parameters
     zarr_dir: str,
     # Task parameters
-    acquisitions: list[AcquisitionInputModel],
+    acquisitions: list[CQ3KAcquisitionModel],
     converter_options: ConverterOptions = ConverterOptions(),  # noqa: B008
     overwrite: OverwriteMode = OverwriteMode.NO_OVERWRITE,
 ):

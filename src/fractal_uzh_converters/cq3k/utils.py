@@ -31,7 +31,7 @@ STANDARD_ROWS_NAMES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 ######################################################################
 
 
-class AcquisitionInputModel(BaseModel):
+class CQ3KAcquisitionModel(BaseModel):
     """Acquisition metadata for CQ3K data.
 
     Attributes:
@@ -227,7 +227,7 @@ def _get_z_spacing(images: list[ImageMeasurementRecord]) -> float:
 
 def build_acquisition_details(
     detail: MeasurementDetail,
-    acquisition_model: AcquisitionInputModel,
+    acquisition_model: CQ3KAcquisitionModel,
 ) -> AcquisitionDetails:
     """Build AcquisitionDetails from CQ3K metadata."""
     if isinstance(detail.measurement_channel, list):
@@ -257,7 +257,7 @@ def build_acquisition_details(
 
 
 def build_image_in_plate(
-    acquisition_model: AcquisitionInputModel,
+    acquisition_model: CQ3KAcquisitionModel,
     row: str,
     column: int,
 ) -> ImageInPlate:
@@ -279,7 +279,7 @@ def _build_tiles(
     images: list[ImageMeasurementRecord],
     data_dir: Path,
     detail: MeasurementDetail,
-    acquisition_model: AcquisitionInputModel,
+    acquisition_model: CQ3KAcquisitionModel,
     converter_options: ConverterOptions,
     row: str,
     column: int,
@@ -370,7 +370,7 @@ def _build_tiles(
 
 def parse_cq3k_metadata(
     *,
-    acquisition_model: AcquisitionInputModel,
+    acquisition_model: CQ3KAcquisitionModel,
     converter_options: ConverterOptions,
 ) -> list[TiledImage]:
     """Parse CQ3K metadata and return a list of TiledImages.
