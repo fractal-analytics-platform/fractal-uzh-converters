@@ -3,10 +3,10 @@
 import logging
 from pathlib import Path
 
-from ome_zarr_converters_tools.fractal_tasks_api import setup_images_for_conversion
-from ome_zarr_converters_tools.models import (
+from ome_zarr_converters_tools import (
     ConverterOptions,
     OverwriteMode,
+    setup_images_for_conversion,
 )
 from pydantic import validate_call
 
@@ -25,8 +25,8 @@ def convert_cq3k_init_task(
     zarr_dir: str,
     # Task parameters
     acquisitions: list[AcquisitionInputModel],
-    overwrite: OverwriteMode = OverwriteMode.NO_OVERWRITE,
     converter_options: ConverterOptions = ConverterOptions(),  # noqa: B008
+    overwrite: OverwriteMode = OverwriteMode.NO_OVERWRITE,
 ):
     """Initialize the task to convert a CQ3K dataset to OME-Zarr.
 

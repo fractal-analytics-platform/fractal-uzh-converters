@@ -6,16 +6,16 @@ from typing import Annotated, Any, Literal
 
 import numpy as np
 import xmltodict
-from ome_zarr_converters_tools.models import (
+from ome_zarr_converters_tools import (
     AcquisitionDetails,
+    AcquisitionOptions,
     ConverterOptions,
     DefaultImageLoader,
     ImageInPlate,
     Tile,
     TiledImage,
+    tiles_preprocessing_pipeline,
 )
-from ome_zarr_converters_tools.models._fractal import AcquisitionOptions
-from ome_zarr_converters_tools.utils import tiles_preprocessing_pipeline
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from pydantic.alias_generators import to_pascal
 
@@ -115,6 +115,7 @@ class ErrorMeasurementRecord(MeasurementRecordBase):
 
 class MeasurementData(Base):
     """Measurement data containing image and error records."""
+
     xmlns: Annotated[dict, Field(alias="xmlns")]
     version: Literal["1.0"]
     measurement_record: list[ImageMeasurementRecord | ErrorMeasurementRecord] | None = (

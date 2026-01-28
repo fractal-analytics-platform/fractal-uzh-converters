@@ -3,14 +3,12 @@
 import logging
 import time
 
-from ome_zarr_converters_tools.fractal_tasks_api import (
-    ImageListUpdateDict,
-    generic_compute_task,
-)
-from ome_zarr_converters_tools.models import (
+from ome_zarr_converters_tools import (
     ConvertParallelInitArgs,
     DefaultImageLoader,
     ImageInPlate,
+    ImageListUpdateDict,
+    generic_compute_task,
 )
 from pydantic import validate_call
 

@@ -7,16 +7,16 @@ from typing import Literal, NamedTuple
 
 import numpy as np
 from ome_types import from_xml
-from ome_zarr_converters_tools.models import (
+from ome_zarr_converters_tools import (
     AcquisitionDetails,
+    AcquisitionOptions,
     ConverterOptions,
     DefaultImageLoader,
     ImageInPlate,
     Tile,
     TiledImage,
+    tiles_preprocessing_pipeline,
 )
-from ome_zarr_converters_tools.models._fractal import AcquisitionOptions
-from ome_zarr_converters_tools.utils import tiles_preprocessing_pipeline
 from pydantic import BaseModel, Field, model_validator
 
 AVAILABLE_PLATE_LAYOUTS = Literal["24-well", "48-well", "96-well", "384-well"]

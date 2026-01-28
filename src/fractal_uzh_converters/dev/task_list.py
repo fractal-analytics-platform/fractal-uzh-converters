@@ -1,6 +1,7 @@
 """Contains the list of tasks available to fractal."""
 
 from fractal_task_tools.task_models import ConverterCompoundTask
+from ome_zarr_converters_tools import converters_tools_models
 
 AUTHORS = "Fractal Core Team"
 DOCS_LINK = "https://github.com/fractal-analytics-platform/fractal-uzh-converters"
@@ -11,6 +12,7 @@ INPUT_MODELS = [
         "AcquisitionInputModel",
     ),
 ]
+INPUT_MODELS += converters_tools_models()
 
 TASK_LIST = [
     ConverterCompoundTask(
