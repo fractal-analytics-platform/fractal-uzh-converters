@@ -34,12 +34,12 @@ def convert_cq3k_init_task(
         zarr_dir (str): Directory to store the Zarr files.
         acquisitions (list[AcquisitionInputModel]): List of raw acquisitions to convert
             to OME-Zarr.
+        converter_options (ConverterOptions): Advanced converter options.
         overwrite (OverwriteMode): Overwrite mode for existing data.
             - "No Overwrite": Do not overwrite existing data.
             - "Overwrite": Remove and replace existing data.
             - "Extend": Extend existing data without removing it.
             Default is "No Overwrite".
-        converter_options (ConverterOptions): Advanced converter options.
     """
     if not acquisitions:
         raise ValueError("Acquisitions list is empty.")
