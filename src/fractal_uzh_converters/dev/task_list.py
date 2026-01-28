@@ -11,6 +11,11 @@ INPUT_MODELS = [
         "olympus_scanr/utils.py",
         "AcquisitionInputModel",
     ),
+    (
+        "fractal_uzh_converters",
+        "cq3k/utils.py",
+        "AcquisitionInputModel",
+    ),
 ]
 INPUT_MODELS += converters_tools_models()
 
