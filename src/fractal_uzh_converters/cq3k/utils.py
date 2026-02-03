@@ -12,6 +12,7 @@ from ome_zarr_converters_tools import (
     ImageInPlate,
     Tile,
     TiledImage,
+    join_url_paths,
     tiles_preprocessing_pipeline,
 )
 from pydantic import BaseModel, ConfigDict, Field
@@ -187,8 +188,8 @@ def _parse(path: str) -> dict[str, Any]:
 
 
 def _load_models(path: str) -> tuple[MeasurementData, MeasurementDetail]:
-    mlf_path = f"{path}/MeasurementData.mlf"
-    mrf_path = f"{path}/MeasurementDetail.mrf"
+    mlf_path = join_url_paths(path, "MeasurementData.mlf")
+    mrf_path = join_url_paths(path, "MeasurementDetail.mrf")
     mlf_dict = _parse(mlf_path)
     mrf_dict = _parse(mrf_path)
     mlf = MeasurementData(**mlf_dict["MeasurementData"])
@@ -287,7 +288,7 @@ def _build_tiles(
 
     tiles = []
     for img in images:
-        tiff_path = f"{data_dir}/{img.value}"
+        tiff_path = join_url_paths(data_dir, img.value)
 
         _tile = Tile(
             fov_name=fov_name,

@@ -13,6 +13,7 @@ from ome_zarr_converters_tools import (
     ImageInPlate,
     Tile,
     TiledImage,
+    join_url_paths,
     tiles_preprocessing_pipeline,
 )
 from pydantic import BaseModel, Field, field_validator
@@ -143,7 +144,7 @@ def _parse(path: str) -> dict[str, Any]:
 
 def _load_models(path: str) -> list[OperettaImageMeta]:
     """Load Operetta image metadata from XML file."""
-    metadata_path = f"{path}/Images/Index.idx.xml"
+    metadata_path = join_url_paths(path, "Images", "Index.idx.xml")
     xml_dict = _parse(metadata_path)
     print(xml_dict.keys())
     images_data = xml_dict["EvaluationInputData"]["Images"]["Image"]
@@ -231,7 +232,7 @@ def _build_tiles(
 
     tiles = []
     for img in images:
-        tiff_path = f"{data_dir}/Images/{img.url}"
+        tiff_path = join_url_paths(data_dir, "Images", img.url)
 
         _tile = Tile(
             fov_name=fov_name,

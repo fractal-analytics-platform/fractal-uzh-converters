@@ -14,6 +14,7 @@ from ome_zarr_converters_tools import (
     StageCorrections,
     Tile,
     TiledImage,
+    join_url_paths,
     tiles_preprocessing_pipeline,
 )
 
@@ -221,10 +222,10 @@ def _build_tiles(
         tiff_data_block=pixels.tiff_data_blocks,
         planes=pixels.planes,
     )
-    base_tiff_dir = f"{acquisition_model.path}/data"
+    base_tiff_dir = join_url_paths(acquisition_model.path, "data")
 
     for plane_info in matched_planes:
-        tiff_path = f"{base_tiff_dir}/{plane_info.tiff_path}"
+        tiff_path = join_url_paths(base_tiff_dir, plane_info.tiff_path)
         _tile = Tile(
             fov_name=f"FOV_{pos_id}",
             start_x=plane_info.x or 0.0,
@@ -271,7 +272,7 @@ def parse_scanr_metadata(
 ) -> list[TiledImage]:
     """Parse ScanR metadata and return a dictionary of TiledImages."""
     acquisition_dir = acquisition_model.path
-    metadata_path = f"{acquisition_dir}/data/metadata.ome.xml"
+    metadata_path = join_url_paths(acquisition_dir, "data", "metadata.ome.xml")
 
     try:
         meta = from_xml(metadata_path)
