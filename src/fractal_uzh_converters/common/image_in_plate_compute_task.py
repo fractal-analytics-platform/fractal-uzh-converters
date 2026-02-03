@@ -40,9 +40,8 @@ def image_in_plate_compute_task(
     logger.info(f"Succesfully converted: {zarr_output}, in {run_time:.2f}[s]")
     return img_list_update
 
+
 if __name__ == "__main__":
     from fractal_task_tools.task_wrapper import run_fractal_task
 
-    run_fractal_task(
-        task_function=image_in_plate_compute_task, logger_name=logger.name
-    )
+    run_fractal_task(task_function=image_in_plate_compute_task, logger_name=logger.name)

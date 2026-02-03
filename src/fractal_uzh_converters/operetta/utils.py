@@ -19,9 +19,9 @@ from ome_zarr_converters_tools import (
 )
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-logger = logging.getLogger(__name__)
+from fractal_uzh_converters.common import STANDARD_ROWS_NAMES, BaseAcquisitionModel
 
-STANDARD_ROWS_NAMES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+logger = logging.getLogger(__name__)
 
 
 ######################################################################
@@ -31,7 +31,7 @@ STANDARD_ROWS_NAMES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 ######################################################################
 
 
-class OperettaAcquisitionModel(BaseModel):
+class OperettaAcquisitionModel(BaseAcquisitionModel):
     """Acquisition metadata for CQ3K data.
 
     Attributes:
@@ -44,19 +44,7 @@ class OperettaAcquisitionModel(BaseModel):
         advanced: Advanced acquisition options.
     """
 
-    path: str
-    plate_name: str
-    acquisition_id: int = Field(default=0, ge=0)
-    advanced: AcquisitionOptions = Field(default_factory=AcquisitionOptions)
-
-    @model_validator(mode="before")
-    def set_default_plate_name(cls, values):
-        """Set default plate name if not provided."""
-        path = values.get("path")
-        plate_name = values.get("plate_name")
-        if plate_name is None:
-            values["plate_name"] = Path(path).name
-        return values
+    pass
 
 
 ######################################################################
@@ -311,9 +299,7 @@ def parse_operetta_metadata(
     if len(data) == 0:
         raise ValueError(f"No measurement records found in {acquisition_dir}")
     # Group images by z_type, well (row, column), and field of view
-    plates_groups: dict[
-        tuple[str, int, int], list[OperettaImageMeta]
-    ] = {}
+    plates_groups: dict[tuple[str, int, int], list[OperettaImageMeta]] = {}
 
     for image in data:
         row = image.row

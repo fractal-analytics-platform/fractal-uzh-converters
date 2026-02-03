@@ -9,7 +9,6 @@ import numpy as np
 from ome_types import from_xml
 from ome_zarr_converters_tools import (
     AcquisitionDetails,
-    AcquisitionOptions,
     ConverterOptions,
     DefaultImageLoader,
     ImageInPlate,
@@ -18,7 +17,8 @@ from ome_zarr_converters_tools import (
     TiledImage,
     tiles_preprocessing_pipeline,
 )
-from pydantic import BaseModel, Field, model_validator
+
+from fractal_uzh_converters.common import STANDARD_ROWS_NAMES, BaseAcquisitionModel
 
 AVAILABLE_PLATE_LAYOUTS = Literal["24-well", "48-well", "96-well", "384-well"]
 STANDARD_PLATES_LAYOUTS: dict[AVAILABLE_PLATE_LAYOUTS, dict[str, int]] = {
@@ -40,12 +40,10 @@ STANDARD_PLATES_LAYOUTS: dict[AVAILABLE_PLATE_LAYOUTS, dict[str, int]] = {
     },
 }
 
-STANDARD_ROWS_NAMES = "ABCDEFGHIJKLMNOP"
-
 logger = logging.getLogger(__name__)
 
 
-class ScanRAcquisitionModel(BaseModel):
+class ScanRAcquisitionModel(BaseAcquisitionModel):
     """Acquisition metadata.
 
     Attributes:
@@ -60,20 +58,7 @@ class ScanRAcquisitionModel(BaseModel):
         advanced: Advanced acquisition options.
     """
 
-    path: str
-    plate_name: str = ""
-    acquisition_id: int = Field(default=0, ge=0)
     layout: AVAILABLE_PLATE_LAYOUTS = "96-well"
-    advanced: AcquisitionOptions = Field(default_factory=AcquisitionOptions)
-
-    @model_validator(mode="before")
-    def set_default_plate_name(cls, values):
-        """Set default plate name if not provided."""
-        path = values.get("path")
-        plate_name = values.get("plate_name")
-        if plate_name == "" and path is not None:
-            values["plate_name"] = Path(path).name
-        return values
 
 
 def _wellid_to_row_column(

@@ -1,9 +1,15 @@
 """Common utilities for fractal UZH converters."""
 
-from ome_zarr_converters_tools.fractal._compute_task import (
-    generic_compute_task,
+from fractal_uzh_converters.common.image_in_plate_compute_task import (
+    image_in_plate_compute_task,
+)
+from fractal_uzh_converters.common.utils import (
+    STANDARD_ROWS_NAMES,
+    BaseAcquisitionModel,
 )
 
 __all__ = [
-    "generic_compute_task",
+    "STANDARD_ROWS_NAMES",
+    "BaseAcquisitionModel",
+    "image_in_plate_compute_task",
 ]

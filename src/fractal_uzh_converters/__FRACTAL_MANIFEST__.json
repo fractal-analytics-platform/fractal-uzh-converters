@@ -433,6 +433,11 @@
                 "type": "integer",
                 "description": "Acquisition ID, used to identify the acquisition in case of multiple acquisitions."
               },
+              "advanced": {
+                "$ref": "#/$defs/AcquisitionOptions",
+                "title": "Advanced",
+                "description": "Advanced acquisition options."
+              },
               "layout": {
                 "default": "96-well",
                 "enum": [
@@ -444,11 +449,6 @@
                 "title": "Layout",
                 "type": "string",
                 "description": "Plate layout type."
-              },
-              "advanced": {
-                "$ref": "#/$defs/AcquisitionOptions",
-                "title": "Advanced",
-                "description": "Advanced acquisition options."
               }
             },
             "required": [
@@ -1898,7 +1898,7 @@
         "Harmony",
         "Plate converter"
       ],
-      "docs_info": "## convert_operetta_init_task\nInitialize the task to convert a Operetta dataset to OME-Zarr.\n## image_in_plate_compute_task\nCreate a single OME-Zarr image in a OME-Zarr plate.\n",
+      "docs_info": "### Purpose\n\n- Convert images acquired with a PerkinElmer Operetta microscope to a OME-Zarr Plate.\n\n### Outputs\n\n- A OME-Zarr Plate.\n\n### Limitations\n\n- This task has been tested on a limited set of acquisitions. It may not work on all PerkinElmer Operetta acquisitions.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\n/plate_dir/\n----/Images/\n--------/Index.idx.xml\n--------/r03c11f01p01-ch1sk1fk1fl1.tiff\n--------/...\n```",
       "type": "converter_compound",
       "executable_non_parallel": "operetta/convert_operetta_init_task.py",
       "executable_parallel": "common/image_in_plate_compute_task.py",
