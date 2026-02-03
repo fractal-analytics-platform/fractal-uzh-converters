@@ -26,12 +26,12 @@ requires-python = ">=3.11,<3.13"
 dependencies = [
     # "ome-zarr-converters-tools>=0.6.3,<0.7.0",
     "fractal-task-tools",
-    # "ngio>=0.4.2,<0.5.0",
+    "ngio>=0.5.0,<0.6.0",
     "tqdm",
     "tifffile",
     "ome_types",
     "dask==2024.11.2",
-    "lxml",            # hidden dep of ome_types
+    "lxml",               # hidden dep of ome_types
     "xmltodict",
 ]
 
@@ -119,7 +119,6 @@ platforms = ["osx-arm64", "linux-64"]
 fractal-uzh-converters = { path = ".", editable = true }
 # For local development, you can use the following line instead of the one above
 ome-zarr-converters-tools = { path = "../ome-zarr-converters-tools", editable = true }
-ngio = { path = "../ngio", editable = true }
 
 [tool.pixi.environments]
 default = { solve-group = "default" }

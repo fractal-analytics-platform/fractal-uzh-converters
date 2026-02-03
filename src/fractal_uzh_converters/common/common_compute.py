@@ -1,4 +1,4 @@
-"""CQ3K to OME-Zarr conversion task compute."""
+"""Generic compute task for plate and tiff based acquisitions."""
 
 import logging
 import time
@@ -16,13 +16,13 @@ logger = logging.getLogger(__name__)
 
 
 @validate_call
-def convert_cq3k_compute_task(
+def plate_converter_task(
     *,
     # Fractal parameters
     zarr_url: str,
     init_args: ConvertParallelInitArgs,
 ) -> ImageListUpdateDict:
-    """Convert a single CQ3K acquisition to OME-Zarr.
+    """Create a single OME-Zarr image in a OME-Zarr plate.
 
     Args:
         zarr_url (str): URL to the OME-Zarr file.
@@ -40,8 +40,9 @@ def convert_cq3k_compute_task(
     logger.info(f"Succesfully converted: {zarr_output}, in {run_time:.2f}[s]")
     return img_list_update
 
-
 if __name__ == "__main__":
     from fractal_task_tools.task_wrapper import run_fractal_task
 
-    run_fractal_task(task_function=convert_cq3k_compute_task, logger_name=logger.name)
+    run_fractal_task(
+        task_function=plate_converter_task, logger_name=logger.name
+    )

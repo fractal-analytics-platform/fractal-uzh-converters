@@ -1,24 +1,14 @@
 """Convert Operetta Compose datasets to OME-Zarr."""
 
 import logging
-import re
 from pathlib import Path
-from typing import Literal, NamedTuple
 
-import numpy as np
-from ome_types import from_xml
 from ome_zarr_converters_tools import (
-    AcquisitionDetails,
     AcquisitionOptions,
     ConverterOptions,
-    DefaultImageLoader,
-    ImageInPlate,
     OverwriteMode,
-    StageCorrections,
-    Tile,
     TiledImage,
     setup_images_for_conversion,
-    tiles_preprocessing_pipeline,
 )
 from pydantic import BaseModel, Field, model_validator, validate_call
 
@@ -87,8 +77,8 @@ def convert_operetta_init_task(
 
     Args:
         zarr_dir (str): Directory to store the Zarr files.
-        acquisitions (list[OperettaAcquisitionModel]): List of raw acquisitions to convert
-            to OME-Zarr.
+        acquisitions (list[OperettaAcquisitionModel]): List of raw acquisitions to
+            convert to OME-Zarr.
         converter_options (ConverterOptions): Advanced converter options.
         overwrite (OverwriteMode): Overwrite mode for existing data.
             - "No Overwrite": Do not overwrite existing data.
