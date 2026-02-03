@@ -63,7 +63,6 @@ TASK_LIST = [
             "Harmony",
             "Plate converter",
         ],
-        docs_info=None,
-        # docs_info="file:docs_info/operetta_task.md",
+        docs_info="file:docs_info/operetta_task.md",
     ),
 ]
