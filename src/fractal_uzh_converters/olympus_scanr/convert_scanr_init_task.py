@@ -9,6 +9,7 @@ from ome_zarr_converters_tools import (
 )
 from pydantic import validate_call
 
+from fractal_uzh_converters.common import parse_acquisitions
 from fractal_uzh_converters.olympus_scanr.utils import (
     ScanRAcquisitionModel,
     default_scanr_converter_options,
@@ -41,27 +42,11 @@ def convert_scanr_init_task(
             - "Extend": Extend existing data without removing it.
             Default is "No Overwrite".
     """
-    if not acquisitions:
-        raise ValueError("Acquisitions list is empty.")
-
-    # prepare the parallel list of zarr urls
-    tiled_images = []
-    for acq in acquisitions:
-        _tiled_images = parse_scanr_metadata(
-            acquisition_model=acq,
-            converter_options=converter_options,
-        )
-
-        if not _tiled_images:
-            logger.warning(f"No images found in {acq.path}")
-            continue
-        else:
-            logger.info(f"Found {len(_tiled_images)} images in acquisition {acq.path}")
-        tiled_images.extend(_tiled_images)
-
-    if len(tiled_images) == 0:
-        raise ValueError("No images found in any of the provided acquisitions.")
-    logger.info(f"Total {len(tiled_images)} images found in all acquisitions.")
+    tiled_images = parse_acquisitions(
+        parse_function=parse_scanr_metadata,
+        acquisitions=acquisitions,
+        converter_options=converter_options,
+    )
 
     parallelization_list = setup_images_for_conversion(
         tiled_images=tiled_images,

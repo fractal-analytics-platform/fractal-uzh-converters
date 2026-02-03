@@ -1,14 +1,12 @@
 """Utility functions for Operetta data."""
 
 import logging
-from pathlib import Path
 from typing import Any
 
 import numpy as np
 import xmltodict
 from ome_zarr_converters_tools import (
     AcquisitionDetails,
-    AcquisitionOptions,
     ConverterOptions,
     DataTypeEnum,
     DefaultImageLoader,
@@ -17,7 +15,7 @@ from ome_zarr_converters_tools import (
     TiledImage,
     tiles_preprocessing_pipeline,
 )
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator
 
 from fractal_uzh_converters.common import STANDARD_ROWS_NAMES, BaseAcquisitionModel
 
