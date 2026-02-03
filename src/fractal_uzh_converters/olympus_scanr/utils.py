@@ -2,7 +2,6 @@
 
 import logging
 import re
-from pathlib import Path
 from typing import Literal, NamedTuple
 
 import numpy as np
@@ -271,12 +270,16 @@ def parse_scanr_metadata(
     converter_options: ConverterOptions,
 ) -> list[TiledImage]:
     """Parse ScanR metadata and return a dictionary of TiledImages."""
-    data_dir = Path(acquisition_model.path)
-    metadata_path = data_dir / "data" / "metadata.ome.xml"
-    if not metadata_path.exists():
-        raise FileNotFoundError(f"Metadata file not found: {metadata_path}")
+    acquisition_dir = acquisition_model.path
+    metadata_path = f"{acquisition_dir}/data/metadata.ome.xml"
 
-    meta = from_xml(metadata_path)
+    try:
+        meta = from_xml(metadata_path)
+    except Exception as e:
+        raise ValueError(
+            f"Could not parse OME-XML metadata file: {metadata_path}"
+        ) from e
+
     if len(meta.images) == 0:
         raise ValueError(f"No images found in metadata file: {metadata_path}")
     mean_z_spacing = _mean_z_spacing(meta.images)
@@ -294,7 +297,7 @@ def parse_scanr_metadata(
         converter_options=converter_options,
         filters=None,
         validators=None,
-        resource=data_dir,
+        resource=acquisition_dir,
     )
     return tiled_images
 

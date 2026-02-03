@@ -1,7 +1,6 @@
 """Utility functions for Yokogawa CQ3K data."""
 
 import logging
-from pathlib import Path
 from typing import Annotated, Any, Literal
 
 import numpy as np
@@ -169,28 +168,29 @@ class MeasurementDetail(Base):
 ######################################################################
 
 
-def _parse(path: Path) -> dict[str, Any]:
-    with open(path, encoding="utf-8") as f:
-        return xmltodict.parse(
-            f.read(),
-            process_namespaces=True,
-            namespaces={"http://www.yokogawa.co.jp/BTS/BTSSchema/1.0": None},  # type: ignore
-            attr_prefix="",
-            cdata_key="Value",
-        )
+def _parse(path: str) -> dict[str, Any]:
+    try:
+        with open(path, encoding="utf-8") as f:
+            return xmltodict.parse(
+                f.read(),
+                process_namespaces=True,
+                namespaces={"http://www.yokogawa.co.jp/BTS/BTSSchema/1.0": None},  # type: ignore
+                attr_prefix="",
+                cdata_key="Value",
+            )
+    except FileNotFoundError as e:
+        logger.error(f"File not found: {path}")
+        raise e
+    except Exception as e:
+        logger.error(f"Error parsing XML file {path}: {e}")
+        raise e
 
 
-def _load_models(path: Path) -> tuple[MeasurementData, MeasurementDetail]:
-    if not path.exists():
-        raise FileNotFoundError(f"{path} does not exist.")
-
-    if not path.is_dir():
-        raise ValueError(
-            f"{path} is not a directory. Please provide a directory path containing the"
-            "MeasurementData.mlf, and MeasurementDetail.mrf files."
-        )
-    mlf_dict = _parse(path / "MeasurementData.mlf")
-    mrf_dict = _parse(path / "MeasurementDetail.mrf")
+def _load_models(path: str) -> tuple[MeasurementData, MeasurementDetail]:
+    mlf_path = f"{path}/MeasurementData.mlf"
+    mrf_path = f"{path}/MeasurementDetail.mrf"
+    mlf_dict = _parse(mlf_path)
+    mrf_dict = _parse(mrf_path)
     mlf = MeasurementData(**mlf_dict["MeasurementData"])
     mrf = MeasurementDetail(**mrf_dict["MeasurementDetail"])
     return mlf, mrf
@@ -247,7 +247,7 @@ def build_acquisition_details(
 
 def _build_tiles(
     images: list[ImageMeasurementRecord],
-    data_dir: Path,
+    data_dir: str,
     detail: MeasurementDetail,
     acquisition_model: CQ3KAcquisitionModel,
     converter_options: ConverterOptions,
@@ -287,7 +287,7 @@ def _build_tiles(
 
     tiles = []
     for img in images:
-        tiff_path = str(data_dir / img.value)
+        tiff_path = f"{data_dir}/{img.value}"
 
         _tile = Tile(
             fov_name=fov_name,
@@ -350,11 +350,11 @@ def parse_cq3k_metadata(
     Returns:
         List of TiledImage objects ready for conversion.
     """
-    data_dir = Path(acquisition_model.path)
-    data, detail = _load_models(data_dir)
+    acquisition_dir = acquisition_model.path
+    data, detail = _load_models(path=acquisition_dir)
 
     if data.measurement_record is None:
-        raise ValueError(f"No measurement records found in {data_dir}")
+        raise ValueError(f"No measurement records found in {acquisition_dir}")
 
     # Group images by z_type, well (row, column), and field of view
     plates_groups: dict[
@@ -381,7 +381,7 @@ def parse_cq3k_metadata(
     for (z_type, row, column, fov_idx), images in plates_groups.items():
         _tiles = _build_tiles(
             images=images,
-            data_dir=data_dir,
+            data_dir=acquisition_dir,
             detail=detail,
             acquisition_model=acquisition_model,
             converter_options=converter_options,
@@ -392,7 +392,7 @@ def parse_cq3k_metadata(
         )
         all_tiles.extend(_tiles)
 
-    logger.info(f"Built {len(all_tiles)} tiles from {data_dir}")
+    logger.info(f"Built {len(all_tiles)} tiles from {acquisition_dir}")
 
     # Use preprocessing pipeline to combine tiles into TiledImages
     tiled_images = tiles_preprocessing_pipeline(
@@ -400,7 +400,7 @@ def parse_cq3k_metadata(
         converter_options=converter_options,
         filters=None,
         validators=None,
-        resource=data_dir,
+        resource=acquisition_dir,
     )
 
     return tiled_images

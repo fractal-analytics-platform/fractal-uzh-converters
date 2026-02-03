@@ -38,7 +38,8 @@ class BaseAcquisitionModel(BaseModel):
         """Get the normalized plate name."""
         if self.plate_name is not None:
             return self.plate_name
-        return self.path.split("/")[-1]
+        name = self.path.rstrip("/").split("/")[-1]
+        return name
 
 
 AcquisitionModelType = TypeVar(

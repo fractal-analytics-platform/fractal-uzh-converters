@@ -94,11 +94,12 @@ class OperettaImageMeta(BaseModel):
     @field_validator("row", mode="before")
     def validate_row(cls, v) -> str:
         """Validate and convert row to letter if given as integer."""
-        if isinstance(v, int):
-            if 1 <= v <= 26:
-                return STANDARD_ROWS_NAMES[v - 1]
-            else:
-                raise ValueError(f"Row integer {v} out of range (1-26)")
+        try:
+            row = int(v)
+            if 1 <= row <= 26:
+                return STANDARD_ROWS_NAMES[row - 1]
+        except (ValueError, TypeError):
+            pass
         return v
 
     @property
@@ -142,8 +143,10 @@ def _parse(path: str) -> dict[str, Any]:
 
 def _load_models(path: str) -> list[OperettaImageMeta]:
     """Load Operetta image metadata from XML file."""
-    xml_dict = _parse(path)
-    images_data = xml_dict["MeasurementData"]["Images"]["Image"]
+    metadata_path = f"{path}/Images/Index.idx.xml"
+    xml_dict = _parse(metadata_path)
+    print(xml_dict.keys())
+    images_data = xml_dict["EvaluationInputData"]["Images"]["Image"]
     if isinstance(images_data, dict):
         images_data = [images_data]
     images_meta = [
@@ -228,7 +231,7 @@ def _build_tiles(
 
     tiles = []
     for img in images:
-        tiff_path = f"{data_dir}/{img.url}"
+        tiff_path = f"{data_dir}/Images/{img.url}"
 
         _tile = Tile(
             fov_name=fov_name,
@@ -246,7 +249,7 @@ def _build_tiles(
             length_z_coo="pixel",
             start_c=img.channel_id - 1,  # Convert to 0-indexed
             length_c=1,
-            start_t=img.timepoint_id - 1,  # Convert to 0-indexed
+            start_t=img.timepoint_id,  # Already 0-indexed
             start_t_coo="pixel",
             length_t=1,
             length_t_coo="pixel",
