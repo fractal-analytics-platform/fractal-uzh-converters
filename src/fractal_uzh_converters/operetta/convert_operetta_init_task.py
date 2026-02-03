@@ -1,4 +1,4 @@
-"""Convert Operetta Compose datasets to OME-Zarr."""
+"""Convert Operetta datasets to OME-Zarr."""
 
 import logging
 from pathlib import Path

@@ -1,4 +1,4 @@
-"""Utility functions for Operetta Compose data."""
+"""Utility functions for Operetta data."""
 
 import logging
 from pathlib import Path
@@ -85,7 +85,7 @@ class MeasureWithUnit(BaseModel):
 
 
 class OperettaImageMeta(BaseModel):
-    """Metadata for a single image in Operetta Compose."""
+    """Image metadata for operetta XML records."""
 
     url: str = Field(..., alias="URL")
     row: str = Field(..., alias="Row")

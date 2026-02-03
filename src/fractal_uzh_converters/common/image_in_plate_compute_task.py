@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 @validate_call
-def plate_converter_task(
+def image_in_plate_compute_task(
     *,
     # Fractal parameters
     zarr_url: str,
@@ -44,5 +44,5 @@ if __name__ == "__main__":
     from fractal_task_tools.task_wrapper import run_fractal_task
 
     run_fractal_task(
-        task_function=plate_converter_task, logger_name=logger.name
+        task_function=image_in_plate_compute_task, logger_name=logger.name
     )

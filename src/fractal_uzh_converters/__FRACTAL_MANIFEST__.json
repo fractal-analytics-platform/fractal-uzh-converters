@@ -13,14 +13,14 @@
       "docs_info": "### Purpose\n\n- Convert images acquired with an Olympus ScanR microscope to a OME-Zarr Plate.\n\n### Outputs\n\n- A OME-Zarr Plate.\n\n### Limitations\n\n- This task has been tested on a limited set of acquisitions. It may not work on all Olympus ScanR acquisitions.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\n/plate_dir/\n----/data/\n--------/metadata.ome.xml\n--------/B2--W00014--P00001--Z00000--T00000--DAPi.tif\n--------/B2--W00014--P00001--Z00000--T00000--TRITC.tif\n--------/...\n```\n",
       "type": "converter_compound",
       "executable_non_parallel": "olympus_scanr/convert_scanr_init_task.py",
-      "executable_parallel": "olympus_scanr/convert_scanr_compute_task.py",
+      "executable_parallel": "common/image_in_plate_compute_task.py",
       "meta_non_parallel": {
         "cpus_per_task": 1,
         "mem": 4000
       },
       "meta_parallel": {
         "cpus_per_task": 1,
-        "mem": 12000
+        "mem": 4000
       },
       "args_schema_non_parallel": {
         "$defs": {
@@ -947,7 +947,7 @@
           "init_args"
         ],
         "type": "object",
-        "title": "ConvertScanrComputeTask"
+        "title": "ImageInPlateComputeTask"
       },
       "docs_link": "https://github.com/fractal-analytics-platform/fractal-uzh-converters"
     },
@@ -963,14 +963,14 @@
       "docs_info": "### Purpose\n\n- Convert images acquired with a Yokogawa CQ3K microscope to a OME-Zarr Plate.\n\n### Outputs\n\n- A OME-Zarr Plate.\n\n### Limitations\n\n- This task has been tested on a limited set of acquisitions. It may not work on all Yokogawa CQ3K acquisitions.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\n/plate_dir/\n----/MeasurementData.mlf\n----/MeasurementDetail.mrf\n----/Image/\n--------/W0000F0001T0001Z000C1.tif\n----/Projection/ (optional)\n--------/W0000F0001T0001Z000C1.tif\n```",
       "type": "converter_compound",
       "executable_non_parallel": "cq3k/convert_cq3k_init_task.py",
-      "executable_parallel": "cq3k/convert_cq3k_compute_task.py",
+      "executable_parallel": "common/image_in_plate_compute_task.py",
       "meta_non_parallel": {
         "cpus_per_task": 1,
         "mem": 4000
       },
       "meta_parallel": {
         "cpus_per_task": 1,
-        "mem": 12000
+        "mem": 4000
       },
       "args_schema_non_parallel": {
         "$defs": {
@@ -1885,30 +1885,30 @@
           "init_args"
         ],
         "type": "object",
-        "title": "ConvertCq3kComputeTask"
+        "title": "ImageInPlateComputeTask"
       },
       "docs_link": "https://github.com/fractal-analytics-platform/fractal-uzh-converters"
     },
     {
-      "name": "Convert Operetta Compose Plate to OME-Zarr",
+      "name": "Convert Operetta Plate to OME-Zarr",
       "category": "Conversion",
       "modality": "HCS",
       "tags": [
         "Operetta",
-        "Compose",
+        "Harmony",
         "Plate converter"
       ],
-      "docs_info": "## convert_operetta_init_task\nInitialize the task to convert a Operetta dataset to OME-Zarr.\n## convert_operetta_compute_task\nConvert a single Operetta acquisition to OME-Zarr.\n",
+      "docs_info": "## convert_operetta_init_task\nInitialize the task to convert a Operetta dataset to OME-Zarr.\n## image_in_plate_compute_task\nCreate a single OME-Zarr image in a OME-Zarr plate.\n",
       "type": "converter_compound",
-      "executable_non_parallel": "operetta_compose/convert_operetta_init_task.py",
-      "executable_parallel": "operetta_compose/convert_operetta_compute_task.py",
+      "executable_non_parallel": "operetta/convert_operetta_init_task.py",
+      "executable_parallel": "common/image_in_plate_compute_task.py",
       "meta_non_parallel": {
         "cpus_per_task": 1,
         "mem": 4000
       },
       "meta_parallel": {
         "cpus_per_task": 1,
-        "mem": 12000
+        "mem": 4000
       },
       "args_schema_non_parallel": {
         "$defs": {
@@ -2819,7 +2819,7 @@
           "init_args"
         ],
         "type": "object",
-        "title": "ConvertOperettaComputeTask"
+        "title": "ImageInPlateComputeTask"
       },
       "docs_link": "https://github.com/fractal-analytics-platform/fractal-uzh-converters"
     }

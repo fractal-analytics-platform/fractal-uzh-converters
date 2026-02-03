@@ -23,7 +23,7 @@ TASK_LIST = [
     ConverterCompoundTask(
         name="Convert Olympus ScanR Plate to OME-Zarr",
         executable_init="olympus_scanr/convert_scanr_init_task.py",
-        executable="common/common_compute.py",
+        executable="common/image_in_plate_compute_task.py",
         meta_init={"cpus_per_task": 1, "mem": 4000},
         meta={"cpus_per_task": 1, "mem": 4000},
         category="Conversion",
@@ -38,7 +38,7 @@ TASK_LIST = [
     ConverterCompoundTask(
         name="Convert Yokogawa CQ3K Plate to OME-Zarr",
         executable_init="cq3k/convert_cq3k_init_task.py",
-        executable="common/common_compute.py",
+        executable="common/image_in_plate_compute_task.py",
         meta_init={"cpus_per_task": 1, "mem": 4000},
         meta={"cpus_per_task": 1, "mem": 4000},
         category="Conversion",
@@ -51,9 +51,9 @@ TASK_LIST = [
         docs_info="file:docs_info/cq3k_task.md",
     ),
     ConverterCompoundTask(
-        name="Convert Operetta Compose Plate to OME-Zarr",
-        executable_init="operetta_compose/convert_operetta_init_task.py",
-        executable="common/common_compute.py",
+        name="Convert Operetta Plate to OME-Zarr",
+        executable_init="operetta/convert_operetta_init_task.py",
+        executable="common/image_in_plate_compute_task.py",
         meta_init={"cpus_per_task": 1, "mem": 4000},
         meta={"cpus_per_task": 1, "mem": 4000},
         category="Conversion",
@@ -64,6 +64,6 @@ TASK_LIST = [
             "Plate converter",
         ],
         docs_info=None,
-        # docs_info="file:docs_info/operetta_compose_task.md",
+        # docs_info="file:docs_info/operetta_task.md",
     ),
 ]
