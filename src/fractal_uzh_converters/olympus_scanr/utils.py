@@ -158,24 +158,6 @@ def build_acquisition_details(
     return acquisition_detail
 
 
-def build_image_in_plate(
-    acquisition_model: ScanRAcquisitionModel,
-    row: str,
-    column: int,
-) -> ImageInPlate:
-    """Build ImageInPlate from AcquisitionInputModel."""
-    plate_name = acquisition_model.plate_name
-    if plate_name == "":
-        plate_name = acquisition_model.path.split("/")[-1]
-    image_in_plate = ImageInPlate(
-        plate_name=plate_name,
-        row=row,
-        column=column,
-        acquisition=acquisition_model.acquisition_id,
-    )
-    return image_in_plate
-
-
 class PlaneInfo(NamedTuple):
     """Information about a single plane in the image."""
 
@@ -221,10 +203,11 @@ def _build_tiles(
     (row, column), pos_id = _extract_well_position_id(
         image_meta.id, layout=acquisition_model.layout
     )
-    image_in_plate = build_image_in_plate(
-        acquisition_model=acquisition_model,
+    image_in_plate = ImageInPlate(
+        plate_name=acquisition_model.normalized_plate_name,
         row=row,
         column=column,
+        acquisition=acquisition_model.acquisition_id,
     )
     acquisition_details = build_acquisition_details(
         image_meta=image_meta,
@@ -244,7 +227,7 @@ def _build_tiles(
     for plane_info in matched_planes:
         tiff_path = f"{base_tiff_dir}/{plane_info.tiff_path}"
         _tile = Tile(
-            fov_name=f"{image_meta.id}_{pos_id}",
+            fov_name=f"FOV_{pos_id}",
             start_x=plane_info.x or 0.0,
             start_x_coo="world",
             length_x=len_x,

@@ -217,7 +217,7 @@ def _build_tiles(
 
     # Get plate name
     image_in_plate = ImageInPlate(
-        plate_name=acquisition_model.plate_name,
+        plate_name=acquisition_model.normalized_plate_name,
         row=row,
         column=column,
         acquisition=acquisition_model.acquisition_id,

@@ -245,25 +245,6 @@ def build_acquisition_details(
     return acquisition_detail
 
 
-def build_image_in_plate(
-    acquisition_model: CQ3KAcquisitionModel,
-    row: str,
-    column: int,
-) -> ImageInPlate:
-    """Build ImageInPlate from AcquisitionInputModel."""
-    plate_name = acquisition_model.plate_name
-    if plate_name == "":
-        plate_name = Path(acquisition_model.path).name
-
-    image_in_plate = ImageInPlate(
-        plate_name=plate_name,
-        row=row,
-        column=column,
-        acquisition=acquisition_model.acquisition_id,
-    )
-    return image_in_plate
-
-
 def _build_tiles(
     images: list[ImageMeasurementRecord],
     data_dir: Path,
@@ -290,9 +271,7 @@ def _build_tiles(
     )
 
     # Get plate name, handling z_type suffix if needed
-    plate_name = acquisition_model.plate_name
-    if plate_name == "":
-        plate_name = Path(acquisition_model.path).name
+    plate_name = acquisition_model.normalized_plate_name
     if z_type is not None:
         plate_name = f"{plate_name}_{z_type}"
 
@@ -304,7 +283,7 @@ def _build_tiles(
     )
 
     z_spacing = _get_z_spacing(images)
-    fov_name = f"FOV_{row}{column}_{fov_idx}"
+    fov_name = f"FOV_{fov_idx}"
 
     tiles = []
     for img in images:
