@@ -2215,22 +2215,26 @@
             "properties": {
               "path": {
                 "title": "Path",
-                "type": "string"
+                "type": "string",
+                "description": "Path to the acquisition directory. Should contain MeasurementData.mlf and MeasurementDetail.mrf files."
               },
               "plate_name": {
                 "default": "",
                 "title": "Plate Name",
-                "type": "string"
+                "type": "string",
+                "description": "Optional custom name for the plate. If not provided, the name will be the acquisition directory name."
               },
               "acquisition_id": {
                 "default": 0,
                 "minimum": 0,
                 "title": "Acquisition Id",
-                "type": "integer"
+                "type": "integer",
+                "description": "Acquisition ID, used to identify the acquisition in case of multiple acquisitions."
               },
               "advanced": {
                 "$ref": "#/$defs/AcquisitionOptions",
-                "title": "Advanced"
+                "title": "Advanced",
+                "description": "Advanced acquisition options."
               }
             },
             "required": [

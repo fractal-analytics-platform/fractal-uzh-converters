@@ -8,6 +8,16 @@ DOCS_LINK = "https://github.com/fractal-analytics-platform/fractal-uzh-converter
 INPUT_MODELS = [
     (
         "fractal_uzh_converters",
+        "common/utils.py",
+        "BaseAcquisitionModel",
+    ),
+    (
+        "fractal_uzh_converters",
+        "operetta/utils.py",
+        "OperettaAcquisitionModel",
+    ),
+    (
+        "fractal_uzh_converters",
         "olympus_scanr/utils.py",
         "ScanRAcquisitionModel",
     ),
