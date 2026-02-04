@@ -11,7 +11,6 @@ from ome_zarr_converters_tools import (
     ConverterOptions,
     DefaultImageLoader,
     ImageInPlate,
-    StageCorrections,
     Tile,
     TiledImage,
     join_url_paths,
@@ -226,13 +225,19 @@ def _build_tiles(
 
     for plane_info in matched_planes:
         tiff_path = join_url_paths(base_tiff_dir, plane_info.tiff_path)
+        # ScanR stage is in "standard" cartesian coordinates, but
+        # for images we want to set the origin (as many viewers do) in the top-left
+        # corner, so we need to invert the y position
+        # This is equivalent to flipping the image along the y axis
+        pos_x = plane_info.x or 0.0
+        pos_y = -(plane_info.y or 0.0)
         _tile = Tile(
             fov_name=f"FOV_{pos_id}",
-            start_x=plane_info.x or 0.0,
+            start_x=pos_x,
             start_x_coo="world",
             length_x=len_x,
             length_x_coo="pixel",
-            start_y=plane_info.y or 0.0,
+            start_y=pos_y,
             start_y_coo="world",
             length_y=len_y,
             length_y_coo="pixel",
@@ -301,12 +306,3 @@ def parse_scanr_metadata(
         resource=None,  # No resource context needed here
     )
     return tiled_images
-
-
-default_scanr_converter_options = ConverterOptions(
-    stage_correction=StageCorrections(
-        flip_x=False,
-        flip_y=True,
-        swap_xy=False,
-    ),
-)

@@ -18,11 +18,9 @@ from ome_zarr_converters_tools import (
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_pascal
 
-from fractal_uzh_converters.common import BaseAcquisitionModel
+from fractal_uzh_converters.common import STANDARD_ROWS_NAMES, BaseAcquisitionModel
 
 logger = logging.getLogger(__name__)
-
-STANDARD_ROWS_NAMES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 
 ######################################################################
@@ -289,14 +287,20 @@ def _build_tiles(
     tiles = []
     for img in images:
         tiff_path = join_url_paths(data_dir, img.value)
+        # CQ3k stage is in "standard" cartesian coordinates, but
+        # for images we want to set the origin (as many viewers do) in the top-left
+        # corner, so we need to invert the y position
+        # This is equivalent to flipping the image along the y axis
+        pos_x = img.x
+        pos_y = -img.y
 
         _tile = Tile(
             fov_name=fov_name,
-            start_x=img.x,
+            start_x=pos_x,
             start_x_coo="world",
             length_x=len_x,
             length_x_coo="pixel",
-            start_y=img.y,
+            start_y=pos_y,
             start_y_coo="world",
             length_y=len_y,
             length_y_coo="pixel",

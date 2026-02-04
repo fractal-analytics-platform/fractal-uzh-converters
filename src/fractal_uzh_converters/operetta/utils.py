@@ -232,14 +232,20 @@ def _build_tiles(
     tiles = []
     for img in images:
         tiff_path = join_url_paths(data_dir, "Images", img.url)
+        # Operetta stage is in "standard" cartesian coordinates, but
+        # for images we want to set the origin (as many viewers do) in the top-left
+        # corner, so we need to invert the y position
+        # This is equivalent to flipping the image along the y axis
+        pos_x = img.pos_x.to_um()
+        pos_y = -img.pos_y.to_um()
 
         _tile = Tile(
             fov_name=fov_name,
-            start_x=img.pos_x.to_um(),
+            start_x=pos_x,
             start_x_coo="world",
             length_x=len_x,
             length_x_coo="pixel",
-            start_y=img.pos_y.to_um(),
+            start_y=pos_y,
             start_y_coo="world",
             length_y=len_y,
             length_y_coo="pixel",

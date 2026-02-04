@@ -12,11 +12,12 @@ from pydantic import validate_call
 from fractal_uzh_converters.common import parse_acquisitions
 from fractal_uzh_converters.olympus_scanr.utils import (
     ScanRAcquisitionModel,
-    default_scanr_converter_options,
     parse_scanr_metadata,
 )
 
 logger = logging.getLogger(__name__)
+
+default_converter_options = ConverterOptions()
 
 
 @validate_call
@@ -26,7 +27,7 @@ def convert_scanr_init_task(
     zarr_dir: str,
     # Task parameters
     acquisitions: list[ScanRAcquisitionModel],
-    converter_options: ConverterOptions = default_scanr_converter_options,
+    converter_options: ConverterOptions = default_converter_options,
     overwrite: OverwriteMode = OverwriteMode.NO_OVERWRITE,
 ):
     """Initialize the task to convert a ScanR dataset to OME-Zarr.
