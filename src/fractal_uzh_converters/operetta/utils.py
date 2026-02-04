@@ -146,7 +146,6 @@ def _load_models(path: str) -> list[OperettaImageMeta]:
     """Load Operetta image metadata from XML file."""
     metadata_path = join_url_paths(path, "Images", "Index.idx.xml")
     xml_dict = _parse(metadata_path)
-    print(xml_dict.keys())
     images_data = xml_dict["EvaluationInputData"]["Images"]["Image"]
     if isinstance(images_data, dict):
         images_data = [images_data]
@@ -336,7 +335,7 @@ def parse_operetta_metadata(
         converter_options=converter_options,
         filters=None,
         validators=None,
-        resource=acquisition_dir,
+        resource=None,  # No resource context needed here
     )
 
     return tiled_images

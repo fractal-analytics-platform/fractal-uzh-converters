@@ -70,7 +70,6 @@ TASK_LIST = [
         modality="HCS",
         tags=[
             "Operetta",
-            "Harmony",
             "Plate converter",
         ],
         docs_info="file:docs_info/operetta_task.md",

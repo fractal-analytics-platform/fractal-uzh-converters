@@ -401,7 +401,7 @@ def parse_cq3k_metadata(
         converter_options=converter_options,
         filters=None,
         validators=None,
-        resource=acquisition_dir,
+        resource=None,  # No resource context needed here
     )
 
     return tiled_images
