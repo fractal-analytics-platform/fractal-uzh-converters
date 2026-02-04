@@ -1,6 +1,6 @@
 """Common utilities for fractal UZH converters."""
 
-from fractal_uzh_converters.common._utils import (
+from fractal_uzh_converters.common.utils import (
     STANDARD_ROWS_NAMES,
     BaseAcquisitionModel,
     parse_acquisitions,

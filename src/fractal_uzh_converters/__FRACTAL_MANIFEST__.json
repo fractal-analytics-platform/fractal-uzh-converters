@@ -421,7 +421,6 @@
                 "description": "Path to the acquisition directory. For scanr, this should include a 'data/' directory with the tiff files and a metadata.ome.xml file."
               },
               "plate_name": {
-                "default": "",
                 "title": "Plate Name",
                 "type": "string",
                 "description": "Optional custom name for the plate. If not provided, the name will be the acquisition directory name."
@@ -567,7 +566,7 @@
               "writer_mode": "By FOV",
               "stage_correction": {
                 "flip_x": false,
-                "flip_y": true,
+                "flip_y": false,
                 "swap_xy": false
               },
               "alignment_correction": {
@@ -1076,7 +1075,6 @@
                 "description": "Path to the acquisition directory. Should contain MeasurementData.mlf and MeasurementDetail.mrf files."
               },
               "plate_name": {
-                "default": "",
                 "title": "Plate Name",
                 "type": "string",
                 "description": "Optional custom name for the plate. If not provided, the name will be the acquisition directory name."
@@ -1895,7 +1893,6 @@
       "modality": "HCS",
       "tags": [
         "Operetta",
-        "Harmony",
         "Plate converter"
       ],
       "docs_info": "### Purpose\n\n- Convert images acquired with a PerkinElmer Operetta microscope to a OME-Zarr Plate.\n\n### Outputs\n\n- A OME-Zarr Plate.\n\n### Limitations\n\n- This task has been tested on a limited set of acquisitions. It may not work on all PerkinElmer Operetta acquisitions.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\n/plate_dir/\n----/Images/\n--------/Index.idx.xml\n--------/r03c11f01p01-ch1sk1fk1fl1.tiff\n--------/...\n```",
@@ -2211,7 +2208,7 @@
             "type": "object"
           },
           "OperettaAcquisitionModel": {
-            "description": "Acquisition metadata.",
+            "description": "Acquisition metadata for CQ3K data.",
             "properties": {
               "path": {
                 "title": "Path",
@@ -2219,7 +2216,6 @@
                 "description": "Path to the acquisition directory. Should contain MeasurementData.mlf and MeasurementDetail.mrf files."
               },
               "plate_name": {
-                "default": "",
                 "title": "Plate Name",
                 "type": "string",
                 "description": "Optional custom name for the plate. If not provided, the name will be the acquisition directory name."
