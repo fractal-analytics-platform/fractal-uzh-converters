@@ -118,3 +118,6 @@ ENV/
 *.ipynb
 *.ipynb_checkpoints
 *.zarr
+
+# Extended test data
+tests/data/extended_test_data

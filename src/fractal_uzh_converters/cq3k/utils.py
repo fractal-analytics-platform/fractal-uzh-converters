@@ -12,6 +12,7 @@ from ome_zarr_converters_tools import (
     ImageInPlate,
     Tile,
     TiledImage,
+    default_axes_builder,
     join_url_paths,
     tiles_preprocessing_pipeline,
 )
@@ -213,9 +214,16 @@ def _get_z_spacing(images: list[ImageMeasurementRecord]) -> float:
     return float(np.mean(delta_z))
 
 
+def _is_time_series(images: list[ImageMeasurementRecord]) -> bool:
+    """Check if the images represent a time series."""
+    time_points = {img.time_point for img in images}
+    return len(time_points) > 1
+
+
 def build_acquisition_details(
     detail: MeasurementDetail,
     acquisition_model: CQ3KAcquisitionModel,
+    is_time_series: bool,
 ) -> AcquisitionDetails:
     """Build AcquisitionDetails from CQ3K metadata."""
     if isinstance(detail.measurement_channel, list):
@@ -231,11 +239,13 @@ def build_acquisition_details(
             f"Physical size x ({pixelsize_x}) and y ({pixelsize_y}) are not equal. "
             "Using x size for pixelsize."
         )
+    axes = default_axes_builder(is_time_series=is_time_series)
 
     acquisition_detail = AcquisitionDetails(
         pixelsize=pixelsize_x,
         channel_names=None,
         wavelength_ids=None,
+        axes=axes,
     )
     # Update with advanced options
     acquisition_detail = acquisition_model.advanced.update_acquisition_details(
@@ -264,9 +274,11 @@ def _build_tiles(
     len_x = first_channel.horizontal_pixels
     len_y = first_channel.vertical_pixels
 
+    is_time_series = _is_time_series(images)
     acquisition_details = build_acquisition_details(
         detail=detail,
         acquisition_model=acquisition_model,
+        is_time_series=is_time_series,
     )
 
     # Get plate name, handling z_type suffix if needed

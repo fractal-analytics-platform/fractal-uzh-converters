@@ -13,6 +13,7 @@ from ome_zarr_converters_tools import (
     ImageInPlate,
     Tile,
     TiledImage,
+    default_axes_builder,
     join_url_paths,
     tiles_preprocessing_pipeline,
 )
@@ -132,8 +133,14 @@ def _mean_z_spacing(list_images) -> float:
     return mean_z_spacing
 
 
+def _is_time_series(image) -> bool:
+    """Check if the images represent a time series."""
+    time_points = {plane.the_t for plane in image.pixels.planes}
+    return len(time_points) > 1
+
+
 def build_acquisition_details(
-    image_meta, acquisition_model: ScanRAcquisitionModel
+    image_meta, acquisition_model: ScanRAcquisitionModel, is_time_series: bool
 ) -> AcquisitionDetails:
     """Build AcquisitionDetails from AcquisitionInputModel."""
     pixelsize_x = image_meta.pixels.physical_size_x or 1
@@ -145,10 +152,13 @@ def build_acquisition_details(
         )
 
     _channel_names = _get_channel_names(image_meta)
+
+    axes = default_axes_builder(is_time_series=is_time_series)
     acquisition_detail = AcquisitionDetails(
         pixelsize=pixelsize_x,
         channel_names=_channel_names,
         wavelength_ids=None,
+        axes=axes,
     )
     # Update with advanced options
     acquisition_detail = acquisition_model.advanced.update_acquisition_details(
@@ -208,9 +218,11 @@ def _build_tiles(
         column=column,
         acquisition=acquisition_model.acquisition_id,
     )
+    is_time_series = _is_time_series(image_meta)
     acquisition_details = build_acquisition_details(
         image_meta=image_meta,
         acquisition_model=acquisition_model,
+        is_time_series=is_time_series,
     )
     tiles = []
     len_x = image_meta.pixels.size_x

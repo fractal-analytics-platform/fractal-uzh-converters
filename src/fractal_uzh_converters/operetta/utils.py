@@ -13,6 +13,7 @@ from ome_zarr_converters_tools import (
     ImageInPlate,
     Tile,
     TiledImage,
+    default_axes_builder,
     join_url_paths,
     tiles_preprocessing_pipeline,
 )
@@ -173,9 +174,26 @@ def _get_z_spacing(images: list[OperettaImageMeta]) -> float:
     return float(np.mean(delta_z))
 
 
+def _is_time_series(images: list[OperettaImageMeta]) -> bool:
+    """Determine if the images represent a time series."""
+    timepoints = {img.timepoint_id for img in images}
+    return len(timepoints) > 1
+
+
+def _channel_names(images: list[OperettaImageMeta]) -> list[str]:
+    """Get unique channel names from image records."""
+    channel_names = {}
+    for img in images:
+        if img.channel_id not in channel_names:
+            channel_names[img.channel_id] = img.channel_name
+    return [channel_names[ch_id] for ch_id in sorted(channel_names.keys())]
+
+
 def build_acquisition_details(
     detail: OperettaImageMeta,
     acquisition_model: OperettaAcquisitionModel,
+    is_time_series: bool,
+    channel_names: list[str],
 ) -> AcquisitionDetails:
     """Build AcquisitionDetails from OperettaImageMeta."""
     pixelsize_x = detail.resolution_x.to_um()
@@ -186,11 +204,12 @@ def build_acquisition_details(
             f"Physical size x ({pixelsize_x}) and y ({pixelsize_y}) are not equal. "
             "Using x size for pixelsize."
         )
-
+    axes = default_axes_builder(is_time_series=is_time_series)
     acquisition_detail = AcquisitionDetails(
         pixelsize=pixelsize_x,
-        channel_names=None,
+        channel_names=channel_names,
         wavelength_ids=None,
+        axes=axes,
     )
     # Update with advanced options
     acquisition_detail = acquisition_model.advanced.update_acquisition_details(
@@ -213,9 +232,13 @@ def _build_tiles(
     len_x = image_0.image_size_x
     len_y = image_0.image_size_y
 
+    is_time_series = _is_time_series(images)
+    channel_names = _channel_names(images)
     acquisition_details = build_acquisition_details(
         detail=image_0,
         acquisition_model=acquisition_model,
+        is_time_series=is_time_series,
+        channel_names=channel_names,
     )
 
     # Get plate name
