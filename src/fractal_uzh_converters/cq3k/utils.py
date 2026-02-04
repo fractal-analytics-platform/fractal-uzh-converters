@@ -14,7 +14,7 @@ from ome_zarr_converters_tools import (
     TiledImage,
     default_axes_builder,
     join_url_paths,
-    tiles_preprocessing_pipeline,
+    tiles_aggregation_pipeline,
 )
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_pascal
@@ -412,10 +412,10 @@ def parse_cq3k_metadata(
     logger.info(f"Built {len(all_tiles)} tiles from {acquisition_dir}")
 
     # Use preprocessing pipeline to combine tiles into TiledImages
-    tiled_images = tiles_preprocessing_pipeline(
+    tiled_images = tiles_aggregation_pipeline(
         tiles=all_tiles,
         converter_options=converter_options,
-        filters=None,
+        filters=acquisition_model.advanced.filters,
         validators=None,
         resource=None,  # No resource context needed here
     )
