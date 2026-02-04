@@ -9,6 +9,7 @@ from fractal_uzh_converters.olympus_scanr.convert_scanr_init_task import (
     ScanRAcquisitionModel,
     convert_scanr_init_task,
 )
+import json
 
 
 def test_1w_1p_1c_1z_1t(tmp_path):
@@ -60,3 +61,34 @@ def test_1w_1p_1c_1z_1t(tmp_path):
             ],
             overwrite=OverwriteMode.NO_OVERWRITE,
         )
+
+@pytest.mark.parametrize("test_config_path", [
+    Path(__file__).parent / "data" / "configs" / "scanr" / "1w_1p_1c_1z_1t.json",
+])
+def test_scanr(tmp_path: Path, test_config_path: Path):
+    """Test the ScanR converter using config files."""
+    zarr_dir = tmp_path / "test_zarr_dir"
+
+    with open(test_config_path) as f:
+        config = json.load(f)
+    p_list = convert_scanr_init_task(
+        zarr_dir=str(zarr_dir),
+        acquisitions=config.get("acquisitions", []),
+        overwrite=OverwriteMode.NO_OVERWRITE,
+    )
+    assert len(p_list["parallelization_list"]) == 1
+    for p in p_list["parallelization_list"]:
+        results = image_in_plate_compute_task(**p)
+        assert "image_list_updates" in results
+        updates = results["image_list_updates"]
+        assert len(updates) == 1
+
+        assert updates[0]["types"] == config["expected"]["types"]
+        assert updates[0]["attributes"] == config["expected"]["attributes"]
+        zarr_url = Path(updates[0]["zarr_url"])
+        assert zarr_url.exists()
+        ome_zarr = open_ome_zarr_container(zarr_url)
+        image = ome_zarr.get_image()
+        assert image.shape == tuple(config["expected"]["shape"])
+        assert abs(image.pixel_size.x - config["expected"]["pixelsize"]) < 1e-6
+        assert set(ome_zarr.list_tables()) == set(config["expected"]["tables"])
