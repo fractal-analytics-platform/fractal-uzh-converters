@@ -1,0 +1,30 @@
+conversion_settings:
+  converter: fractal_uzh_converters/cq3k
+  init_task_kwargs:
+    acquisitions:
+      - path: tests/data/CQ3K/CQ3K_reference_acquisitions/2w1p1c1z1t_mip
+        acquisition_id: 0
+
+multi_plate_assertions:
+  plates:
+    2w1p1c1z1t_mip_Maximum.zarr:
+      wells: [C/05, F/09]
+      images_common:
+        axes: ["c", "z", "y", "x"]
+        pixelsize: [1.0, 1.0, 0.3242218675179569, 0.3242218675179569]
+        types:
+          is_3D: false
+        attributes:
+          acquisition: 0
+          plate: 2w1p1c1z1t_mip_Maximum.zarr
+        tables:
+          - well_ROI_table
+      images:
+        C/05/0:
+          shape: [1, 1, 2000, 2000]
+          attributes:
+            well: C05
+        F/09/0:
+          shape: [1, 1, 2000, 2000]
+          attributes:
+            well: F09

@@ -1,94 +1,47 @@
 from pathlib import Path
 
 import pytest
-from ngio import open_ome_zarr_container
-from ome_zarr_converters_tools import OverwriteMode
 
 from fractal_uzh_converters.common import image_in_plate_compute_task
 from fractal_uzh_converters.olympus_scanr.convert_scanr_init_task import (
-    ScanRAcquisitionModel,
     convert_scanr_init_task,
 )
-import json
+
+from .utils import (
+    image_list_updates_checks,
+    load_yaml_assertions,
+    plate_after_init_checks,
+    post_compute_checks,
+)
 
 
-def test_1w_1p_1c_1z_1t(tmp_path):
-    """Test the base workflow of the ScanR converter."""
-    zarr_dir = tmp_path / "test_zarr_dir"
-    test_data = Path(__file__).parent / "data" / "scanr" / "1w_1p_1c_1z_1t"
-
-    p_list = convert_scanr_init_task(
-        zarr_dir=str(zarr_dir),
-        acquisitions=[
-            ScanRAcquisitionModel(
-                path=str(test_data),
-                acquisition_id=0,
-            ),
-        ],
-        overwrite=OverwriteMode.NO_OVERWRITE,
-    )
-    assert len(p_list["parallelization_list"]) == 1
-    for p in p_list["parallelization_list"]:
-        results = image_in_plate_compute_task(**p)
-        assert "image_list_updates" in results
-        updates = results["image_list_updates"]
-        assert len(updates) == 1
-
-        assert not updates[0]["types"]["is_3D"]
-        assert updates[0]["attributes"]["well"] == "B02"
-        assert updates[0]["attributes"]["plate"] == "1w_1p_1c_1z_1t.zarr"
-
-        zarr_url = Path(updates[0]["zarr_url"])
-        assert zarr_url.exists()
-
-        ngff_image = open_ome_zarr_container(zarr_url)
-        assert ngff_image.levels == 5
-        image = ngff_image.get_image()
-        assert image.shape == (1, 1, 2048, 2048)
-        assert image.pixel_size.x == image.pixel_size.y
-        assert abs(image.pixel_size.x - 0.325) < 1e-6
-        # FOV_ROI_table is only created for multi-FOV acquisitions
-        assert set(ngff_image.list_tables()) == {"well_ROI_table"}
-
-    with pytest.raises(FileExistsError):
-        p_list = convert_scanr_init_task(
-            zarr_dir=str(zarr_dir),
-            acquisitions=[
-                ScanRAcquisitionModel(
-                    path=str(test_data),
-                    acquisition_id=0,
-                ),
-            ],
-            overwrite=OverwriteMode.NO_OVERWRITE,
-        )
-
-@pytest.mark.parametrize("test_config_path", [
-    Path(__file__).parent / "data" / "configs" / "scanr" / "1w_1p_1c_1z_1t.json",
-])
-def test_scanr(tmp_path: Path, test_config_path: Path):
+@pytest.mark.parametrize(
+    "test_config_path",
+    ["data/OlympusScanR/configs/1w1p1c1z1t.yaml"],
+)
+def test_scanr(tmp_path: Path, test_config_path: str):
     """Test the ScanR converter using config files."""
     zarr_dir = tmp_path / "test_zarr_dir"
-
-    with open(test_config_path) as f:
-        config = json.load(f)
-    p_list = convert_scanr_init_task(
-        zarr_dir=str(zarr_dir),
-        acquisitions=config.get("acquisitions", []),
-        overwrite=OverwriteMode.NO_OVERWRITE,
+    _test_config_path = Path(__file__).parent / test_config_path
+    config = load_yaml_assertions(_test_config_path)
+    output = convert_scanr_init_task(
+        zarr_dir=str(zarr_dir), **config.conversion_settings.init_task_kwargs
     )
-    assert len(p_list["parallelization_list"]) == 1
-    for p in p_list["parallelization_list"]:
-        results = image_in_plate_compute_task(**p)
-        assert "image_list_updates" in results
-        updates = results["image_list_updates"]
-        assert len(updates) == 1
+    plate_after_init_checks(
+        init_output=output,
+        multi_plate_assertions=config.multi_plate_assertions,
+        zarr_dir=zarr_dir,
+    )
+    updates_list = []
+    for p in output["parallelization_list"]:
+        update = image_in_plate_compute_task(**p)
+        updates_list.append(update)
 
-        assert updates[0]["types"] == config["expected"]["types"]
-        assert updates[0]["attributes"] == config["expected"]["attributes"]
-        zarr_url = Path(updates[0]["zarr_url"])
-        assert zarr_url.exists()
-        ome_zarr = open_ome_zarr_container(zarr_url)
-        image = ome_zarr.get_image()
-        assert image.shape == tuple(config["expected"]["shape"])
-        assert abs(image.pixel_size.x - config["expected"]["pixelsize"]) < 1e-6
-        assert set(ome_zarr.list_tables()) == set(config["expected"]["tables"])
+    image_list_updates_checks(
+        image_list_updates=updates_list,
+        multi_plate_assertions=config.multi_plate_assertions,
+        zarr_dir=zarr_dir,
+    )
+    post_compute_checks(
+        multi_plate_assertions=config.multi_plate_assertions, zarr_dir=zarr_dir
+    )

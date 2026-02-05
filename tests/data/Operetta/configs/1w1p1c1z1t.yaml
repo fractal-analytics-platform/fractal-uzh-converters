@@ -1,0 +1,26 @@
+conversion_settings:
+  converter: fractal_uzh_converters/operetta
+  init_task_kwargs:
+    acquisitions:
+      - path: tests/data/Operetta/Operetta_reference_acquisitions/1w1p1c1z1t
+        acquisition_id: 0
+
+multi_plate_assertions:
+  plates:
+    1w1p1c1z1t.zarr:
+      wells: [C/11]
+      images_common:
+        axes: ["c", "z", "y", "x"]
+        pixelsize: [1.0, 1.0, 0.5979760809567617, 0.5979760809567617]
+        types:
+          is_3D: false
+        attributes:
+          acquisition: 0
+          plate: 1w1p1c1z1t.zarr
+        tables:
+          - well_ROI_table
+      images:
+        C/11/0:
+          shape: [1, 1, 2160, 2160]
+          attributes:
+            well: C11

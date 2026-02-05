@@ -1,70 +1,47 @@
 from pathlib import Path
 
 import pytest
-from ngio import open_ome_zarr_container
-from ome_zarr_converters_tools import OverwriteMode
 
 from fractal_uzh_converters.common import image_in_plate_compute_task
 from fractal_uzh_converters.cq3k.convert_cq3k_init_task import (
-    CQ3KAcquisitionModel,
     convert_cq3k_init_task,
 )
 
+from .utils import (
+    image_list_updates_checks,
+    load_yaml_assertions,
+    plate_after_init_checks,
+    post_compute_checks,
+)
 
-def test_MIP_only(tmp_path):
-    """Test the base workflow of the CQ3K converter."""
+
+@pytest.mark.parametrize(
+    "test_config_path",
+    ["data/CQ3K/configs/2w1p1c1z1t_mip.yaml"],
+)
+def test_cq3k(tmp_path: Path, test_config_path: str):
+    """Test the CQ3K converter using config files."""
     zarr_dir = tmp_path / "test_zarr_dir"
-    plate_name = "20251020T100401_BVC_Channel_WellTestC5F9_MIP_Only"
-    test_data = (
-        Path(__file__).parent
-        / "data"
-        / "extended_test_data"
-        / "CQ3K_reference_acquisitions"
-        / plate_name
+    _test_config_path = Path(__file__).parent / test_config_path
+    config = load_yaml_assertions(_test_config_path)
+    output = convert_cq3k_init_task(
+        zarr_dir=str(zarr_dir), **config.conversion_settings.init_task_kwargs
     )
-
-    p_list = convert_cq3k_init_task(
-        zarr_dir=str(zarr_dir),
-        acquisitions=[
-            CQ3KAcquisitionModel(
-                path=str(test_data),
-                acquisition_id=0,
-            ),
-        ],
-        overwrite=OverwriteMode.NO_OVERWRITE,
+    plate_after_init_checks(
+        init_output=output,
+        multi_plate_assertions=config.multi_plate_assertions,
+        zarr_dir=zarr_dir,
     )
-    assert len(p_list["parallelization_list"]) == 2
-    for p in p_list["parallelization_list"]:
-        results = image_in_plate_compute_task(**p)
-        assert "image_list_updates" in results
-        updates = results["image_list_updates"]
-        assert len(updates) == 1
+    updates_list = []
+    for p in output["parallelization_list"]:
+        update = image_in_plate_compute_task(**p)
+        updates_list.append(update)
 
-        assert not updates[0]["types"]["is_3D"]
-        assert updates[0]["attributes"]["well"] == "C05"
-        assert updates[0]["attributes"]["plate"] == f"{plate_name}_Maximum.zarr"
-
-        zarr_url = Path(updates[0]["zarr_url"])
-        assert zarr_url.exists()
-
-        ngff_image = open_ome_zarr_container(zarr_url)
-        assert ngff_image.levels == 5
-        image = ngff_image.get_image()
-        assert image.shape == (1, 1, 2000, 2000)
-        assert image.pixel_size.x == image.pixel_size.y
-        assert abs(image.pixel_size.x - 0.3242218675179569) < 1e-6
-        # FOV_ROI_table is only created for multi-FOV acquisitions
-        assert set(ngff_image.list_tables()) == {"well_ROI_table"}
-        break  # Only need to check one of the two images
-
-    with pytest.raises(FileExistsError):
-        p_list = convert_cq3k_init_task(
-            zarr_dir=str(zarr_dir),
-            acquisitions=[
-                CQ3KAcquisitionModel(
-                    path=str(test_data),
-                    acquisition_id=0,
-                ),
-            ],
-            overwrite=OverwriteMode.NO_OVERWRITE,
-        )
+    image_list_updates_checks(
+        image_list_updates=updates_list,
+        multi_plate_assertions=config.multi_plate_assertions,
+        zarr_dir=zarr_dir,
+    )
+    post_compute_checks(
+        multi_plate_assertions=config.multi_plate_assertions, zarr_dir=zarr_dir
+    )
