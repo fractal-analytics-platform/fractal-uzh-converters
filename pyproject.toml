@@ -24,9 +24,9 @@ authors = [{ name = "Lorenzo Cerrone", email = "lorenzo.cerrone@uzh.ch" }]
 requires-python = ">=3.11,<3.13"
 
 dependencies = [
-    "ome-zarr-converters-tools==0.7.0b1",
+    "ome-zarr-converters-tools==0.7.0b2",
     "fractal-task-tools",
-    "ngio>=0.5.0,<0.6.0",
+    "ngio>=0.5.3,<0.6.0",
     "tqdm",
     "tifffile",
     "ome_types",
@@ -120,6 +120,7 @@ platforms = ["osx-arm64", "linux-64"]
 fractal-uzh-converters = { path = ".", editable = true }
 # For local development, you can use the following line instead of the one above
 # ome-zarr-converters-tools = { path = "../ome-zarr-converters-tools", editable = true }
+ngio = { path = "../ngio", editable = true }
 
 [tool.pixi.environments]
 default = { solve-group = "default" }
