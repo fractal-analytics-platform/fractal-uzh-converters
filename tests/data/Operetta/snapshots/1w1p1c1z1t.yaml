@@ -36,3 +36,4 @@ plates:
                   min: 0.0
                   max: 44239.0
                   hash: e46dbe494948247754027b354e95dcfd9db0041cabc0a0d25d9db203f5e7406f
+                yx_origin: null

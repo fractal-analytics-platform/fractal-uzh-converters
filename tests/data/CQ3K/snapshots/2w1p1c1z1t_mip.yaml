@@ -37,6 +37,7 @@ plates:
                   min: 0.0
                   max: 1413.0
                   hash: 275af7dbb7f4475ca47c5dae1a0a510199300e36229c2383fd4cf9b60677a547
+                yx_origin: null
       F/09/0:
         axes:
         - c
@@ -70,3 +71,4 @@ plates:
                   min: 0.0
                   max: 92.0
                   hash: cbd26afc53f8f0523b3450ba704a1128c9f8f5cd742f8f480a99a7b24739a0aa
+                yx_origin: null

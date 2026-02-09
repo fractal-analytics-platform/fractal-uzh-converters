@@ -1,5 +1,4 @@
 import hashlib
-import warnings
 from collections.abc import Callable
 from pathlib import Path
 
@@ -32,6 +31,7 @@ class FingerprintModel(BaseModel):
 class RoiAssertionModel(BaseModel):
     slice_repr: str
     finger_print: FingerprintModel
+    xy_origin: tuple[float, float] | None = None
 
 
 class TableAssertionModel(BaseModel):
@@ -165,6 +165,10 @@ def _check_roi_tables(
             roi_array = image.get_roi(roi)
             fingerprint = FingerprintModel.from_array(roi_array)
             assert fingerprint == roi_assert.finger_print, fingerprint
+            if roi_assert.xy_origin is not None:
+                y_origin = getattr(roi, "y_micrometer_original", None)
+                x_origin = getattr(roi, "x_micrometer_original", None)
+                assert (y_origin, x_origin) == roi_assert.xy_origin
 
 
 def _post_compute_checks(
@@ -190,7 +194,8 @@ def _generate_snapshot(
     *,
     zarr_dir: Path,
     image_list_updates: list[dict],
-) -> dict:
+    snapshot_path: Path,
+) -> None:
     """Generate multi_plate_assertions dict from converted plates."""
     # Discover all plate dirs (they end with .zarr)
     plate_names = sorted(p.name for p in zarr_dir.iterdir() if p.suffix == ".zarr")
@@ -240,9 +245,16 @@ def _generate_snapshot(
                         roi_pixel = roi.to_pixel(pixel_size=image.pixel_size)
                         roi_array = image.get_roi(roi)
                         fp = FingerprintModel.from_array(roi_array)
+                        y_origin = getattr(roi, "y_micrometer_original", None)
+                        x_origin = getattr(roi, "x_micrometer_original", None)
+                        if y_origin is not None and x_origin is not None:
+                            yx_origin = (y_origin, x_origin)
+                        else:
+                            yx_origin = None
                         rois_dict[roi.name] = {
                             "slice_repr": str(roi_pixel.slices),
                             "finger_print": fp.model_dump(),
+                            "yx_origin": yx_origin,
                         }
                     tables_dict[table_name] = {"rois": rois_dict}
                 entry["tables"] = tables_dict
@@ -254,7 +266,18 @@ def _generate_snapshot(
             "images": images_dict,
         }
 
-    return {"plates": all_plates}
+    snapshot_data = {"plates": all_plates}
+    # Validate snapshot data before writing
+    MultiPlateAssertionModel(**snapshot_data)
+    snapshot_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(snapshot_path, "w") as f:
+        yaml.dump(
+            snapshot_data,
+            f,
+            default_flow_style=False,
+            sort_keys=False,
+        )
+    return
 
 
 def run_converter_test(
@@ -286,26 +309,19 @@ def run_converter_test(
         updates_list.append(update)
 
     # 3. Generate or load snapshot
-    if update_snapshots or not snapshot_path.exists():
-        snapshot_data = _generate_snapshot(
+    if update_snapshots:
+        _generate_snapshot(
             zarr_dir=zarr_dir,
             image_list_updates=updates_list,
+            snapshot_path=snapshot_path,
         )
-        snapshot_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(snapshot_path, "w") as f:
-            yaml.dump(
-                snapshot_data,
-                f,
-                default_flow_style=False,
-                sort_keys=False,
-            )
-        if not update_snapshots:
-            warnings.warn(
-                f"Snapshot did not exist, generated: {snapshot_path}"
-                "\nReview and commit the snapshot file.",
-                stacklevel=2,
-            )
         return
+
+    if not snapshot_path.exists():
+        raise FileNotFoundError(
+            f"Snapshot file {snapshot_path} not found. "
+            "Run with update_snapshots=True to generate it."
+        )
 
     # 4. Load snapshot and run all checks
     assertions = _load_snapshot(snapshot_path)
