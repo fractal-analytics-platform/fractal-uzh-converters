@@ -25,9 +25,7 @@ class FingerprintModel(BaseModel):
             std=float(np.std(arr)),
             min=float(np.min(arr)),
             max=float(np.max(arr)),
-            hash=hashlib.sha256(
-                np.round(arr, decimals).tobytes()
-            ).hexdigest(),
+            hash=hashlib.sha256(np.round(arr, decimals).tobytes()).hexdigest(),
         )
 
 
@@ -45,22 +43,14 @@ class ImageAssertionModel(BaseModel):
     shape: tuple[int, ...]
     pixelsize: tuple[float, ...]
     types: dict[str, bool] = Field(default_factory=dict)
-    attributes: dict[str, str | int | float] = Field(
-        default_factory=dict
-    )
-    tables: dict[str, TableAssertionModel | None] = Field(
-        default_factory=dict
-    )
+    attributes: dict[str, str | int | float] = Field(default_factory=dict)
+    tables: dict[str, TableAssertionModel | None] = Field(default_factory=dict)
 
 
 def deep_merge(a, b):
     result = a.copy()
     for key, value in b.items():
-        if (
-            key in result
-            and isinstance(result[key], dict)
-            and isinstance(value, dict)
-        ):
+        if key in result and isinstance(result[key], dict) and isinstance(value, dict):
             result[key] = deep_merge(result[key], value)
         else:
             result[key] = value
@@ -79,9 +69,7 @@ class PlateAssertionModel(BaseModel):
         for image_path, image_assertions in images.items():
             for key in image_assertions.keys():
                 if key in common_assertions:
-                    image_assertions = deep_merge(
-                        image_assertions, common_assertions
-                    )
+                    image_assertions = deep_merge(image_assertions, common_assertions)
             updated_image_assertions[image_path] = image_assertions
         values["images"] = updated_image_assertions
         return values
@@ -92,9 +80,7 @@ class MultiPlateAssertionModel(BaseModel):
 
     @property
     def expected_parallelization_list_length(self) -> int:
-        return sum(
-            len(plate.images) for plate in self.plates.values()
-        )
+        return sum(len(plate.images) for plate in self.plates.values())
 
     def aggregated_types(self) -> dict[str, bool]:
         result = {}
@@ -159,9 +145,9 @@ def _check_roi_tables(
     ome_zarr_image: OmeZarrContainer,
     image_assertions: ImageAssertionModel,
 ):
-    assert set(ome_zarr_image.list_tables()) == set(
-        image_assertions.tables.keys()
-    ), set(ome_zarr_image.list_tables())
+    assert set(ome_zarr_image.list_tables()) == set(image_assertions.tables.keys()), (
+        set(ome_zarr_image.list_tables())
+    )
     image = ome_zarr_image.get_image()
     for table_name, table_assert in image_assertions.tables.items():
         if table_assert is None:
@@ -172,9 +158,7 @@ def _check_roi_tables(
                 if roi.name == roi_name:
                     break
             else:
-                raise AssertionError(
-                    f"ROI {roi_name} not found in table {table_name}"
-                )
+                raise AssertionError(f"ROI {roi_name} not found in table {table_name}")
             roi_pixel = roi.to_pixel(pixel_size=image.pixel_size)
             slices_repr = str(roi_pixel.slices)
             assert slices_repr == str(roi_assert.slice_repr), slices_repr
@@ -195,9 +179,7 @@ def _post_compute_checks(
             image = ome_zarr_image.get_image()
             assert image.axes == img_assert.axes
             assert image.shape == img_assert.shape
-            assert np.allclose(
-                image.pixel_size.tzyx, img_assert.pixelsize
-            )
+            assert np.allclose(image.pixel_size.tzyx, img_assert.pixelsize)
             _check_roi_tables(
                 ome_zarr_image=ome_zarr_image,
                 image_assertions=img_assert,
@@ -211,9 +193,7 @@ def _generate_snapshot(
 ) -> dict:
     """Generate multi_plate_assertions dict from converted plates."""
     # Discover all plate dirs (they end with .zarr)
-    plate_names = sorted(
-        p.name for p in zarr_dir.iterdir() if p.suffix == ".zarr"
-    )
+    plate_names = sorted(p.name for p in zarr_dir.iterdir() if p.suffix == ".zarr")
 
     # Build updates lookup
     updates_by_image: dict[str, dict] = {}
@@ -251,17 +231,13 @@ def _generate_snapshot(
                 tables_dict = {}
                 for table_name in table_names:
                     try:
-                        roi_table = ome_zarr_image.get_roi_table(
-                            table_name
-                        )
+                        roi_table = ome_zarr_image.get_roi_table(table_name)
                     except Exception:
                         tables_dict[table_name] = None
                         continue
                     rois_dict = {}
                     for roi in roi_table.rois():
-                        roi_pixel = roi.to_pixel(
-                            pixel_size=image.pixel_size
-                        )
+                        roi_pixel = roi.to_pixel(pixel_size=image.pixel_size)
                         roi_array = image.get_roi(roi)
                         fp = FingerprintModel.from_array(roi_array)
                         rois_dict[roi.name] = {
