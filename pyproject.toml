@@ -21,7 +21,7 @@ description = "A collection of fractal tasks to convert HCS Plates to OME-Zarr"
 readme = "README.md"
 license = { text = "BSD-3-Clause" }
 authors = [{ name = "Lorenzo Cerrone", email = "lorenzo.cerrone@uzh.ch" }]
-requires-python = ">=3.11,<3.13"
+requires-python = ">=3.11,<3.15"
 
 dependencies = [
     "ome-zarr-converters-tools==0.7.0b2",
@@ -120,7 +120,7 @@ platforms = ["osx-arm64", "linux-64"]
 fractal-uzh-converters = { path = ".", editable = true }
 # For local development, you can use the following line instead of the one above
 # ome-zarr-converters-tools = { path = "../ome-zarr-converters-tools", editable = true }
-ngio = { path = "../ngio", editable = true }
+# ngio = { path = "../ngio", editable = true }
 
 [tool.pixi.environments]
 default = { solve-group = "default" }
