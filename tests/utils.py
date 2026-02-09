@@ -298,7 +298,7 @@ def run_converter_test(
         snapshot_path: Path to the snapshot YAML file.
         update_snapshots: If True, regenerate the snapshot file.
     """
-    zarr_dir = tmp_path / "zarr"
+    zarr_dir = tmp_path / "ome_zarr_output"
 
     # 1. Run init task
     output = init_task_fn(zarr_dir=str(zarr_dir), **init_task_kwargs)
