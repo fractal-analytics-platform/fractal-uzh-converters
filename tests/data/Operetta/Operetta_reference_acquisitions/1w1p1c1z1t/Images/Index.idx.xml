@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<EvaluationInputData xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Version="1" xmlns="http://www.perkinelmer.com/PEHH/HarmonyV5">
+  <User>lcantoni</User>
+  <InstrumentType>Sonata</InstrumentType>
+  <Plates>
+    <Plate>
+      <PlateID>2025-11-13-SingleWell-SingleFOV-SingleChannel</PlateID>
+      <MeasurementID>2b959ffa-6856-4b33-944c-f4be6540fffc</MeasurementID>
+      <MeasurementStartTime>2025-11-13T11:05:23.4463331+01:00</MeasurementStartTime>
+      <Name>2025-11-13-SingleWell-SingleFOV-SingleChannel</Name>
+      <PlateTypeName>384 Greiner µClear</PlateTypeName>
+      <PlateRows>16</PlateRows>
+      <PlateColumns>24</PlateColumns>
+      <Well id="0311" />
+    </Plate>
+  </Plates>
+  <Wells>
+    <Well>
+      <id>0311</id>
+      <Row>3</Row>
+      <Col>11</Col>
+      <Image id="0311K1F1P1R1" />
+    </Well>
+  </Wells>
+  <Images>
+    <Image Version="1">
+      <id>0311K1F1P1R1</id>
+      <State>Ok</State>
+      <URL>r03c11f01p01-ch1sk1fk1fl1.tiff</URL>
+      <Row>3</Row>
+      <Col>11</Col>
+      <FieldID>1</FieldID>
+      <PlaneID>1</PlaneID>
+      <TimepointID>0</TimepointID>
+      <ChannelID>1</ChannelID>
+      <FlimID>1</FlimID>
+      <ChannelName>Fluorescein (FITC)</ChannelName>
+      <ImageType>Signal</ImageType>
+      <AcquisitionType>NonConfocal</AcquisitionType>
+      <IlluminationType>Epifluorescence</IlluminationType>
+      <ChannelType>Fluorescence</ChannelType>
+      <ImageResolutionX Unit="m">5.979760809567617E-07</ImageResolutionX>
+      <ImageResolutionY Unit="m">5.979760809567617E-07</ImageResolutionY>
+      <ImageSizeX>2160</ImageSizeX>
+      <ImageSizeY>2160</ImageSizeY>
+      <BinningX>1</BinningX>
+      <BinningY>1</BinningY>
+      <MaxIntensity>65535</MaxIntensity>
+      <CameraType>AndorZylaCam</CameraType>
+      <PositionX Unit="m">-0.000645814</PositionX>
+      <PositionY Unit="m">0.000645814</PositionY>
+      <PositionZ Unit="m">1.8E-05</PositionZ>
+      <AbsPositionZ Unit="m">0.137577295</AbsPositionZ>
+      <MeasurementTimeOffset Unit="s">0</MeasurementTimeOffset>
+      <AbsTime>2025-11-13T11:05:27.753+01:00</AbsTime>
+      <MainExcitationWavelength Unit="nm">475</MainExcitationWavelength>
+      <MainEmissionWavelength Unit="nm">525</MainEmissionWavelength>
+      <ObjectiveMagnification Unit="">10</ObjectiveMagnification>
+      <ObjectiveNA Unit="">0.3</ObjectiveNA>
+      <ExposureTime Unit="s">0.02</ExposureTime>
+      <OrientationMatrix>[[1.005635,-0.000688,0,-38.7],[-0.001372,-1.005661,0,76.9],[0,0,1.33,-15.125]]</OrientationMatrix>
+    </Image>
+  </Images>
+</EvaluationInputData>

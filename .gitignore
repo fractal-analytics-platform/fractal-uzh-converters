@@ -120,7 +120,5 @@ ENV/
 *.zarr
 
 # Extended test data
-tests/data/CQ3k/CQ3k_*
-tests/data/Operetta/Operetta_*
-tests/data/OlympusScanR/OlympusScanR_*
 tests/data/extended_test_data*
+tests/data/ref_acq*

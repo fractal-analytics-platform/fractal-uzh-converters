@@ -1,0 +1,5 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<bts:MeasurementDetail bts:Version="1.0" bts:OperatorName="ATMC" bts:Title="20251020T100401_BVC_Channel_WellTestC5F9_MIP_Only" bts:Application="" bts:BeginTime="2025-10-20T10:04:01.9050435+02:00" bts:EndTime="2025-10-20T10:04:08.377404+02:00" bts:MeasurementSettingFileName="96WP.mes" bts:ColumnCount="12" bts:RowCount="8" bts:TimePointCount="1" bts:FieldCount="1" bts:ZCount="1" bts:TargetSystem="-_9022B5213" bts:ReleaseNumber="R1.02.02.00" bts:Status="0" xmlns:bts="http://www.yokogawa.co.jp/BTS/BTSSchema/1.0">
+  <bts:MeasurementSamplePlate bts:Name="96WP" bts:WellPlateFileName="96WP.wpi" bts:WellPlateProductFileName="10_Greiner_μClear #655090.wpp" />
+  <bts:MeasurementChannel bts:Ch="1" bts:HorizontalPixelDimension="0.3242218675179569" bts:VerticalPixelDimension="0.3242218675179569" bts:CameraNumber="1" bts:InputBitDepth="16" bts:InputLevel="65535" bts:HorizontalPixels="2000" bts:VerticalPixels="2000" bts:FilterWheelPosition="1" bts:FilterPosition="1" bts:ShadingCorrectionSource="" bts:ObjectiveMagnificationRatio="1.0024" bts:OriginalHorizontalPixels="2000" bts:OriginalVerticalPixels="2000" />
+</bts:MeasurementDetail>

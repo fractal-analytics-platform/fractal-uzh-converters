@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<bts:MeasurementData bts:Version="1.0" xmlns:bts="http://www.yokogawa.co.jp/BTS/BTSSchema/1.0">
+<bts:MeasurementRecord bts:Type="IMG" bts:Time="2025-10-20T10:04:04.336+02:00" bts:Column="5" bts:Row="3" bts:TimePoint="1" bts:FieldIndex="1" bts:ZIndex="1" bts:TimelineIndex="1" bts:ActionIndex="1" bts:Action="3D" bts:X="-1460.8" bts:Y="-1303.2" bts:Z="100" bts:ZImageProcessing="Maximum" bts:ZTop="200.0" bts:ZBottom="0.0" bts:Ch="1">Projection/W0029F0001T0001Z000C1.tif</bts:MeasurementRecord>
+<bts:MeasurementRecord bts:Type="IMG" bts:Time="2025-10-20T10:04:07.786+02:00" bts:Column="9" bts:Row="6" bts:TimePoint="1" bts:FieldIndex="1" bts:ZIndex="1" bts:TimelineIndex="1" bts:ActionIndex="1" bts:Action="3D" bts:X="-1460.8" bts:Y="-1303.2" bts:Z="100" bts:ZImageProcessing="Maximum" bts:ZTop="200.0" bts:ZBottom="0.0" bts:Ch="1">Projection/W0069F0001T0001Z000C1.tif</bts:MeasurementRecord>
+</bts:MeasurementData>
