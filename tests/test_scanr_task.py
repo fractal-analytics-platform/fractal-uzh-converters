@@ -2,46 +2,45 @@ from pathlib import Path
 
 import pytest
 
-from fractal_uzh_converters.common import image_in_plate_compute_task
 from fractal_uzh_converters.olympus_scanr.convert_scanr_init_task import (
     convert_scanr_init_task,
 )
 
-from .utils import (
-    image_list_updates_checks,
-    load_yaml_assertions,
-    plate_after_init_checks,
-    post_compute_checks,
+from .utils import run_converter_test
+
+SNAPSHOT_DIR = (
+    Path(__file__).parent / "data" / "OlympusScanR" / "snapshots"
 )
 
 
 @pytest.mark.parametrize(
-    "test_config_path",
-    ["data/OlympusScanR/configs/1w1p1c1z1t.yaml"],
+    "init_task_kwargs, snapshot_name",
+    [
+        (
+            {
+                "acquisitions": [
+                    {
+                        "path": "tests/data/OlympusScanR"
+                        "/OlympusScanR_reference_acquisitions"
+                        "/1w1p1c1z1t",
+                        "acquisition_id": 0,
+                    }
+                ]
+            },
+            "1w1p1c1z1t",
+        ),
+    ],
 )
-def test_scanr(tmp_path: Path, test_config_path: str):
-    """Test the ScanR converter using config files."""
-    zarr_dir = tmp_path / "test_zarr_dir"
-    _test_config_path = Path(__file__).parent / test_config_path
-    config = load_yaml_assertions(_test_config_path)
-    output = convert_scanr_init_task(
-        zarr_dir=str(zarr_dir), **config.conversion_settings.init_task_kwargs
-    )
-    plate_after_init_checks(
-        init_output=output,
-        multi_plate_assertions=config.multi_plate_assertions,
-        zarr_dir=zarr_dir,
-    )
-    updates_list = []
-    for p in output["parallelization_list"]:
-        update = image_in_plate_compute_task(**p)
-        updates_list.append(update)
-
-    image_list_updates_checks(
-        image_list_updates=updates_list,
-        multi_plate_assertions=config.multi_plate_assertions,
-        zarr_dir=zarr_dir,
-    )
-    post_compute_checks(
-        multi_plate_assertions=config.multi_plate_assertions, zarr_dir=zarr_dir
+def test_scanr(
+    tmp_path: Path,
+    init_task_kwargs: dict,
+    snapshot_name: str,
+    update_snapshots: bool,
+):
+    run_converter_test(
+        tmp_path=tmp_path,
+        init_task_fn=convert_scanr_init_task,
+        init_task_kwargs=init_task_kwargs,
+        snapshot_path=SNAPSHOT_DIR / f"{snapshot_name}.yaml",
+        update_snapshots=update_snapshots,
     )
