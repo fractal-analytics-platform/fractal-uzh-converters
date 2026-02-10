@@ -7,6 +7,7 @@ import numpy as np
 import xmltodict
 from ome_zarr_converters_tools import (
     AcquisitionDetails,
+    ChannelInfo,
     ConverterOptions,
     DataTypeEnum,
     DefaultImageLoader,
@@ -105,16 +106,6 @@ class OperettaImageMeta(BaseModel):
         return v
 
     @property
-    def data_type(self) -> DataTypeEnum:
-        """Determine data type based on max intensity."""
-        if self.max_intensity <= 255:
-            return DataTypeEnum.UINT8
-        elif self.max_intensity <= 65535:
-            return DataTypeEnum.UINT16
-        else:
-            return DataTypeEnum.UINT32
-
-    @property
     def well_id(self) -> str:
         """Get well ID in format 'A01'."""
         return f"{self.row}{self.column:02d}"
@@ -189,15 +180,32 @@ def _channel_names(images: list[OperettaImageMeta]) -> list[str]:
     return [channel_names[ch_id] for ch_id in sorted(channel_names.keys())]
 
 
+def _get_data_type(images: list[OperettaImageMeta]) -> DataTypeEnum:
+    """Determine data type based on max intensity across all images."""
+    if not images:
+        return DataTypeEnum.UINT16
+    max_intensity = max(img.max_intensity for img in images)
+    if max_intensity <= 255:
+        return DataTypeEnum.UINT8
+    elif max_intensity <= 65535:
+        return DataTypeEnum.UINT16
+    else:
+        return DataTypeEnum.UINT32
+
+
 def build_acquisition_details(
+    images: list[OperettaImageMeta],
     detail: OperettaImageMeta,
     acquisition_model: OperettaAcquisitionModel,
-    is_time_series: bool,
-    channel_names: list[str],
 ) -> AcquisitionDetails:
     """Build AcquisitionDetails from OperettaImageMeta."""
     pixelsize_x = detail.resolution_x.to_um()
     pixelsize_y = detail.resolution_y.to_um()
+    channel_names = _channel_names(images)
+    z_spacing = _get_z_spacing(images)
+    t_spacing = 1
+    data_type = _get_data_type(images)
+    is_time_series = _is_time_series(images)
 
     if not np.isclose(pixelsize_x, pixelsize_y):
         logger.warning(
@@ -205,11 +213,22 @@ def build_acquisition_details(
             "Using x size for pixelsize."
         )
     axes = default_axes_builder(is_time_series=is_time_series)
+    channels = [ChannelInfo(channel_label=ch_name) for ch_name in channel_names]
     acquisition_detail = AcquisitionDetails(
         pixelsize=pixelsize_x,
-        channel_names=channel_names,
-        wavelength_ids=None,
+        z_spacing=z_spacing,
+        t_spacing=t_spacing,
+        channels=channels,
         axes=axes,
+        start_x_coo="world",
+        length_x_coo="pixel",
+        start_y_coo="world",
+        length_y_coo="pixel",
+        start_z_coo="pixel",
+        length_z_coo="pixel",
+        start_t_coo="pixel",
+        length_t_coo="pixel",
+        data_type=data_type,
     )
     # Update with advanced options
     acquisition_detail = acquisition_model.advanced.update_acquisition_details(
@@ -222,7 +241,6 @@ def _build_tiles(
     images: list[OperettaImageMeta],
     data_dir: str,
     acquisition_model: OperettaAcquisitionModel,
-    converter_options: ConverterOptions,
     row: str,
     column: int,
     fov_idx: int,
@@ -231,14 +249,10 @@ def _build_tiles(
     image_0 = images[0]
     len_x = image_0.image_size_x
     len_y = image_0.image_size_y
-
-    is_time_series = _is_time_series(images)
-    channel_names = _channel_names(images)
     acquisition_details = build_acquisition_details(
+        images=images,
         detail=image_0,
         acquisition_model=acquisition_model,
-        is_time_series=is_time_series,
-        channel_names=channel_names,
     )
 
     # Get plate name
@@ -248,8 +262,6 @@ def _build_tiles(
         column=column,
         acquisition=acquisition_model.acquisition_id,
     )
-
-    z_spacing = _get_z_spacing(images)
     fov_name = f"FOV_{fov_idx}"
 
     tiles = []
@@ -265,36 +277,18 @@ def _build_tiles(
         _tile = Tile(
             fov_name=fov_name,
             start_x=pos_x,
-            start_x_coo="world",
             length_x=len_x,
-            length_x_coo="pixel",
             start_y=pos_y,
-            start_y_coo="world",
             length_y=len_y,
-            length_y_coo="pixel",
             start_z=img.plane_id - 1,  # Convert to 0-indexed
-            start_z_coo="pixel",
             length_z=1,
-            length_z_coo="pixel",
             start_c=img.channel_id - 1,  # Convert to 0-indexed
             length_c=1,
             start_t=img.timepoint_id,  # Already 0-indexed
-            start_t_coo="pixel",
             length_t=1,
-            length_t_coo="pixel",
             collection=image_in_plate,
             image_loader=DefaultImageLoader(file_path=tiff_path),
-            pixelsize=acquisition_details.pixelsize,
-            z_spacing=z_spacing,
-            t_spacing=acquisition_details.t_spacing,
-            channel_names=acquisition_details.channel_names,
-            wavelength_ids=acquisition_details.wavelength_ids,
-            colors=acquisition_details.colors,
-            axes=acquisition_details.axes,
-            data_type=acquisition_details.data_type,
-            flip_x=converter_options.stage_correction.flip_x,
-            flip_y=converter_options.stage_correction.flip_y,
-            swap_xy=converter_options.stage_correction.swap_xy,
+            acquisition_details=acquisition_details,
             attributes={},
         )
         tiles.append(_tile)
@@ -349,7 +343,6 @@ def parse_operetta_metadata(
             images=images,
             data_dir=acquisition_dir,
             acquisition_model=acquisition_model,
-            converter_options=converter_options,
             row=row,
             column=column,
             fov_idx=fov_idx,

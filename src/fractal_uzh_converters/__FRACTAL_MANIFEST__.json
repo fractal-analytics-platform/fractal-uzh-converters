@@ -40,6 +40,11 @@
                 "title": "Pixel Size Information",
                 "description": "Pixel size information."
               },
+              "condition_table_path": {
+                "title": "Condition Table Path",
+                "type": "string",
+                "description": "Optional path to a condition table CSV file."
+              },
               "axes": {
                 "title": "Axes",
                 "type": "string",
@@ -47,8 +52,13 @@
               },
               "data_type": {
                 "$ref": "#/$defs/DataTypeEnum",
-                "title": "Data_Type",
+                "title": "Data Type",
                 "description": "Data type of the image data."
+              },
+              "stage_corrections": {
+                "$ref": "#/$defs/StageCorrections",
+                "title": "Stage Corrections",
+                "description": "Stage orientation corrections."
               },
               "filters": {
                 "items": {
@@ -158,11 +168,6 @@
                 "default": "By FOV",
                 "title": "Writer Mode",
                 "description": "Mode for writing data during conversion. - By Tile: Write data one tile at a time. This consumes less memory, but may be slower. - By FOV: Write data one field of view at a time. This may the best compromise between speed and memory usage in most cases. - By Tile (Using Dask): Write tiles in parallel using Dask. This requires a larger memory. - In Memory: Load all data into memory before writing."
-              },
-              "stage_correction": {
-                "$ref": "#/$defs/StageCorrections",
-                "title": "Stage Corrections",
-                "description": "Stage correction options."
               },
               "alignment_correction": {
                 "$ref": "#/$defs/AlignmentCorrections",
@@ -593,11 +598,6 @@
             "default": {
               "tiling_mode": "Auto",
               "writer_mode": "By FOV",
-              "stage_correction": {
-                "flip_x": false,
-                "flip_y": false,
-                "swap_xy": false
-              },
               "alignment_correction": {
                 "align_t": false,
                 "align_xy": false,
@@ -714,11 +714,6 @@
                 "default": "By FOV",
                 "title": "Writer Mode",
                 "description": "Mode for writing data during conversion. - By Tile: Write data one tile at a time. This consumes less memory, but may be slower. - By FOV: Write data one field of view at a time. This may the best compromise between speed and memory usage in most cases. - By Tile (Using Dask): Write tiles in parallel using Dask. This requires a larger memory. - In Memory: Load all data into memory before writing."
-              },
-              "stage_correction": {
-                "$ref": "#/$defs/StageCorrections",
-                "title": "Stage Corrections",
-                "description": "Stage correction options."
               },
               "alignment_correction": {
                 "$ref": "#/$defs/AlignmentCorrections",
@@ -894,32 +889,6 @@
             "type": "string",
             "description": "Missing description for Scalings."
           },
-          "StageCorrections": {
-            "additionalProperties": false,
-            "description": "Stage orientation corrections.",
-            "properties": {
-              "flip_x": {
-                "default": false,
-                "title": "Flip X",
-                "type": "boolean",
-                "description": "Whether to flip the position along the X axis."
-              },
-              "flip_y": {
-                "default": false,
-                "title": "Flip Y",
-                "type": "boolean",
-                "description": "Whether to flip the position along the Y axis."
-              },
-              "swap_xy": {
-                "default": false,
-                "title": "Swap XY",
-                "type": "boolean",
-                "description": "Whether to swap the positions along the X and Y axes."
-              }
-            },
-            "title": "StageCorrections",
-            "type": "object"
-          },
           "TempJsonOptions": {
             "description": "Options for temporary JSON storage during conversion.",
             "properties": {
@@ -1018,6 +987,11 @@
                 "title": "Pixel Size Information",
                 "description": "Pixel size information."
               },
+              "condition_table_path": {
+                "title": "Condition Table Path",
+                "type": "string",
+                "description": "Optional path to a condition table CSV file."
+              },
               "axes": {
                 "title": "Axes",
                 "type": "string",
@@ -1025,8 +999,13 @@
               },
               "data_type": {
                 "$ref": "#/$defs/DataTypeEnum",
-                "title": "Data_Type",
+                "title": "Data Type",
                 "description": "Data type of the image data."
+              },
+              "stage_corrections": {
+                "$ref": "#/$defs/StageCorrections",
+                "title": "Stage Corrections",
+                "description": "Stage orientation corrections."
               },
               "filters": {
                 "items": {
@@ -1168,11 +1147,6 @@
                 "default": "By FOV",
                 "title": "Writer Mode",
                 "description": "Mode for writing data during conversion. - By Tile: Write data one tile at a time. This consumes less memory, but may be slower. - By FOV: Write data one field of view at a time. This may the best compromise between speed and memory usage in most cases. - By Tile (Using Dask): Write tiles in parallel using Dask. This requires a larger memory. - In Memory: Load all data into memory before writing."
-              },
-              "stage_correction": {
-                "$ref": "#/$defs/StageCorrections",
-                "title": "Stage Corrections",
-                "description": "Stage correction options."
               },
               "alignment_correction": {
                 "$ref": "#/$defs/AlignmentCorrections",
@@ -1559,11 +1533,6 @@
             "default": {
               "tiling_mode": "Auto",
               "writer_mode": "By FOV",
-              "stage_correction": {
-                "flip_x": false,
-                "flip_y": false,
-                "swap_xy": false
-              },
               "alignment_correction": {
                 "align_t": false,
                 "align_xy": false,
@@ -1680,11 +1649,6 @@
                 "default": "By FOV",
                 "title": "Writer Mode",
                 "description": "Mode for writing data during conversion. - By Tile: Write data one tile at a time. This consumes less memory, but may be slower. - By FOV: Write data one field of view at a time. This may the best compromise between speed and memory usage in most cases. - By Tile (Using Dask): Write tiles in parallel using Dask. This requires a larger memory. - In Memory: Load all data into memory before writing."
-              },
-              "stage_correction": {
-                "$ref": "#/$defs/StageCorrections",
-                "title": "Stage Corrections",
-                "description": "Stage correction options."
               },
               "alignment_correction": {
                 "$ref": "#/$defs/AlignmentCorrections",
@@ -1860,32 +1824,6 @@
             "type": "string",
             "description": "Missing description for Scalings."
           },
-          "StageCorrections": {
-            "additionalProperties": false,
-            "description": "Stage orientation corrections.",
-            "properties": {
-              "flip_x": {
-                "default": false,
-                "title": "Flip X",
-                "type": "boolean",
-                "description": "Whether to flip the position along the X axis."
-              },
-              "flip_y": {
-                "default": false,
-                "title": "Flip Y",
-                "type": "boolean",
-                "description": "Whether to flip the position along the Y axis."
-              },
-              "swap_xy": {
-                "default": false,
-                "title": "Swap XY",
-                "type": "boolean",
-                "description": "Whether to swap the positions along the X and Y axes."
-              }
-            },
-            "title": "StageCorrections",
-            "type": "object"
-          },
           "TempJsonOptions": {
             "description": "Options for temporary JSON storage during conversion.",
             "properties": {
@@ -1983,6 +1921,11 @@
                 "title": "Pixel Size Information",
                 "description": "Pixel size information."
               },
+              "condition_table_path": {
+                "title": "Condition Table Path",
+                "type": "string",
+                "description": "Optional path to a condition table CSV file."
+              },
               "axes": {
                 "title": "Axes",
                 "type": "string",
@@ -1990,8 +1933,13 @@
               },
               "data_type": {
                 "$ref": "#/$defs/DataTypeEnum",
-                "title": "Data_Type",
+                "title": "Data Type",
                 "description": "Data type of the image data."
+              },
+              "stage_corrections": {
+                "$ref": "#/$defs/StageCorrections",
+                "title": "Stage Corrections",
+                "description": "Stage orientation corrections."
               },
               "filters": {
                 "items": {
@@ -2101,11 +2049,6 @@
                 "default": "By FOV",
                 "title": "Writer Mode",
                 "description": "Mode for writing data during conversion. - By Tile: Write data one tile at a time. This consumes less memory, but may be slower. - By FOV: Write data one field of view at a time. This may the best compromise between speed and memory usage in most cases. - By Tile (Using Dask): Write tiles in parallel using Dask. This requires a larger memory. - In Memory: Load all data into memory before writing."
-              },
-              "stage_correction": {
-                "$ref": "#/$defs/StageCorrections",
-                "title": "Stage Corrections",
-                "description": "Stage correction options."
               },
               "alignment_correction": {
                 "$ref": "#/$defs/AlignmentCorrections",
@@ -2524,11 +2467,6 @@
             "default": {
               "tiling_mode": "Auto",
               "writer_mode": "By FOV",
-              "stage_correction": {
-                "flip_x": false,
-                "flip_y": false,
-                "swap_xy": false
-              },
               "alignment_correction": {
                 "align_t": false,
                 "align_xy": false,
@@ -2645,11 +2583,6 @@
                 "default": "By FOV",
                 "title": "Writer Mode",
                 "description": "Mode for writing data during conversion. - By Tile: Write data one tile at a time. This consumes less memory, but may be slower. - By FOV: Write data one field of view at a time. This may the best compromise between speed and memory usage in most cases. - By Tile (Using Dask): Write tiles in parallel using Dask. This requires a larger memory. - In Memory: Load all data into memory before writing."
-              },
-              "stage_correction": {
-                "$ref": "#/$defs/StageCorrections",
-                "title": "Stage Corrections",
-                "description": "Stage correction options."
               },
               "alignment_correction": {
                 "$ref": "#/$defs/AlignmentCorrections",
@@ -2824,32 +2757,6 @@
             "title": "Scalings",
             "type": "string",
             "description": "Missing description for Scalings."
-          },
-          "StageCorrections": {
-            "additionalProperties": false,
-            "description": "Stage orientation corrections.",
-            "properties": {
-              "flip_x": {
-                "default": false,
-                "title": "Flip X",
-                "type": "boolean",
-                "description": "Whether to flip the position along the X axis."
-              },
-              "flip_y": {
-                "default": false,
-                "title": "Flip Y",
-                "type": "boolean",
-                "description": "Whether to flip the position along the Y axis."
-              },
-              "swap_xy": {
-                "default": false,
-                "title": "Swap XY",
-                "type": "boolean",
-                "description": "Whether to swap the positions along the X and Y axes."
-              }
-            },
-            "title": "StageCorrections",
-            "type": "object"
           },
           "TempJsonOptions": {
             "description": "Options for temporary JSON storage during conversion.",
