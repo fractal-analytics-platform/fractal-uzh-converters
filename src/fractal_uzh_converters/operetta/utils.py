@@ -33,11 +33,13 @@ logger = logging.getLogger(__name__)
 
 
 class OperettaAcquisitionModel(BaseAcquisitionModel):
-    """Acquisition metadata for CQ3K data.
+    """Acquisition details for the Operetta microscope data.
 
     Attributes:
         path: Path to the acquisition directory.
-            Should contain MeasurementData.mlf and MeasurementDetail.mrf files.
+            For Operetta, this should be the base directory of the acquisition
+            or the "{acquisition_dir}/Images" directory containing the tiff
+            files and metadata.ome.xml file.
         plate_name: Optional custom name for the plate. If not provided, the name will
             be the acquisition directory name.
         acquisition_id: Acquisition ID,
@@ -45,7 +47,18 @@ class OperettaAcquisitionModel(BaseAcquisitionModel):
         advanced: Advanced acquisition options.
     """
 
-    pass
+    @field_validator("path", mode="before")
+    def validate_path(cls, v) -> str:
+        """Make the path more flexible.
+
+        Allow:
+         - path/to/acquisition/Images
+         - path/to/acquisition/
+        """
+        v = v.rstrip("/")
+        if v.endswith("/Images"):
+            return v[:-len("/Images")]
+        return v
 
 
 ######################################################################

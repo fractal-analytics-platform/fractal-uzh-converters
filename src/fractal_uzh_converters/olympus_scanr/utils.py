@@ -18,6 +18,7 @@ from ome_zarr_converters_tools import (
     join_url_paths,
     tiles_aggregation_pipeline,
 )
+from pydantic import field_validator
 
 from fractal_uzh_converters.common import STANDARD_ROWS_NAMES, BaseAcquisitionModel
 
@@ -45,12 +46,13 @@ logger = logging.getLogger(__name__)
 
 
 class ScanRAcquisitionModel(BaseAcquisitionModel):
-    """Acquisition metadata.
+    """Acquisition details for the Olympus ScanR microscope data.
 
     Attributes:
         path: Path to the acquisition directory.
-            For scanr, this should include a 'data/' directory with the tiff files
-            and a metadata.ome.xml file.
+            For scanr, this should be the base directory of the acquisition
+            or the "{acquisition_dir}/data" directory containing the metadata.ome.xml
+            file and the "data" directory with the tiff files.
         plate_name: Optional custom name for the plate. If not provided, the name will
             be the acquisition directory name.
         acquisition_id: Acquisition ID,
@@ -60,6 +62,19 @@ class ScanRAcquisitionModel(BaseAcquisitionModel):
     """
 
     layout: AVAILABLE_PLATE_LAYOUTS = "96-well"
+
+    @field_validator("path", mode="before")
+    def validate_path(cls, v):
+        """Make the path more flexible.
+
+        Allow:
+         - path/to/acquisition/data
+         - path/to/acquisition/
+        """
+        v = v.rstrip("/")
+        if v.endswith("/data"):
+            return v[:-len("/data")]
+        return v
 
 
 def _wellid_to_row_column(

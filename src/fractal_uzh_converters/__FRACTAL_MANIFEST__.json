@@ -447,12 +447,12 @@
             "description": "Missing description for Scalings."
           },
           "ScanRAcquisitionModel": {
-            "description": "Acquisition metadata.",
+            "description": "Acquisition details for the Olympus ScanR microscope data.",
             "properties": {
               "path": {
                 "title": "Path",
                 "type": "string",
-                "description": "Path to the acquisition directory. For scanr, this should include a 'data/' directory with the tiff files and a metadata.ome.xml file."
+                "description": "Path to the acquisition directory. For scanr, this should be the base directory of the acquisition or the \"{acquisition_dir}/data\" directory containing the metadata.ome.xml file and the \"data\" directory with the tiff files."
               },
               "plate_name": {
                 "title": "Plate Name",
@@ -1075,7 +1075,7 @@
             "description": "Missing description for BackendType."
           },
           "CQ3KAcquisitionModel": {
-            "description": "Acquisition metadata for CQ3K data.",
+            "description": "Acquisition details for the CQ3K microscope data.",
             "properties": {
               "path": {
                 "title": "Path",
@@ -2238,12 +2238,12 @@
             "type": "object"
           },
           "OperettaAcquisitionModel": {
-            "description": "Acquisition metadata for CQ3K data.",
+            "description": "Acquisition details for the Operetta microscope data.",
             "properties": {
               "path": {
                 "title": "Path",
                 "type": "string",
-                "description": "Path to the acquisition directory. Should contain MeasurementData.mlf and MeasurementDetail.mrf files."
+                "description": "Path to the acquisition directory. For Operetta, this should be the base directory of the acquisition or the \"{acquisition_dir}/Images\" directory containing the tiff files and metadata.ome.xml file."
               },
               "plate_name": {
                 "title": "Plate Name",

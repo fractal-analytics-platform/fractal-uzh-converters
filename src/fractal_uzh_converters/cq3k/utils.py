@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 class CQ3KAcquisitionModel(BaseAcquisitionModel):
-    """Acquisition metadata for CQ3K data.
+    """Acquisition details for the CQ3K microscope data.
 
     Attributes:
         path: Path to the acquisition directory.
