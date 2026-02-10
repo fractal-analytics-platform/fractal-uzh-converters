@@ -3,10 +3,12 @@
 import logging
 from typing import Protocol, TypeVar
 
+import polars
 from ome_zarr_converters_tools import (
     AcquisitionOptions,
     ConverterOptions,
     TiledImage,
+    AttributeType,
 )
 from pydantic import BaseModel, Field
 
@@ -40,6 +42,18 @@ class BaseAcquisitionModel(BaseModel):
             return self.plate_name
         name = self.path.rstrip("/").split("/")[-1]
         return name
+
+    def get_condition_table(self) -> polars.DataFrame | None:
+        """Get the path to the condition table if it exists."""
+        if self.advanced.condition_table_path is not None:
+            try:
+                return polars.read_csv(self.advanced.condition_table_path)
+            except Exception as e:
+                raise ValueError(
+                    "Failed to read condition table at "
+                    f"{self.advanced.condition_table_path}: {e}"
+                ) from e
+        return None
 
 
 AcquisitionModelType = TypeVar(
@@ -99,3 +113,61 @@ def parse_acquisitions(
         raise ValueError("No images found in any of the provided acquisitions.")
     logger.info(f"Total {len(tiled_images)} images found in all acquisitions.")
     return tiled_images
+
+
+def get_attributes_from_condition_table(
+    condition_table: polars.DataFrame | None,
+    row: str,
+    column: int,
+    acquisition: int = 0,
+) -> dict[str, AttributeType]:
+    """Get the attributes from the condition table."""
+    if condition_table is None:
+        return {}
+    columns = condition_table.columns
+    columns_lower = [col.lower() for col in columns]
+    if "row" not in columns_lower:
+        raise ValueError("Condition table must contain a 'row' column.")
+    row_col_name = columns[columns_lower.index("row")]
+
+    if "column" in columns_lower:
+        column_col_name = columns[columns_lower.index("column")]
+    elif "col" in columns_lower:
+        column_col_name = columns[columns_lower.index("col")]
+    else:
+        raise ValueError("Condition table must contain a 'column' or 'col' column.")
+
+    filtered = condition_table.filter(
+        (polars.col(row_col_name) == row) & (polars.col(column_col_name) == column)
+    )
+    if "acquisition" in columns_lower:
+        acquisition_col_name = columns[columns_lower.index("acquisition")]
+        filtered = filtered.filter(polars.col(acquisition_col_name) == acquisition)
+    if filtered.is_empty():
+        logger.warning(
+            f"No matching entry found in condition table "
+            f"for {row}{column} (acquisition {acquisition})"
+        )
+        return {}
+    filtered_dict = filtered.to_dict(as_series=False)
+    attributes = {}
+    for key, value in filtered_dict.items():
+        if key in ["row", "column", "acquisition"]:
+            continue
+        if all(isinstance(v, (str, type(None))) for v in value):
+            formatted_value = [v if v is None else v.strip() for v in value]
+            # Replace common placeholder values with None
+            formatted_value = [
+                None if v in ["", "Na", "NA", "N/A"] else v for v in formatted_value
+            ]
+            attributes[key] = formatted_value
+        elif all(isinstance(v, (int, float, bool, type(None))) for v in value):
+            attributes[key] = value
+        else:
+            types_found = {type(v).__name__ for v in value}
+            raise ValueError(
+                f"Condition table column '{key}' must contain either all strings"
+                f", bools, or all numbers, but found types: {types_found}"
+            )
+
+    return attributes

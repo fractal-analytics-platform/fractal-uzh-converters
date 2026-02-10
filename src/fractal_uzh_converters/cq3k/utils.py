@@ -7,6 +7,7 @@ import numpy as np
 import xmltodict
 from ome_zarr_converters_tools import (
     AcquisitionDetails,
+    AttributeType,
     ConverterOptions,
     DefaultImageLoader,
     ImageInPlate,
@@ -19,7 +20,11 @@ from ome_zarr_converters_tools import (
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_pascal
 
-from fractal_uzh_converters.common import STANDARD_ROWS_NAMES, BaseAcquisitionModel
+from fractal_uzh_converters.common import (
+    STANDARD_ROWS_NAMES,
+    BaseAcquisitionModel,
+    get_attributes_from_condition_table,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -275,6 +280,7 @@ def _build_tiles(
     column: int,
     fov_idx: int,
     z_type: str | None,
+    attributes: dict[str, AttributeType],
 ) -> list[Tile]:
     """Build individual Tile objects for each image record."""
     if isinstance(detail.measurement_channel, list):
@@ -330,7 +336,7 @@ def _build_tiles(
             collection=image_in_plate,
             image_loader=DefaultImageLoader(file_path=tiff_path),
             acquisition_details=acquisition_details,
-            attributes={},
+            attributes=attributes,
         )
         tiles.append(_tile)
 
@@ -360,6 +366,7 @@ def parse_cq3k_metadata(
     """
     acquisition_dir = acquisition_model.path
     data, detail = _load_models(path=acquisition_dir)
+    condition_table = acquisition_model.get_condition_table()
 
     if data.measurement_record is None:
         raise ValueError(f"No measurement records found in {acquisition_dir}")
@@ -387,6 +394,12 @@ def parse_cq3k_metadata(
     # Build tiles for each group
     all_tiles = []
     for (z_type, row, column, fov_idx), images in plates_groups.items():
+        attributes = get_attributes_from_condition_table(
+            condition_table=condition_table,
+            row=row,
+            column=column,
+            acquisition=acquisition_model.acquisition_id,
+        )
         _tiles = _build_tiles(
             images=images,
             data_dir=acquisition_dir,
@@ -396,6 +409,7 @@ def parse_cq3k_metadata(
             column=column,
             fov_idx=fov_idx,
             z_type=z_type,
+            attributes=attributes,
         )
         all_tiles.extend(_tiles)
 

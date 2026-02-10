@@ -5,6 +5,7 @@ import re
 from typing import Literal, NamedTuple
 
 import numpy as np
+import polars
 from ome_types import from_xml
 from ome_zarr_converters_tools import (
     AcquisitionDetails,
@@ -20,7 +21,11 @@ from ome_zarr_converters_tools import (
 )
 from pydantic import field_validator
 
-from fractal_uzh_converters.common import STANDARD_ROWS_NAMES, BaseAcquisitionModel
+from fractal_uzh_converters.common import (
+    STANDARD_ROWS_NAMES,
+    BaseAcquisitionModel,
+    get_attributes_from_condition_table,
+)
 
 AVAILABLE_PLATE_LAYOUTS = Literal["24-well", "48-well", "96-well", "384-well"]
 STANDARD_PLATES_LAYOUTS: dict[AVAILABLE_PLATE_LAYOUTS, dict[str, int]] = {
@@ -73,7 +78,7 @@ class ScanRAcquisitionModel(BaseAcquisitionModel):
         """
         v = v.rstrip("/")
         if v.endswith("/data"):
-            return v[:-len("/data")]
+            return v[: -len("/data")]
         return v
 
 
@@ -238,6 +243,7 @@ def _build_tiles(
     image_meta,
     acquisition_model: ScanRAcquisitionModel,
     mean_z_spacing: float,
+    condition_table: polars.DataFrame | None,
 ) -> list[Tile]:
     """Build individual Tile objects for each image record."""
     (row, column), pos_id = _extract_well_position_id(
@@ -266,6 +272,12 @@ def _build_tiles(
         planes=pixels.planes,
     )
     base_tiff_dir = join_url_paths(acquisition_model.path, "data")
+    attributes = get_attributes_from_condition_table(
+        condition_table=condition_table,
+        row=row,
+        column=column,
+        acquisition=acquisition_model.acquisition_id,
+    )
 
     for plane_info in matched_planes:
         tiff_path = join_url_paths(base_tiff_dir, plane_info.tiff_path)
@@ -290,7 +302,7 @@ def _build_tiles(
             collection=image_in_plate,
             image_loader=DefaultImageLoader(file_path=tiff_path),
             acquisition_details=acquisition_details,
-            attributes={},
+            attributes=attributes,
         )
         tiles.append(_tile)
     return tiles
@@ -304,7 +316,6 @@ def parse_scanr_metadata(
     """Parse ScanR metadata and return a dictionary of TiledImages."""
     acquisition_dir = acquisition_model.path
     metadata_path = join_url_paths(acquisition_dir, "data", "metadata.ome.xml")
-
     try:
         meta = from_xml(metadata_path)
     except Exception as e:
@@ -314,6 +325,8 @@ def parse_scanr_metadata(
 
     if len(meta.images) == 0:
         raise ValueError(f"No images found in metadata file: {metadata_path}")
+
+    condition_table = acquisition_model.get_condition_table()
     mean_z_spacing = _mean_z_spacing(meta.images)
     tiles = []
     for image in meta.images:
@@ -321,6 +334,7 @@ def parse_scanr_metadata(
             image_meta=image,
             acquisition_model=acquisition_model,
             mean_z_spacing=mean_z_spacing,
+            condition_table=condition_table,
         )
         tiles.extend(_tiles)
     tiled_images = tiles_aggregation_pipeline(

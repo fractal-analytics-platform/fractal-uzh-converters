@@ -20,7 +20,11 @@ from ome_zarr_converters_tools import (
 )
 from pydantic import BaseModel, Field, field_validator
 
-from fractal_uzh_converters.common import STANDARD_ROWS_NAMES, BaseAcquisitionModel
+from fractal_uzh_converters.common import (
+    STANDARD_ROWS_NAMES,
+    BaseAcquisitionModel,
+    get_attributes_from_condition_table,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +61,7 @@ class OperettaAcquisitionModel(BaseAcquisitionModel):
         """
         v = v.rstrip("/")
         if v.endswith("/Images"):
-            return v[:-len("/Images")]
+            return v[: -len("/Images")]
         return v
 
 
@@ -257,6 +261,7 @@ def _build_tiles(
     row: str,
     column: int,
     fov_idx: int,
+    attributes: dict[str, list[str] | list[int] | list[float]],
 ) -> list[Tile]:
     """Build individual Tile objects for each image record."""
     image_0 = images[0]
@@ -276,7 +281,6 @@ def _build_tiles(
         acquisition=acquisition_model.acquisition_id,
     )
     fov_name = f"FOV_{fov_idx}"
-
     tiles = []
     for img in images:
         tiff_path = join_url_paths(data_dir, "Images", img.url)
@@ -302,7 +306,7 @@ def _build_tiles(
             collection=image_in_plate,
             image_loader=DefaultImageLoader(file_path=tiff_path),
             acquisition_details=acquisition_details,
-            attributes={},
+            attributes=attributes,
         )
         tiles.append(_tile)
 
@@ -332,6 +336,7 @@ def parse_operetta_metadata(
     """
     acquisition_dir = acquisition_model.path
     data = _load_models(acquisition_dir)
+    condition_table = acquisition_model.get_condition_table()
 
     if len(data) == 0:
         raise ValueError(f"No measurement records found in {acquisition_dir}")
@@ -352,6 +357,12 @@ def parse_operetta_metadata(
     # Build tiles for each group
     all_tiles = []
     for (row, column, fov_idx), images in plates_groups.items():
+        attributes = get_attributes_from_condition_table(
+            condition_table=condition_table,
+            row=row,
+            column=column,
+            acquisition=acquisition_model.acquisition_id,
+        )
         _tiles = _build_tiles(
             images=images,
             data_dir=acquisition_dir,
@@ -359,6 +370,7 @@ def parse_operetta_metadata(
             row=row,
             column=column,
             fov_idx=fov_idx,
+            attributes=attributes,
         )
         all_tiles.extend(_tiles)
 
