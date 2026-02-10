@@ -8,6 +8,7 @@ import numpy as np
 from ome_types import from_xml
 from ome_zarr_converters_tools import (
     AcquisitionDetails,
+    ChannelInfo,
     ConverterOptions,
     DefaultImageLoader,
     ImageInPlate,
@@ -140,7 +141,10 @@ def _is_time_series(image) -> bool:
 
 
 def build_acquisition_details(
-    image_meta, acquisition_model: ScanRAcquisitionModel, is_time_series: bool
+    image_meta,
+    acquisition_model: ScanRAcquisitionModel,
+    is_time_series: bool,
+    z_spacing: float,
 ) -> AcquisitionDetails:
     """Build AcquisitionDetails from AcquisitionInputModel."""
     pixelsize_x = image_meta.pixels.physical_size_x or 1
@@ -151,14 +155,26 @@ def build_acquisition_details(
             "Using x size for pixelsize."
         )
 
-    _channel_names = _get_channel_names(image_meta)
+    channel_names = _get_channel_names(image_meta)
+    channels = None
+    if channel_names is not None:
+        channels = [ChannelInfo(channel_label=name) for name in channel_names]
 
     axes = default_axes_builder(is_time_series=is_time_series)
     acquisition_detail = AcquisitionDetails(
         pixelsize=pixelsize_x,
-        channel_names=_channel_names,
-        wavelength_ids=None,
+        z_spacing=z_spacing,
+        t_spacing=1,
+        channels=channels,
         axes=axes,
+        start_x_coo="world",
+        length_x_coo="pixel",
+        start_y_coo="world",
+        length_y_coo="pixel",
+        start_z_coo="pixel",
+        length_z_coo="pixel",
+        start_t_coo="pixel",
+        length_t_coo="pixel",
     )
     # Update with advanced options
     acquisition_detail = acquisition_model.advanced.update_acquisition_details(
@@ -206,9 +222,9 @@ def _match_tiff_to_plane(tiff_data_block: list, planes: list) -> list:
 def _build_tiles(
     image_meta,
     acquisition_model: ScanRAcquisitionModel,
-    converter_options: ConverterOptions,
     mean_z_spacing: float,
 ) -> list[Tile]:
+    """Build individual Tile objects for each image record."""
     (row, column), pos_id = _extract_well_position_id(
         image_meta.id, layout=acquisition_model.layout
     )
@@ -223,6 +239,7 @@ def _build_tiles(
         image_meta=image_meta,
         acquisition_model=acquisition_model,
         is_time_series=is_time_series,
+        z_spacing=mean_z_spacing,
     )
     tiles = []
     len_x = image_meta.pixels.size_x
@@ -246,36 +263,18 @@ def _build_tiles(
         _tile = Tile(
             fov_name=f"FOV_{pos_id}",
             start_x=pos_x,
-            start_x_coo="world",
             length_x=len_x,
-            length_x_coo="pixel",
             start_y=pos_y,
-            start_y_coo="world",
             length_y=len_y,
-            length_y_coo="pixel",
             start_z=plane_info.z,
-            start_z_coo="pixel",
             length_z=1,
-            length_z_coo="pixel",
             start_c=plane_info.c,
             length_c=1,
             start_t=plane_info.t,
-            start_t_coo="pixel",
             length_t=1,
-            length_t_coo="pixel",
             collection=image_in_plate,
             image_loader=DefaultImageLoader(file_path=tiff_path),
-            pixelsize=acquisition_details.pixelsize,
-            z_spacing=mean_z_spacing,
-            t_spacing=acquisition_details.t_spacing,
-            channel_names=acquisition_details.channel_names,
-            wavelength_ids=acquisition_details.wavelength_ids,
-            colors=acquisition_details.colors,
-            axes=acquisition_details.axes,
-            data_type=acquisition_details.data_type,
-            flip_x=converter_options.stage_correction.flip_x,
-            flip_y=converter_options.stage_correction.flip_y,
-            swap_xy=converter_options.stage_correction.swap_xy,
+            acquisition_details=acquisition_details,
             attributes={},
         )
         tiles.append(_tile)
@@ -306,7 +305,6 @@ def parse_scanr_metadata(
         _tiles = _build_tiles(
             image_meta=image,
             acquisition_model=acquisition_model,
-            converter_options=converter_options,
             mean_z_spacing=mean_z_spacing,
         )
         tiles.extend(_tiles)

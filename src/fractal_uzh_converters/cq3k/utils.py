@@ -221,9 +221,9 @@ def _is_time_series(images: list[ImageMeasurementRecord]) -> bool:
 
 
 def build_acquisition_details(
+    images: list[ImageMeasurementRecord],
     detail: MeasurementDetail,
     acquisition_model: CQ3KAcquisitionModel,
-    is_time_series: bool,
 ) -> AcquisitionDetails:
     """Build AcquisitionDetails from CQ3K metadata."""
     if isinstance(detail.measurement_channel, list):
@@ -239,13 +239,25 @@ def build_acquisition_details(
             f"Physical size x ({pixelsize_x}) and y ({pixelsize_y}) are not equal. "
             "Using x size for pixelsize."
         )
+
+    z_spacing = _get_z_spacing(images)
+    is_time_series = _is_time_series(images)
     axes = default_axes_builder(is_time_series=is_time_series)
 
     acquisition_detail = AcquisitionDetails(
         pixelsize=pixelsize_x,
-        channel_names=None,
-        wavelength_ids=None,
+        z_spacing=z_spacing,
+        t_spacing=1,
+        channels=None,
         axes=axes,
+        start_x_coo="world",
+        length_x_coo="pixel",
+        start_y_coo="world",
+        length_y_coo="pixel",
+        start_z_coo="pixel",
+        length_z_coo="pixel",
+        start_t_coo="pixel",
+        length_t_coo="pixel",
     )
     # Update with advanced options
     acquisition_detail = acquisition_model.advanced.update_acquisition_details(
@@ -259,7 +271,6 @@ def _build_tiles(
     data_dir: str,
     detail: MeasurementDetail,
     acquisition_model: CQ3KAcquisitionModel,
-    converter_options: ConverterOptions,
     row: str,
     column: int,
     fov_idx: int,
@@ -274,11 +285,10 @@ def _build_tiles(
     len_x = first_channel.horizontal_pixels
     len_y = first_channel.vertical_pixels
 
-    is_time_series = _is_time_series(images)
     acquisition_details = build_acquisition_details(
+        images=images,
         detail=detail,
         acquisition_model=acquisition_model,
-        is_time_series=is_time_series,
     )
 
     # Get plate name, handling z_type suffix if needed
@@ -293,7 +303,6 @@ def _build_tiles(
         acquisition=acquisition_model.acquisition_id,
     )
 
-    z_spacing = _get_z_spacing(images)
     fov_name = f"FOV_{fov_idx}"
 
     tiles = []
@@ -309,36 +318,18 @@ def _build_tiles(
         _tile = Tile(
             fov_name=fov_name,
             start_x=pos_x,
-            start_x_coo="world",
             length_x=len_x,
-            length_x_coo="pixel",
             start_y=pos_y,
-            start_y_coo="world",
             length_y=len_y,
-            length_y_coo="pixel",
             start_z=img.z_index - 1,  # Convert to 0-indexed
-            start_z_coo="pixel",
             length_z=1,
-            length_z_coo="pixel",
             start_c=img.ch,
             length_c=1,
             start_t=img.time_point - 1,  # Convert to 0-indexed
-            start_t_coo="pixel",
             length_t=1,
-            length_t_coo="pixel",
             collection=image_in_plate,
             image_loader=DefaultImageLoader(file_path=tiff_path),
-            pixelsize=acquisition_details.pixelsize,
-            z_spacing=z_spacing,
-            t_spacing=acquisition_details.t_spacing,
-            channel_names=acquisition_details.channel_names,
-            wavelength_ids=acquisition_details.wavelength_ids,
-            colors=acquisition_details.colors,
-            axes=acquisition_details.axes,
-            data_type=acquisition_details.data_type,
-            flip_x=converter_options.stage_correction.flip_x,
-            flip_y=converter_options.stage_correction.flip_y,
-            swap_xy=converter_options.stage_correction.swap_xy,
+            acquisition_details=acquisition_details,
             attributes={},
         )
         tiles.append(_tile)
@@ -401,7 +392,6 @@ def parse_cq3k_metadata(
             data_dir=acquisition_dir,
             detail=detail,
             acquisition_model=acquisition_model,
-            converter_options=converter_options,
             row=row,
             column=column,
             fov_idx=fov_idx,
