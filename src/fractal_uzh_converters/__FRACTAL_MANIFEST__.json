@@ -120,21 +120,25 @@
           "ChannelInfo": {
             "description": "Channel information.",
             "properties": {
-              "name": {
-                "title": "Name",
-                "type": "string"
+              "channel_label": {
+                "title": "Channel Label",
+                "type": "string",
+                "description": "Label of the channel."
               },
               "wavelength_id": {
                 "title": "Wavelength Id",
-                "type": "string"
+                "type": "string",
+                "description": "The wavelength ID of the channel. This field can be used in some tasks as alternative to channel_label, e.g. for multiplexed acquisitions it can be used for applying illumination correction based on wavelength ID instead of channel name."
               },
               "colors": {
+                "$ref": "#/$defs/DefaultColors",
+                "default": "Blue (0000FF)",
                 "title": "Colors",
-                "type": "string"
+                "description": "The color associated with the channel, e.g. for visualization purposes."
               }
             },
             "required": [
-              "name"
+              "channel_label"
             ],
             "title": "ChannelInfo",
             "type": "object"
@@ -187,6 +191,31 @@
               "uint32"
             ],
             "title": "DataTypeEnum",
+            "type": "string"
+          },
+          "DefaultColors": {
+            "description": "Default colors for the channels.",
+            "enum": [
+              "Blue (0000FF)",
+              "Red (FF0000)",
+              "Yellow (FFFF00)",
+              "Magenta (FF00FF)",
+              "Cyan (00FFFF)",
+              "Gray (808080)",
+              "Green (00FF00)",
+              "Orange (FF8000)",
+              "Purple (8000FF)",
+              "Teal (008080)",
+              "Lime (00FF80)",
+              "Amber (FFBF00)",
+              "Pink (FF0080)",
+              "Navy (000080)",
+              "Maroon (800000)",
+              "Olive (808000)",
+              "Coral (FF7F50)",
+              "Violet (8000FF)"
+            ],
+            "title": "DefaultColors",
             "type": "string"
           },
           "FixedSizeChunking": {
@@ -1101,21 +1130,25 @@
           "ChannelInfo": {
             "description": "Channel information.",
             "properties": {
-              "name": {
-                "title": "Name",
-                "type": "string"
+              "channel_label": {
+                "title": "Channel Label",
+                "type": "string",
+                "description": "Label of the channel."
               },
               "wavelength_id": {
                 "title": "Wavelength Id",
-                "type": "string"
+                "type": "string",
+                "description": "The wavelength ID of the channel. This field can be used in some tasks as alternative to channel_label, e.g. for multiplexed acquisitions it can be used for applying illumination correction based on wavelength ID instead of channel name."
               },
               "colors": {
+                "$ref": "#/$defs/DefaultColors",
+                "default": "Blue (0000FF)",
                 "title": "Colors",
-                "type": "string"
+                "description": "The color associated with the channel, e.g. for visualization purposes."
               }
             },
             "required": [
-              "name"
+              "channel_label"
             ],
             "title": "ChannelInfo",
             "type": "object"
@@ -1168,6 +1201,31 @@
               "uint32"
             ],
             "title": "DataTypeEnum",
+            "type": "string"
+          },
+          "DefaultColors": {
+            "description": "Default colors for the channels.",
+            "enum": [
+              "Blue (0000FF)",
+              "Red (FF0000)",
+              "Yellow (FFFF00)",
+              "Magenta (FF00FF)",
+              "Cyan (00FFFF)",
+              "Gray (808080)",
+              "Green (00FF00)",
+              "Orange (FF8000)",
+              "Purple (8000FF)",
+              "Teal (008080)",
+              "Lime (00FF80)",
+              "Amber (FFBF00)",
+              "Pink (FF0080)",
+              "Navy (000080)",
+              "Maroon (800000)",
+              "Olive (808000)",
+              "Coral (FF7F50)",
+              "Violet (8000FF)"
+            ],
+            "title": "DefaultColors",
             "type": "string"
           },
           "FixedSizeChunking": {
@@ -2005,21 +2063,25 @@
           "ChannelInfo": {
             "description": "Channel information.",
             "properties": {
-              "name": {
-                "title": "Name",
-                "type": "string"
+              "channel_label": {
+                "title": "Channel Label",
+                "type": "string",
+                "description": "Label of the channel."
               },
               "wavelength_id": {
                 "title": "Wavelength Id",
-                "type": "string"
+                "type": "string",
+                "description": "The wavelength ID of the channel. This field can be used in some tasks as alternative to channel_label, e.g. for multiplexed acquisitions it can be used for applying illumination correction based on wavelength ID instead of channel name."
               },
               "colors": {
+                "$ref": "#/$defs/DefaultColors",
+                "default": "Blue (0000FF)",
                 "title": "Colors",
-                "type": "string"
+                "description": "The color associated with the channel, e.g. for visualization purposes."
               }
             },
             "required": [
-              "name"
+              "channel_label"
             ],
             "title": "ChannelInfo",
             "type": "object"
@@ -2072,6 +2134,31 @@
               "uint32"
             ],
             "title": "DataTypeEnum",
+            "type": "string"
+          },
+          "DefaultColors": {
+            "description": "Default colors for the channels.",
+            "enum": [
+              "Blue (0000FF)",
+              "Red (FF0000)",
+              "Yellow (FFFF00)",
+              "Magenta (FF00FF)",
+              "Cyan (00FFFF)",
+              "Gray (808080)",
+              "Green (00FF00)",
+              "Orange (FF8000)",
+              "Purple (8000FF)",
+              "Teal (008080)",
+              "Lime (00FF80)",
+              "Amber (FFBF00)",
+              "Pink (FF0080)",
+              "Navy (000080)",
+              "Maroon (800000)",
+              "Olive (808000)",
+              "Coral (FF7F50)",
+              "Violet (8000FF)"
+            ],
+            "title": "DefaultColors",
             "type": "string"
           },
           "FixedSizeChunking": {
