@@ -15,7 +15,7 @@ from fractal_uzh_converters.cq3k.utils import (
     parse_cq3k_metadata,
 )
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("convert_cq3k_task")
 
 default_converter_options = ConverterOptions()
 

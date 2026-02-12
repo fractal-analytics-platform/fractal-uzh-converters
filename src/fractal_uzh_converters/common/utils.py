@@ -12,7 +12,7 @@ from ome_zarr_converters_tools import (
 )
 from pydantic import BaseModel, Field
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("common_converters_compute_task")
 
 STANDARD_ROWS_NAMES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 

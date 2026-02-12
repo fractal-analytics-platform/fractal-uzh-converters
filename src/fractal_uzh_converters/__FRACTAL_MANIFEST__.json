@@ -167,7 +167,7 @@
                 "$ref": "#/$defs/WriterMode",
                 "default": "By FOV",
                 "title": "Writer Mode",
-                "description": "Mode for writing data during conversion. - By Tile: Write data one tile at a time. This consumes less memory, but may be slower. - By FOV: Write data one field of view at a time. This may the best compromise between speed and memory usage in most cases. - By Tile (Using Dask): Write tiles in parallel using Dask. This requires a larger memory. - In Memory: Load all data into memory before writing."
+                "description": "Mode for writing data during conversion. - By Tile: Write data one tile at a time. This consumes less memory, but may be slower. - By Tile (Using Dask): Write tiles in parallel using Dask. This is usually faster than writing by tile sequentially, but may consume more memory. - By FOV: Write data one field of view at a time. This may the best compromise between speed and memory usage in most cases. - By FOV (Using Dask): Write fields of view in parallel using Dask. This is usually faster than writing by FOV sequentially, but may consume more memory. - In Memory: Load all data into memory before writing."
               },
               "alignment_correction": {
                 "$ref": "#/$defs/AlignmentCorrections",
@@ -570,6 +570,7 @@
             "enum": [
               "By Tile",
               "By FOV",
+              "By FOV (Using Dask)",
               "By Tile (Using Dask)",
               "In Memory"
             ],
@@ -713,7 +714,7 @@
                 "$ref": "#/$defs/WriterMode",
                 "default": "By FOV",
                 "title": "Writer Mode",
-                "description": "Mode for writing data during conversion. - By Tile: Write data one tile at a time. This consumes less memory, but may be slower. - By FOV: Write data one field of view at a time. This may the best compromise between speed and memory usage in most cases. - By Tile (Using Dask): Write tiles in parallel using Dask. This requires a larger memory. - In Memory: Load all data into memory before writing."
+                "description": "Mode for writing data during conversion. - By Tile: Write data one tile at a time. This consumes less memory, but may be slower. - By Tile (Using Dask): Write tiles in parallel using Dask. This is usually faster than writing by tile sequentially, but may consume more memory. - By FOV: Write data one field of view at a time. This may the best compromise between speed and memory usage in most cases. - By FOV (Using Dask): Write fields of view in parallel using Dask. This is usually faster than writing by FOV sequentially, but may consume more memory. - In Memory: Load all data into memory before writing."
               },
               "alignment_correction": {
                 "$ref": "#/$defs/AlignmentCorrections",
@@ -918,6 +919,7 @@
             "enum": [
               "By Tile",
               "By FOV",
+              "By FOV (Using Dask)",
               "By Tile (Using Dask)",
               "In Memory"
             ],
@@ -1146,7 +1148,7 @@
                 "$ref": "#/$defs/WriterMode",
                 "default": "By FOV",
                 "title": "Writer Mode",
-                "description": "Mode for writing data during conversion. - By Tile: Write data one tile at a time. This consumes less memory, but may be slower. - By FOV: Write data one field of view at a time. This may the best compromise between speed and memory usage in most cases. - By Tile (Using Dask): Write tiles in parallel using Dask. This requires a larger memory. - In Memory: Load all data into memory before writing."
+                "description": "Mode for writing data during conversion. - By Tile: Write data one tile at a time. This consumes less memory, but may be slower. - By Tile (Using Dask): Write tiles in parallel using Dask. This is usually faster than writing by tile sequentially, but may consume more memory. - By FOV: Write data one field of view at a time. This may the best compromise between speed and memory usage in most cases. - By FOV (Using Dask): Write fields of view in parallel using Dask. This is usually faster than writing by FOV sequentially, but may consume more memory. - In Memory: Load all data into memory before writing."
               },
               "alignment_correction": {
                 "$ref": "#/$defs/AlignmentCorrections",
@@ -1505,6 +1507,7 @@
             "enum": [
               "By Tile",
               "By FOV",
+              "By FOV (Using Dask)",
               "By Tile (Using Dask)",
               "In Memory"
             ],
@@ -1648,7 +1651,7 @@
                 "$ref": "#/$defs/WriterMode",
                 "default": "By FOV",
                 "title": "Writer Mode",
-                "description": "Mode for writing data during conversion. - By Tile: Write data one tile at a time. This consumes less memory, but may be slower. - By FOV: Write data one field of view at a time. This may the best compromise between speed and memory usage in most cases. - By Tile (Using Dask): Write tiles in parallel using Dask. This requires a larger memory. - In Memory: Load all data into memory before writing."
+                "description": "Mode for writing data during conversion. - By Tile: Write data one tile at a time. This consumes less memory, but may be slower. - By Tile (Using Dask): Write tiles in parallel using Dask. This is usually faster than writing by tile sequentially, but may consume more memory. - By FOV: Write data one field of view at a time. This may the best compromise between speed and memory usage in most cases. - By FOV (Using Dask): Write fields of view in parallel using Dask. This is usually faster than writing by FOV sequentially, but may consume more memory. - In Memory: Load all data into memory before writing."
               },
               "alignment_correction": {
                 "$ref": "#/$defs/AlignmentCorrections",
@@ -1853,6 +1856,7 @@
             "enum": [
               "By Tile",
               "By FOV",
+              "By FOV (Using Dask)",
               "By Tile (Using Dask)",
               "In Memory"
             ],
@@ -2048,7 +2052,7 @@
                 "$ref": "#/$defs/WriterMode",
                 "default": "By FOV",
                 "title": "Writer Mode",
-                "description": "Mode for writing data during conversion. - By Tile: Write data one tile at a time. This consumes less memory, but may be slower. - By FOV: Write data one field of view at a time. This may the best compromise between speed and memory usage in most cases. - By Tile (Using Dask): Write tiles in parallel using Dask. This requires a larger memory. - In Memory: Load all data into memory before writing."
+                "description": "Mode for writing data during conversion. - By Tile: Write data one tile at a time. This consumes less memory, but may be slower. - By Tile (Using Dask): Write tiles in parallel using Dask. This is usually faster than writing by tile sequentially, but may consume more memory. - By FOV: Write data one field of view at a time. This may the best compromise between speed and memory usage in most cases. - By FOV (Using Dask): Write fields of view in parallel using Dask. This is usually faster than writing by FOV sequentially, but may consume more memory. - In Memory: Load all data into memory before writing."
               },
               "alignment_correction": {
                 "$ref": "#/$defs/AlignmentCorrections",
@@ -2439,6 +2443,7 @@
             "enum": [
               "By Tile",
               "By FOV",
+              "By FOV (Using Dask)",
               "By Tile (Using Dask)",
               "In Memory"
             ],
@@ -2582,7 +2587,7 @@
                 "$ref": "#/$defs/WriterMode",
                 "default": "By FOV",
                 "title": "Writer Mode",
-                "description": "Mode for writing data during conversion. - By Tile: Write data one tile at a time. This consumes less memory, but may be slower. - By FOV: Write data one field of view at a time. This may the best compromise between speed and memory usage in most cases. - By Tile (Using Dask): Write tiles in parallel using Dask. This requires a larger memory. - In Memory: Load all data into memory before writing."
+                "description": "Mode for writing data during conversion. - By Tile: Write data one tile at a time. This consumes less memory, but may be slower. - By Tile (Using Dask): Write tiles in parallel using Dask. This is usually faster than writing by tile sequentially, but may consume more memory. - By FOV: Write data one field of view at a time. This may the best compromise between speed and memory usage in most cases. - By FOV (Using Dask): Write fields of view in parallel using Dask. This is usually faster than writing by FOV sequentially, but may consume more memory. - In Memory: Load all data into memory before writing."
               },
               "alignment_correction": {
                 "$ref": "#/$defs/AlignmentCorrections",
@@ -2787,6 +2792,7 @@
             "enum": [
               "By Tile",
               "By FOV",
+              "By FOV (Using Dask)",
               "By Tile (Using Dask)",
               "In Memory"
             ],

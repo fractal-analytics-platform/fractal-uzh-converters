@@ -15,7 +15,7 @@ from fractal_uzh_converters.operetta.utils import (
     parse_operetta_metadata,
 )
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("convert_operetta_task")
 
 
 default_converter_options = ConverterOptions()

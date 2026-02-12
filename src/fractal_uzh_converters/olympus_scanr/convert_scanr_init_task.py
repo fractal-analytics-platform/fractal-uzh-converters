@@ -15,7 +15,7 @@ from fractal_uzh_converters.olympus_scanr.utils import (
     parse_scanr_metadata,
 )
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("convert_scanr_task")
 
 default_converter_options = ConverterOptions()
 
