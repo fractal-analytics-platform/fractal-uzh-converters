@@ -1,0 +1,4 @@
+row,column,acquisition,drug,concentration,replicate,bool_col
+C,11,0,drugA,0.2,1,true
+C,11,0,drugB,,2,false
+D,12,0,drugC,Nan,1,false
