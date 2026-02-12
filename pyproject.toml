@@ -26,7 +26,7 @@ requires-python = ">=3.11,<3.15"
 dependencies = [
     "ome-zarr-converters-tools==0.7.0b4",
     "zarrs",
-    "fractal-task-tools",
+    "fractal-task-tools>=0.3.0,<0.4.0",
     "ngio>=0.5.3,<0.6.0",
     "tqdm",
     "tifffile",
