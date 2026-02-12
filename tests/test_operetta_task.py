@@ -27,6 +27,26 @@ SNAPSHOT_DIR = Path(__file__).parent / "data" / "Operetta" / "snapshots"
             },
             "1w1p1c1z1t",
         ),
+        (
+            {
+                "acquisitions": [
+                    {
+                        "path": "tests/data/Operetta"
+                        "/Operetta_reference_acquisitions"
+                        "/1w1p1c1z1t",
+                        "acquisition_id": 0,
+                        "advanced": {
+                            "condition_table_path": (
+                                "tests/data/Operetta/"
+                                "Operetta_reference_acquisitions/"
+                                "1w1p1c1z1t/condition_table.csv"
+                            )
+                        },
+                    }
+                ]
+            },
+            "1w1p1c1z1t_with_condition_table",
+        ),
     ],
 )
 def test_operetta(

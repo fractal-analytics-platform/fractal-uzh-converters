@@ -1,0 +1,44 @@
+plates:
+  1w1p1c1z1t.zarr:
+    wells:
+    - C/11
+    images:
+      C/11/0:
+        axes:
+        - c
+        - z
+        - y
+        - x
+        shape:
+        - 1
+        - 1
+        - 2160
+        - 2160
+        pixelsize:
+        - 1.0
+        - 1.0
+        - 0.5979760809567617
+        - 0.5979760809567617
+        types:
+          is_3D: false
+        attributes:
+          plate: 1w1p1c1z1t.zarr
+          well: C11
+          acquisition: 0
+          drug: drugA & drugB
+          concentration: 0.2 & None
+          replicate: 1 & 2
+          bool_col: True & False
+        tables:
+          condition_table:
+          well_ROI_table:
+            rois:
+              image:
+                slice_repr: '[x: 0.0->2160.0, y: 0.0->2160.0, z: 0.0->1.0]'
+                finger_print:
+                  mean: 625.9720269633059
+                  std: 701.3511193739402
+                  min: 0.0
+                  max: 44239.0
+                  hash: e46dbe494948247754027b354e95dcfd9db0041cabc0a0d25d9db203f5e7406f
+                yx_origin: null

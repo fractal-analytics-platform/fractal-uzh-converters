@@ -138,7 +138,9 @@ def _image_list_updates_checks(
         image_path = zarr_url.relative_to(zarr_dir).as_posix()
         assert image_path in aggregated_types
         assert upd["types"] == aggregated_types[image_path]
-        assert upd["attributes"] == aggregated_attrs[image_path]
+        assert upd["attributes"] == aggregated_attrs[image_path], (
+            f"{upd['attributes']} != {aggregated_attrs[image_path]}"
+        )
 
 
 def _check_roi_tables(

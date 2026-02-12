@@ -7,6 +7,7 @@ import numpy as np
 import xmltodict
 from ome_zarr_converters_tools import (
     AcquisitionDetails,
+    AttributeType,
     ChannelInfo,
     ConverterOptions,
     DataTypeEnum,
@@ -261,7 +262,7 @@ def _build_tiles(
     row: str,
     column: int,
     fov_idx: int,
-    attributes: dict[str, list[str] | list[int] | list[float]],
+    attributes: dict[str, AttributeType],
 ) -> list[Tile]:
     """Build individual Tile objects for each image record."""
     image_0 = images[0]

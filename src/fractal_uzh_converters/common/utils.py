@@ -6,9 +6,9 @@ from typing import Protocol, TypeVar
 import polars
 from ome_zarr_converters_tools import (
     AcquisitionOptions,
+    AttributeType,
     ConverterOptions,
     TiledImage,
-    AttributeType,
 )
 from pydantic import BaseModel, Field
 
