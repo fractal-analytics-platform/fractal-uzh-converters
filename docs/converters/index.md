@@ -2,7 +2,7 @@
 
 All converters in this package follow the same Fractal Compound Task structure and share common parameters. This page provides an overview of the shared parameters and how the converters work, as well as links to the individual guides for each supported microscope.
 
-## Common Parameters
+## Main Parameters
 
 All init tasks accept the following parameters:
 
@@ -131,6 +131,16 @@ Controls the output OME-Zarr format.
     | `Chunk Size for Z` | `10` | Chunk size for the Z dimension. |
     | `Chunk Size for C` | `1` | Chunk size for the C (channel) dimension. |
     | `Chunk Size for T` | `1` | Chunk size for the T (time) dimension. |
+
+
+## Overwrite Modes
+
+All converters support three overwrite modes when the output plate already exists:
+
+- `No Overwrite` (default): The converter will raise an error if the output plate already exists, preventing accidental data loss.
+- `Overwrite`: The converter will delete the existing plate and create a new one from scratch.
+- `Extend`: The converter will add new acquisitions to the existing plate, and it will ignore any acquisitions that are already present.
+This mode can be used to incrementally add acquisitions to a plate without reprocessing everything, or to recover from an error by re-running only the failed acquisition.
 
 ## Supported Converters
 
