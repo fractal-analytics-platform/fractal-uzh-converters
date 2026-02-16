@@ -24,15 +24,14 @@ authors = [{ name = "Lorenzo Cerrone", email = "lorenzo.cerrone@uzh.ch" }]
 requires-python = ">=3.11,<3.15"
 
 dependencies = [
-    "ome-zarr-converters-tools==0.7.0b4",
-    "zarrs",
+    "ome-zarr-converters-tools>=0.7.0,<0.8.0",
     "fractal-task-tools>=0.3.0,<0.4.0",
     "ngio>=0.5.3,<0.6.0",
+    "zarrs",
     "tqdm",
     "tifffile",
     "ome_types",
-    "dask==2024.11.2",
-    "lxml",                               # hidden dep of ome_types
+    "lxml",                                    # hidden dep of ome_types
     "xmltodict",
     "imagecodecs",
 ]
@@ -55,6 +54,7 @@ dev = [
     "xmltodict",
 ]
 test = ["pytest", "pytest-cov", "devtools", "jsonschema"]
+docs = ["mkdocs-material"]
 
 # https://docs.astral.sh/ruff
 [tool.ruff]
@@ -127,6 +127,7 @@ fractal-uzh-converters = { path = ".", editable = true }
 default = { solve-group = "default" }
 dev = { features = ["dev"], solve-group = "default" }
 test = { features = ["test"], solve-group = "default" }
+docs = { features = ["docs"], solve-group = "default" }
 
 # Required Python version and dependencies
 [tool.pixi.tasks]
