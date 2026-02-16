@@ -15,7 +15,7 @@ my_acquisition/
 ```
 
 !!! info "Flexible path input"
-    You can point `path` to either the base directory (`my_acquisition/`) or directly to the `data` subdirectory (`my_acquisition/data/`). The converter handles both.
+    You can point `Path` to either the base directory (`my_acquisition/`) or directly to the `data` subdirectory (`my_acquisition/data/`). The converter handles both.
 
 ## Metadata
 
@@ -41,16 +41,16 @@ ScanR uses sequential well IDs (W1, W2, ...) that the converter maps to row/colu
 
 ## Task Parameters
 
-The ScanR init task adds a `layout` field to the base acquisition parameters:
+The ScanR init task adds a `Layout` field to the base acquisition parameters:
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `path` | `str` | *required* | Path to the ScanR acquisition directory. |
-| `plate_name` | `str` or `null` | `null` | Custom plate name. Defaults to the directory name. |
-| `acquisition_id` | `int` | `0` | Acquisition identifier for multi-acquisition plates. |
-| `layout` | `str` | `"96-well"` | Plate layout. One of: `24-well`, `48-well`, `96-well`, `384-well`. |
-| `advanced` | `AcquisitionOptions` | `{}` | Advanced options (condition table, overrides). |
+| `Path` | `str` | *required* | Path to the ScanR acquisition directory. |
+| `Plate Name` | `str` or `null` | `null` | Custom plate name. Defaults to the directory name. |
+| `Acquisition Id` | `int` | `0` | Acquisition identifier for multi-acquisition plates. |
+| `Layout` | `str` | `"96-well"` | Plate layout. One of: `24-well`, `48-well`, `96-well`, `384-well`. |
+| `Advanced` | `AcquisitionOptions` | `{}` | Advanced options (condition table, overrides). |
 
 !!! warning "Plate layout"
-    Make sure to set the correct `layout` for your plate. The well ID mapping depends on it — using the wrong layout will assign images to incorrect wells.
+    Make sure to set the correct `Layout` for your plate. The well ID mapping depends on it — using the wrong layout will assign images to incorrect wells.
 

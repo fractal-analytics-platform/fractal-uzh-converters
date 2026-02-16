@@ -1,4 +1,4 @@
-# Yokogawa CQ3K / CellVoyager
+# Yokogawa CQ3K
 
 ## Expected Data Structure
 
@@ -41,8 +41,8 @@ The CQ3K init task uses the base acquisition parameters with no additional field
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `path` | `str` | *required* | Path to the CQ3K acquisition directory. |
-| `plate_name` | `str` or `null` | `null` | Custom plate name. Defaults to the directory name. |
-| `acquisition_id` | `int` | `0` | Acquisition identifier for multi-acquisition plates. |
-| `advanced` | `AcquisitionOptions` | `{}` | Advanced options (condition table, overrides). |
+| `Path` | `str` | *required* | Path to the CQ3K acquisition directory. |
+| `Plate Name` | `str` or `null` | `null` | Custom plate name. Defaults to the directory name. |
+| `Acquisition Id` | `int` | `0` | Acquisition identifier for multi-acquisition plates. |
+| `Advanced` | `AcquisitionOptions` | `{}` | Advanced options (condition table, overrides). |
 

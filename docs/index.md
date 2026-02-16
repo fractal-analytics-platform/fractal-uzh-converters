@@ -8,7 +8,7 @@ Fractal UZH Converters is a collection of [Fractal](https://fractal-analytics-pl
 |---|---|---|
 | Opera Phenix / Operetta | PerkinElmer | `Convert Operetta to OME-Zarr` |
 | ScanR | Olympus | `Convert ScanR to OME-Zarr` |
-| CQ3K / CellVoyager | Yokogawa | `Convert CQ3K to OME-Zarr` |
+| CQ3K | Yokogawa | `Convert CQ3K to OME-Zarr` |
 
 Each converter reads the microscope's native metadata and image files, then produces a well-structured OME-Zarr HCS plate that can be viewed in tools like [napari](https://napari.org/) or processed with downstream Fractal tasks.
 

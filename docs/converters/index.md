@@ -8,9 +8,9 @@ All init tasks accept the following parameters:
 
 | Parameter | Type | Description |
 |---|---|---|
-| `acquisitions` | `list` | List of acquisition objects (microscope-specific, see below). |
-| `converter_options` | `ConverterOptions` | Advanced converter options (tiling, registration, writer mode). Defaults are usually fine. |
-| `overwrite` | `OverwriteMode` | What to do if output already exists: `No Overwrite` (default), `Overwrite`, or `Extend`. |
+| `Acquisitions` | `list` | List of acquisition objects (microscope-specific, see below). |
+| `Converter Options` | `ConverterOptions` | Advanced converter options (tiling, registration, writer mode). Defaults are usually fine. |
+| `Overwrite` | `OverwriteMode` | What to do if output already exists: `No Overwrite` (default), `Overwrite`, or `Extend`. |
 
 ## Acquisition Parameters
 
@@ -18,28 +18,28 @@ Every acquisition object shares these base fields:
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `path` | `str` | *required* | Path to the raw acquisition directory. |
-| `plate_name` | `str` or `null` | `null` | Custom plate name. If not set, the directory name is used. |
-| `acquisition_id` | `int` | `0` | Identifies the acquisition when combining multiple acquisitions into one plate. |
-| `advanced` | `AcquisitionOptions` | `{}` | Advanced options including `condition_table_path` and acquisition detail overrides. |
+| `Path` | `str` | *required* | Path to the raw acquisition directory. |
+| `Plate Name` | `str` or `null` | `null` | Custom plate name. If not set, the directory name is used. |
+| `Acquisition Id` | `int` | `0` | Identifies the acquisition when combining multiple acquisitions into one plate. |
+| `Advanced` | `AcquisitionOptions` | `{}` | Advanced options including `Condition Table Path` and acquisition detail overrides. |
 
-Some converters add extra fields (e.g., `layout` for ScanR). See the individual converter pages for details.
+Some converters add extra fields (e.g., `Layout` for ScanR). See the individual converter pages for details.
 
-If multiple acquisitions need to be combined into a single plate, simply provide multiple acquisition objects with the same `plate_name`, but different `acquisition_id` values (e.g. in case of multiplexed experiments).
+If multiple acquisitions need to be combined into a single plate, simply provide multiple acquisition objects with the same `Plate Name`, but different `Acquisition Id` values (e.g. in case of multiplexed experiments).
 
 ### Acquisition Options (Advanced)
 
-The `advanced` field on each acquisition allows per-acquisition overrides and filtering. Most users only need `condition_table_path` here.
+The `Advanced` field on each acquisition allows per-acquisition overrides and filtering. Most users only need `Condition Table Path` here.
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `condition_table_path` | `str` or `null` | `null` | Absolute path to a [condition table](../condition_tables.md) CSV file. |
-| `channels` | `list[ChannelInfo]` or `null` | `null` | Override channel names and colors. |
-| `pixel_info` | `PixelSizeModel` or `null` | `null` | Override pixel size (`pixelsize`, `z_spacing`, `t_spacing` in micrometers). |
-| `axes` | `str` or `null` | `null` | Override axes string (e.g., `"czyx"`). |
-| `data_type` | `str` or `null` | `null` | Override data type: `uint8`, `uint16`, or `uint32`. |
-| `stage_corrections` | `StageCorrections` | `{}` | Flip or swap stage axes (see below). |
-| `filters` | `list` | `[]` | Filters to include/exclude specific tiles. |
+| `Condition Table Path` | `str` or `null` | `null` | Absolute path to a [condition table](../condition_tables.md) CSV file. |
+| `Channels` | `list[ChannelInfo]` or `null` | `null` | Override channel names and colors. |
+| `Pixel Size Information` | `PixelSizeModel` or `null` | `null` | Override pixel size (`Pixelsize`, `Z Spacing`, `T Spacing` in micrometers). |
+| `Axes` | `str` or `null` | `null` | Override axes string (e.g., `"czyx"`). |
+| `Data Type` | `str` or `null` | `null` | Override data type: `uint8`, `uint16`, or `uint32`. |
+| `Stage Corrections` | `StageCorrections` | `{}` | Flip or swap stage axes (see below). |
+| `Filters` | `list` | `[]` | Filters to include/exclude specific tiles. |
 
 #### Stage Corrections
 
@@ -47,13 +47,13 @@ If the microscope stage orientation does not match the expected coordinate syste
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `flip_x` | `bool` | `false` | Flip positions along the X axis. |
-| `flip_y` | `bool` | `false` | Flip positions along the Y axis. |
-| `swap_xy` | `bool` | `false` | Swap the X and Y axes. |
+| `Flip X` | `bool` | `false` | Flip positions along the X axis. |
+| `Flip Y` | `bool` | `false` | Flip positions along the Y axis. |
+| `Swap XY` | `bool` | `false` | Swap the X and Y axes. |
 
 #### Filters
 
-You can filter tiles during conversion using the `filters` list:
+You can filter tiles during conversion using the `Filters` list:
 
 - **Well Filter** — Remove specific wells by ID (e.g., `["A1", "B2"]`).
 - **Path Regex Include Filter** — Only include tiles whose file path matches a regex.
@@ -61,7 +61,7 @@ You can filter tiles during conversion using the `filters` list:
 
 ## Converter Options
 
-The `converter_options` parameter controls how tiles are assembled, written, and stored. The defaults work well for most cases — only adjust these if you have specific requirements.
+The `Converter Options` parameter controls how tiles are assembled, written, and stored. The defaults work well for most cases — only adjust these if you have specific requirements.
 
 ### Tiling Mode
 
@@ -93,9 +93,9 @@ Corrects for minor stage positioning errors across FOVs.
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `align_xy` | `bool` | `false` | Align FOV positions in the XY plane. |
-| `align_z` | `bool` | `false` | Align FOV positions along the Z axis. |
-| `align_t` | `bool` | `false` | Align FOV positions along the T axis. |
+| `Align XY` | `bool` | `false` | Align FOV positions in the XY plane. |
+| `Align Z` | `bool` | `false` | Align FOV positions along the Z axis. |
+| `Align T` | `bool` | `false` | Align FOV positions along the T axis. |
 
 ### OME-Zarr Options
 
@@ -103,10 +103,10 @@ Controls the output OME-Zarr format.
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `num_levels` | `int` | `5` | Number of resolution pyramid levels. |
-| `chunks` | `ChunkingStrategy` | FOV-based | How to chunk the data on disk (see below). |
-| `ngff_version` | `str` | `"0.4"` | OME-NGFF specification version to target (`"0.4"` or `"0.5"`). |
-| `table_backend` | `str` | `"anndata"` | Backend for storing tables. One of: `anndata`, `json`, `csv`, `parquet`. |
+| `Num Levels` | `int` | `5` | Number of resolution pyramid levels. |
+| `Chunking Strategy` | `ChunkingStrategy` | FOV-based | How to chunk the data on disk (see below). |
+| `Ngff Version` | `str` | `"0.4"` | OME-NGFF specification version to target (`"0.4"` or `"0.5"`). |
+| `Table Backend` | `str` | `"anndata"` | Backend for storing tables. One of: `anndata`, `json`, `csv`, `parquet`. |
 
 **Chunking strategies:**
 
@@ -116,10 +116,10 @@ Controls the output OME-Zarr format.
 
     | Field | Default | Description |
     |---|---|---|
-    | `xy_scaling` | `1` | Scale factor for XY chunk size relative to FOV (`0.25`, `0.5`, `1`, `2`, `4`). |
-    | `z_chunk` | `10` | Chunk size for the Z dimension. |
-    | `c_chunk` | `1` | Chunk size for the C (channel) dimension. |
-    | `t_chunk` | `1` | Chunk size for the T (time) dimension. |
+    | `XY Scaling Factor` | `1` | Scale factor for XY chunk size relative to FOV (`0.25`, `0.5`, `1`, `2`, `4`). |
+    | `Chunk Size for Z` | `10` | Chunk size for the Z dimension. |
+    | `Chunk Size for C` | `1` | Chunk size for the C (channel) dimension. |
+    | `Chunk Size for T` | `1` | Chunk size for the T (time) dimension. |
 
 === "Fixed Size"
 
@@ -127,10 +127,10 @@ Controls the output OME-Zarr format.
 
     | Field | Default | Description |
     |---|---|---|
-    | `xy_chunk` | `4096` | Chunk size in pixels for XY dimensions. |
-    | `z_chunk` | `10` | Chunk size for the Z dimension. |
-    | `c_chunk` | `1` | Chunk size for the C (channel) dimension. |
-    | `t_chunk` | `1` | Chunk size for the T (time) dimension. |
+    | `Chunk Size for XY` | `4096` | Chunk size in pixels for XY dimensions. |
+    | `Chunk Size for Z` | `10` | Chunk size for the Z dimension. |
+    | `Chunk Size for C` | `1` | Chunk size for the C (channel) dimension. |
+    | `Chunk Size for T` | `1` | Chunk size for the T (time) dimension. |
 
 ## Supported Converters
 

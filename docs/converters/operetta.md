@@ -15,7 +15,7 @@ my_acquisition/
 ```
 
 !!! info "Flexible path input"
-    You can point `path` to either the base directory (`my_acquisition/`) or directly to the `Images` subdirectory (`my_acquisition/Images/`). The converter handles both.
+    You can point `Path` to either the base directory (`my_acquisition/`) or directly to the `Images` subdirectory (`my_acquisition/Images/`). The converter handles both.
 
 ## Metadata
 
@@ -35,11 +35,11 @@ The Operetta init task uses the base acquisition parameters with no additional f
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `path` | `str` | *required* | Path to the Operetta acquisition directory. |
-| `plate_name` | `str` or `null` | `null` | Custom plate name. Defaults to the directory name. |
-| `acquisition_id` | `int` | `0` | Acquisition identifier for multi-acquisition plates. |
-| `advanced` | `AcquisitionOptions` | `{}` | Advanced options (condition table, overrides). |
+| `Path` | `str` | *required* | Path to the Operetta acquisition directory. |
+| `Plate Name` | `str` or `null` | `null` | Custom plate name. Defaults to the directory name. |
+| `Acquisition Id` | `int` | `0` | Acquisition identifier for multi-acquisition plates. |
+| `Advanced` | `AcquisitionOptions` | `{}` | Advanced options (condition table, overrides). |
 
 ## Multiple Acquisitions (same plate)
 
-To combine multiple acquisitions (e.g., different timepoints or imaging rounds) into a single plate, use different `acquisition_id` values while keeping the same `plate_name`.
+To combine multiple acquisitions (e.g., different timepoints or imaging rounds) into a single plate, use different `Acquisition Id` values while keeping the same `Plate Name`.
