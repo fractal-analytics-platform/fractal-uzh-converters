@@ -54,7 +54,7 @@ dev = [
     "xmltodict",
 ]
 test = ["pytest", "pytest-cov", "devtools", "jsonschema"]
-docs = ["mkdocs-material"]
+docs = ["mkdocs-material", "mike"]
 
 # https://docs.astral.sh/ruff
 [tool.ruff]

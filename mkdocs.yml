@@ -34,6 +34,10 @@ theme:
     - toc.follow
     - search.suggest
 
+extra:
+  version:
+    provider: mike
+
 plugins:
   - search
 
