@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/locerr/Projects/ome-zarr-converters-tools/**)"
+    ]
+  }
+}

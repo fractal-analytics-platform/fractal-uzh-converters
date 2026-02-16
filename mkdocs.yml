@@ -1,0 +1,58 @@
+site_name: "Fractal UZH Converters"
+site_description: "A collection of Fractal tasks to convert HCS Plates to OME-Zarr."
+repo_name: "fractal-uzh-converters"
+repo_url: "https://github.com/BioVisionCenter/fractal-uzh-converters"
+copyright: "Copyright &copy; 2025-, BioVisionCenter UZH"
+
+theme:
+  name: material
+  icon:
+    repo: fontawesome/brands/github
+  palette:
+    - scheme: default
+      primary: teal
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    - scheme: slate
+      primary: teal
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - content.tooltips
+    - content.tabs.link
+    - content.code.annotate
+    - content.code.copy
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.sections
+    - navigation.footer
+    - toc.follow
+    - search.suggest
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.superfences
+
+nav:
+  - Home: index.md
+  - Converters:
+    - Overview: converters/index.md
+    - PerkinElmer Operetta: converters/operetta.md
+    - Olympus ScanR: converters/scanr.md
+    - Yokogawa CQ3K: converters/cq3k.md
+  - Condition Tables: condition_tables.md
