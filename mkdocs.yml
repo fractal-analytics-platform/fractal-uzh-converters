@@ -60,3 +60,4 @@ nav:
     - Olympus ScanR: converters/scanr.md
     - Yokogawa CQ3K: converters/cq3k.md
   - Condition Tables: condition_tables.md
+  - Changelog: changelog.md

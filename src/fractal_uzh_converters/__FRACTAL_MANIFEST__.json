@@ -98,19 +98,19 @@
                 "default": false,
                 "title": "Align XY",
                 "type": "boolean",
-                "description": "Whether to align the positions in the XY plane by FOV. This addresses minor imprecision that offten occurs during image acquisition."
+                "description": "Whether to align the positions in the XY plane by FOV. This addresses minor imprecision that often occurs during image acquisition."
               },
               "align_z": {
                 "default": false,
                 "title": "Align Z",
                 "type": "boolean",
-                "description": "Whether to align the positions in the Z axis by FOV. This addresses minor imprecision that offten occurs during image acquisition."
+                "description": "Whether to align the positions in the Z axis by FOV. This addresses minor imprecision that often occurs during image acquisition."
               },
               "align_t": {
                 "default": false,
                 "title": "Align T",
                 "type": "boolean",
-                "description": "Whether to align the positions in the T axis by FOV. This addresses minor imprecision that offten occurs during image acquisition."
+                "description": "Whether to align the positions in the T axis by FOV. This addresses minor imprecision that often occurs during image acquisition."
               }
             },
             "title": "AlignmentCorrections",
@@ -647,19 +647,19 @@
                 "default": false,
                 "title": "Align XY",
                 "type": "boolean",
-                "description": "Whether to align the positions in the XY plane by FOV. This addresses minor imprecision that offten occurs during image acquisition."
+                "description": "Whether to align the positions in the XY plane by FOV. This addresses minor imprecision that often occurs during image acquisition."
               },
               "align_z": {
                 "default": false,
                 "title": "Align Z",
                 "type": "boolean",
-                "description": "Whether to align the positions in the Z axis by FOV. This addresses minor imprecision that offten occurs during image acquisition."
+                "description": "Whether to align the positions in the Z axis by FOV. This addresses minor imprecision that often occurs during image acquisition."
               },
               "align_t": {
                 "default": false,
                 "title": "Align T",
                 "type": "boolean",
-                "description": "Whether to align the positions in the T axis by FOV. This addresses minor imprecision that offten occurs during image acquisition."
+                "description": "Whether to align the positions in the T axis by FOV. This addresses minor imprecision that often occurs during image acquisition."
               }
             },
             "title": "AlignmentCorrections",
@@ -1047,19 +1047,19 @@
                 "default": false,
                 "title": "Align XY",
                 "type": "boolean",
-                "description": "Whether to align the positions in the XY plane by FOV. This addresses minor imprecision that offten occurs during image acquisition."
+                "description": "Whether to align the positions in the XY plane by FOV. This addresses minor imprecision that often occurs during image acquisition."
               },
               "align_z": {
                 "default": false,
                 "title": "Align Z",
                 "type": "boolean",
-                "description": "Whether to align the positions in the Z axis by FOV. This addresses minor imprecision that offten occurs during image acquisition."
+                "description": "Whether to align the positions in the Z axis by FOV. This addresses minor imprecision that often occurs during image acquisition."
               },
               "align_t": {
                 "default": false,
                 "title": "Align T",
                 "type": "boolean",
-                "description": "Whether to align the positions in the T axis by FOV. This addresses minor imprecision that offten occurs during image acquisition."
+                "description": "Whether to align the positions in the T axis by FOV. This addresses minor imprecision that often occurs during image acquisition."
               }
             },
             "title": "AlignmentCorrections",
@@ -1584,19 +1584,19 @@
                 "default": false,
                 "title": "Align XY",
                 "type": "boolean",
-                "description": "Whether to align the positions in the XY plane by FOV. This addresses minor imprecision that offten occurs during image acquisition."
+                "description": "Whether to align the positions in the XY plane by FOV. This addresses minor imprecision that often occurs during image acquisition."
               },
               "align_z": {
                 "default": false,
                 "title": "Align Z",
                 "type": "boolean",
-                "description": "Whether to align the positions in the Z axis by FOV. This addresses minor imprecision that offten occurs during image acquisition."
+                "description": "Whether to align the positions in the Z axis by FOV. This addresses minor imprecision that often occurs during image acquisition."
               },
               "align_t": {
                 "default": false,
                 "title": "Align T",
                 "type": "boolean",
-                "description": "Whether to align the positions in the T axis by FOV. This addresses minor imprecision that offten occurs during image acquisition."
+                "description": "Whether to align the positions in the T axis by FOV. This addresses minor imprecision that often occurs during image acquisition."
               }
             },
             "title": "AlignmentCorrections",
@@ -1983,19 +1983,19 @@
                 "default": false,
                 "title": "Align XY",
                 "type": "boolean",
-                "description": "Whether to align the positions in the XY plane by FOV. This addresses minor imprecision that offten occurs during image acquisition."
+                "description": "Whether to align the positions in the XY plane by FOV. This addresses minor imprecision that often occurs during image acquisition."
               },
               "align_z": {
                 "default": false,
                 "title": "Align Z",
                 "type": "boolean",
-                "description": "Whether to align the positions in the Z axis by FOV. This addresses minor imprecision that offten occurs during image acquisition."
+                "description": "Whether to align the positions in the Z axis by FOV. This addresses minor imprecision that often occurs during image acquisition."
               },
               "align_t": {
                 "default": false,
                 "title": "Align T",
                 "type": "boolean",
-                "description": "Whether to align the positions in the T axis by FOV. This addresses minor imprecision that offten occurs during image acquisition."
+                "description": "Whether to align the positions in the T axis by FOV. This addresses minor imprecision that often occurs during image acquisition."
               }
             },
             "title": "AlignmentCorrections",
@@ -2520,19 +2520,19 @@
                 "default": false,
                 "title": "Align XY",
                 "type": "boolean",
-                "description": "Whether to align the positions in the XY plane by FOV. This addresses minor imprecision that offten occurs during image acquisition."
+                "description": "Whether to align the positions in the XY plane by FOV. This addresses minor imprecision that often occurs during image acquisition."
               },
               "align_z": {
                 "default": false,
                 "title": "Align Z",
                 "type": "boolean",
-                "description": "Whether to align the positions in the Z axis by FOV. This addresses minor imprecision that offten occurs during image acquisition."
+                "description": "Whether to align the positions in the Z axis by FOV. This addresses minor imprecision that often occurs during image acquisition."
               },
               "align_t": {
                 "default": false,
                 "title": "Align T",
                 "type": "boolean",
-                "description": "Whether to align the positions in the T axis by FOV. This addresses minor imprecision that offten occurs during image acquisition."
+                "description": "Whether to align the positions in the T axis by FOV. This addresses minor imprecision that often occurs during image acquisition."
               }
             },
             "title": "AlignmentCorrections",
