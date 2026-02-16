@@ -1,10 +1,11 @@
 ### Purpose
 
-- Convert images acquired with a Yokogawa CQ3K microscope to a OME-Zarr Plate.
+- Convert images acquired with a Yokogawa CQ3K / CellVoyager microscope to an OME-Zarr Plate.
 
 ### Outputs
 
-- A OME-Zarr Plate.
+- An OME-Zarr Plate.
+- If the acquisition contains multiple Z-image processing types (e.g., `focus`, `maximum_projection`), a separate plate is created for each type.
 
 ### Limitations
 
@@ -15,11 +16,12 @@
 The following directory structure is expected:
 
 ```text
-/plate_dir/
-----/MeasurementData.mlf
-----/MeasurementDetail.mrf
-----/Image/
---------/W0000F0001T0001Z000C1.tif
-----/Projection/ (optional)
---------/W0000F0001T0001Z000C1.tif
+my_acquisition/
+├── MeasurementData.mlf      # Image measurement records (required)
+├── MeasurementDetail.mrf    # Acquisition details and channel info (required)
+└── <subdirectories>/
+    ├── image_001.tif
+    └── ...
 ```
+
+The TIFF file paths are referenced inside `MeasurementData.mlf` and can be in subdirectories relative to the acquisition directory.

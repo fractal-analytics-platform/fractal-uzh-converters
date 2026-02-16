@@ -67,6 +67,6 @@ When a condition table is provided:
 1. For each well in the plate, the converter looks up matching rows in the CSV (by `row` + `column`, optionally filtered by `acquisition`).
 2. The matched metadata columns are attached as **attributes** to the well's image tiles.
 3. These attributes are written into:
-   - At the OME-Zarr image level (each image contains the conditions that apply to it)
-   - At the plate level (aggregated table of all image conditions)
-   - Returned to the Fractal serve to be stored in datasets attributes
+    - At the OME-Zarr image level (each image contains the conditions that apply to it)
+    - At the plate level (aggregated table of all image conditions)
+    - Returned to the Fractal serve to be stored in datasets attributes

@@ -4,7 +4,7 @@ from fractal_task_tools.task_models import ConverterCompoundTask
 from ome_zarr_converters_tools import converters_tools_models
 
 AUTHORS = "Fractal Core Team"
-DOCS_LINK = "https://github.com/fractal-analytics-platform/fractal-uzh-converters"
+DOCS_LINK = "https://fractal-analytics-platform.github.io/fractal-uzh-converters/stable"
 INPUT_MODELS = [
     (
         "fractal_uzh_converters",
