@@ -83,15 +83,8 @@
                 "title": "Axes"
               },
               "data_type": {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/DataTypeEnum"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
+                "$ref": "#/$defs/DataTypeEnum",
+                "default": "autodetect",
                 "description": "Data type of the image data.",
                 "title": "Data Type"
               },
@@ -248,6 +241,7 @@
           "DataTypeEnum": {
             "description": "Data type enumeration.",
             "enum": [
+              "autodetect",
               "uint8",
               "uint16",
               "uint32"
@@ -548,7 +542,7 @@
                   "pixel_info": null,
                   "condition_table_path": null,
                   "axes": null,
-                  "data_type": null,
+                  "data_type": "autodetect",
                   "stage_corrections": {
                     "flip_x": false,
                     "flip_y": false,
@@ -1205,15 +1199,8 @@
                 "title": "Axes"
               },
               "data_type": {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/DataTypeEnum"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
+                "$ref": "#/$defs/DataTypeEnum",
+                "default": "autodetect",
                 "description": "Data type of the image data.",
                 "title": "Data Type"
               },
@@ -1307,7 +1294,7 @@
                   "pixel_info": null,
                   "condition_table_path": null,
                   "axes": null,
-                  "data_type": null,
+                  "data_type": "autodetect",
                   "stage_corrections": {
                     "flip_x": false,
                     "flip_y": false,
@@ -1433,6 +1420,7 @@
           "DataTypeEnum": {
             "description": "Data type enumeration.",
             "enum": [
+              "autodetect",
               "uint8",
               "uint16",
               "uint32"
@@ -2325,15 +2313,8 @@
                 "title": "Axes"
               },
               "data_type": {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/DataTypeEnum"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
+                "$ref": "#/$defs/DataTypeEnum",
+                "default": "autodetect",
                 "description": "Data type of the image data.",
                 "title": "Data Type"
               },
@@ -2427,7 +2408,7 @@
                   "pixel_info": null,
                   "condition_table_path": null,
                   "axes": null,
-                  "data_type": null,
+                  "data_type": "autodetect",
                   "stage_corrections": {
                     "flip_x": false,
                     "flip_y": false,
@@ -2543,6 +2524,7 @@
           "DataTypeEnum": {
             "description": "Data type enumeration.",
             "enum": [
+              "autodetect",
               "uint8",
               "uint16",
               "uint32"
@@ -3435,15 +3417,8 @@
                 "title": "Axes"
               },
               "data_type": {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/DataTypeEnum"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
+                "$ref": "#/$defs/DataTypeEnum",
+                "default": "autodetect",
                 "description": "Data type of the image data.",
                 "title": "Data Type"
               },
@@ -3600,6 +3575,7 @@
           "DataTypeEnum": {
             "description": "Data type enumeration.",
             "enum": [
+              "autodetect",
               "uint8",
               "uint16",
               "uint32"
@@ -3807,7 +3783,7 @@
                   "pixel_info": null,
                   "condition_table_path": null,
                   "axes": null,
-                  "data_type": null,
+                  "data_type": "autodetect",
                   "stage_corrections": {
                     "flip_x": false,
                     "flip_y": false,
@@ -4595,6 +4571,7 @@
           "DataTypeEnum": {
             "description": "Data type enumeration.",
             "enum": [
+              "autodetect",
               "uint8",
               "uint16",
               "uint32"
@@ -4769,15 +4746,8 @@
                 "title": "Axes"
               },
               "data_type": {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/DataTypeEnum"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
+                "$ref": "#/$defs/DataTypeEnum",
+                "default": "autodetect",
                 "description": "Data type of the image data.",
                 "title": "Data Type"
               },
@@ -4872,7 +4842,7 @@
                   "pixel_info": null,
                   "condition_table_path": null,
                   "axes": null,
-                  "data_type": null,
+                  "data_type": "autodetect",
                   "stage_corrections": {
                     "flip_x": false,
                     "flip_y": false,
