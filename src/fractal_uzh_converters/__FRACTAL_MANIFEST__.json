@@ -28,30 +28,63 @@
             "description": "Acquisition options for conversion.",
             "properties": {
               "channels": {
+                "anyOf": [
+                  {
+                    "items": {
+                      "$ref": "#/$defs/ChannelInfo"
+                    },
+                    "type": "array"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "List of channel information.",
-                "items": {
-                  "$ref": "#/$defs/ChannelInfo"
-                },
-                "title": "Channels",
-                "type": "array"
+                "title": "Channels"
               },
               "pixel_info": {
-                "$ref": "#/$defs/PixelSizeModel",
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/PixelSizeModel"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "Pixel size information.",
                 "title": "Pixel Size Information"
               },
               "condition_table_path": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "Optional path to a condition table CSV file.",
-                "title": "Condition Table Path",
-                "type": "string"
+                "title": "Condition Table Path"
               },
               "axes": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "Axes to use for the image data, e.g. \"czyx\".",
-                "title": "Axes",
-                "type": "string"
+                "title": "Axes"
               },
               "data_type": {
                 "$ref": "#/$defs/DataTypeEnum",
+                "default": "autodetect",
                 "description": "Data type of the image data.",
                 "title": "Data Type"
               },
@@ -119,9 +152,17 @@
                 "type": "string"
               },
               "wavelength_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "The wavelength ID of the channel.\nThis field can be used in some tasks as alternative to channel_label,\ne.g. for multiplexed acquisitions it can be used for applying illumination\ncorrection based on wavelength ID instead of channel name.",
-                "title": "Wavelength Id",
-                "type": "string"
+                "title": "Wavelength Id"
               },
               "colors": {
                 "$ref": "#/$defs/DefaultColors",
@@ -200,6 +241,7 @@
           "DataTypeEnum": {
             "description": "Data type enumeration.",
             "enum": [
+              "autodetect",
               "uint8",
               "uint16",
               "uint32"
@@ -474,9 +516,17 @@
                 "type": "string"
               },
               "plate_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "Optional custom name for the plate. If not provided, the name will be the\nacquisition directory name.",
-                "title": "Plate Name",
-                "type": "string"
+                "title": "Plate Name"
               },
               "acquisition_id": {
                 "default": 0,
@@ -492,7 +542,7 @@
                   "pixel_info": null,
                   "condition_table_path": null,
                   "axes": null,
-                  "data_type": null,
+                  "data_type": "autodetect",
                   "stage_corrections": {
                     "flip_x": false,
                     "flip_y": false,
@@ -1094,30 +1144,63 @@
             "description": "Acquisition options for conversion.",
             "properties": {
               "channels": {
+                "anyOf": [
+                  {
+                    "items": {
+                      "$ref": "#/$defs/ChannelInfo"
+                    },
+                    "type": "array"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "List of channel information.",
-                "items": {
-                  "$ref": "#/$defs/ChannelInfo"
-                },
-                "title": "Channels",
-                "type": "array"
+                "title": "Channels"
               },
               "pixel_info": {
-                "$ref": "#/$defs/PixelSizeModel",
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/PixelSizeModel"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "Pixel size information.",
                 "title": "Pixel Size Information"
               },
               "condition_table_path": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "Optional path to a condition table CSV file.",
-                "title": "Condition Table Path",
-                "type": "string"
+                "title": "Condition Table Path"
               },
               "axes": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "Axes to use for the image data, e.g. \"czyx\".",
-                "title": "Axes",
-                "type": "string"
+                "title": "Axes"
               },
               "data_type": {
                 "$ref": "#/$defs/DataTypeEnum",
+                "default": "autodetect",
                 "description": "Data type of the image data.",
                 "title": "Data Type"
               },
@@ -1185,9 +1268,17 @@
                 "type": "string"
               },
               "plate_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "Optional custom name for the plate. If not provided, the name will be the\nacquisition directory name.",
-                "title": "Plate Name",
-                "type": "string"
+                "title": "Plate Name"
               },
               "acquisition_id": {
                 "default": 0,
@@ -1203,7 +1294,7 @@
                   "pixel_info": null,
                   "condition_table_path": null,
                   "axes": null,
-                  "data_type": null,
+                  "data_type": "autodetect",
                   "stage_corrections": {
                     "flip_x": false,
                     "flip_y": false,
@@ -1240,9 +1331,17 @@
                 "type": "string"
               },
               "wavelength_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "The wavelength ID of the channel.\nThis field can be used in some tasks as alternative to channel_label,\ne.g. for multiplexed acquisitions it can be used for applying illumination\ncorrection based on wavelength ID instead of channel name.",
-                "title": "Wavelength Id",
-                "type": "string"
+                "title": "Wavelength Id"
               },
               "colors": {
                 "$ref": "#/$defs/DefaultColors",
@@ -1321,6 +1420,7 @@
           "DataTypeEnum": {
             "description": "Data type enumeration.",
             "enum": [
+              "autodetect",
               "uint8",
               "uint16",
               "uint32"
@@ -2158,30 +2258,63 @@
             "description": "Acquisition options for conversion.",
             "properties": {
               "channels": {
+                "anyOf": [
+                  {
+                    "items": {
+                      "$ref": "#/$defs/ChannelInfo"
+                    },
+                    "type": "array"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "List of channel information.",
-                "items": {
-                  "$ref": "#/$defs/ChannelInfo"
-                },
-                "title": "Channels",
-                "type": "array"
+                "title": "Channels"
               },
               "pixel_info": {
-                "$ref": "#/$defs/PixelSizeModel",
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/PixelSizeModel"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "Pixel size information.",
                 "title": "Pixel Size Information"
               },
               "condition_table_path": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "Optional path to a condition table CSV file.",
-                "title": "Condition Table Path",
-                "type": "string"
+                "title": "Condition Table Path"
               },
               "axes": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "Axes to use for the image data, e.g. \"czyx\".",
-                "title": "Axes",
-                "type": "string"
+                "title": "Axes"
               },
               "data_type": {
                 "$ref": "#/$defs/DataTypeEnum",
+                "default": "autodetect",
                 "description": "Data type of the image data.",
                 "title": "Data Type"
               },
@@ -2249,9 +2382,17 @@
                 "type": "string"
               },
               "plate_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "Optional custom name for the plate. If not provided, the name will be the\nacquisition directory name.",
-                "title": "Plate Name",
-                "type": "string"
+                "title": "Plate Name"
               },
               "acquisition_id": {
                 "default": 0,
@@ -2267,7 +2408,7 @@
                   "pixel_info": null,
                   "condition_table_path": null,
                   "axes": null,
-                  "data_type": null,
+                  "data_type": "autodetect",
                   "stage_corrections": {
                     "flip_x": false,
                     "flip_y": false,
@@ -2294,9 +2435,17 @@
                 "type": "string"
               },
               "wavelength_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "The wavelength ID of the channel.\nThis field can be used in some tasks as alternative to channel_label,\ne.g. for multiplexed acquisitions it can be used for applying illumination\ncorrection based on wavelength ID instead of channel name.",
-                "title": "Wavelength Id",
-                "type": "string"
+                "title": "Wavelength Id"
               },
               "colors": {
                 "$ref": "#/$defs/DefaultColors",
@@ -2375,6 +2524,7 @@
           "DataTypeEnum": {
             "description": "Data type enumeration.",
             "enum": [
+              "autodetect",
               "uint8",
               "uint16",
               "uint32"
@@ -3212,30 +3362,63 @@
             "description": "Acquisition options for conversion.",
             "properties": {
               "channels": {
+                "anyOf": [
+                  {
+                    "items": {
+                      "$ref": "#/$defs/ChannelInfo"
+                    },
+                    "type": "array"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "List of channel information.",
-                "items": {
-                  "$ref": "#/$defs/ChannelInfo"
-                },
-                "title": "Channels",
-                "type": "array"
+                "title": "Channels"
               },
               "pixel_info": {
-                "$ref": "#/$defs/PixelSizeModel",
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/PixelSizeModel"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "Pixel size information.",
                 "title": "Pixel Size Information"
               },
               "condition_table_path": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "Optional path to a condition table CSV file.",
-                "title": "Condition Table Path",
-                "type": "string"
+                "title": "Condition Table Path"
               },
               "axes": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "Axes to use for the image data, e.g. \"czyx\".",
-                "title": "Axes",
-                "type": "string"
+                "title": "Axes"
               },
               "data_type": {
                 "$ref": "#/$defs/DataTypeEnum",
+                "default": "autodetect",
                 "description": "Data type of the image data.",
                 "title": "Data Type"
               },
@@ -3303,9 +3486,17 @@
                 "type": "string"
               },
               "wavelength_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "The wavelength ID of the channel.\nThis field can be used in some tasks as alternative to channel_label,\ne.g. for multiplexed acquisitions it can be used for applying illumination\ncorrection based on wavelength ID instead of channel name.",
-                "title": "Wavelength Id",
-                "type": "string"
+                "title": "Wavelength Id"
               },
               "colors": {
                 "$ref": "#/$defs/DefaultColors",
@@ -3384,6 +3575,7 @@
           "DataTypeEnum": {
             "description": "Data type enumeration.",
             "enum": [
+              "autodetect",
               "uint8",
               "uint16",
               "uint32"
@@ -3565,9 +3757,17 @@
                 "type": "string"
               },
               "plate_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "Optional custom name for the plate. If not provided, the name will be the\nacquisition directory name.",
-                "title": "Plate Name",
-                "type": "string"
+                "title": "Plate Name"
               },
               "acquisition_id": {
                 "default": 0,
@@ -3583,7 +3783,7 @@
                   "pixel_info": null,
                   "condition_table_path": null,
                   "axes": null,
-                  "data_type": null,
+                  "data_type": "autodetect",
                   "stage_corrections": {
                     "flip_x": false,
                     "flip_y": false,
@@ -4282,9 +4482,17 @@
                 "type": "string"
               },
               "wavelength_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "The wavelength ID of the channel.\nThis field can be used in some tasks as alternative to channel_label,\ne.g. for multiplexed acquisitions it can be used for applying illumination\ncorrection based on wavelength ID instead of channel name.",
-                "title": "Wavelength Id",
-                "type": "string"
+                "title": "Wavelength Id"
               },
               "colors": {
                 "$ref": "#/$defs/DefaultColors",
@@ -4363,6 +4571,7 @@
           "DataTypeEnum": {
             "description": "Data type enumeration.",
             "enum": [
+              "autodetect",
               "uint8",
               "uint16",
               "uint32"
@@ -4482,30 +4691,63 @@
             "description": "Acquisition options for conversion.",
             "properties": {
               "channels": {
+                "anyOf": [
+                  {
+                    "items": {
+                      "$ref": "#/$defs/ChannelInfo"
+                    },
+                    "type": "array"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "List of channel information.",
-                "items": {
-                  "$ref": "#/$defs/ChannelInfo"
-                },
-                "title": "Channels",
-                "type": "array"
+                "title": "Channels"
               },
               "pixel_info": {
-                "$ref": "#/$defs/PixelSizeModel",
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/PixelSizeModel"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "Pixel size information.",
                 "title": "Pixel Size Information"
               },
               "condition_table_path": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "Optional path to a condition table CSV file.",
-                "title": "Condition Table Path",
-                "type": "string"
+                "title": "Condition Table Path"
               },
               "axes": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "Axes to use for the image data, e.g. \"czyx\".",
-                "title": "Axes",
-                "type": "string"
+                "title": "Axes"
               },
               "data_type": {
                 "$ref": "#/$defs/DataTypeEnum",
+                "default": "autodetect",
                 "description": "Data type of the image data.",
                 "title": "Data Type"
               },
@@ -4574,9 +4816,17 @@
                 "type": "string"
               },
               "plate_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
                 "description": "Optional custom name for the plate. If not provided, the name will be the\nacquisition directory name.",
-                "title": "Plate Name",
-                "type": "string"
+                "title": "Plate Name"
               },
               "acquisition_id": {
                 "default": 0,
@@ -4592,7 +4842,7 @@
                   "pixel_info": null,
                   "condition_table_path": null,
                   "axes": null,
-                  "data_type": null,
+                  "data_type": "autodetect",
                   "stage_corrections": {
                     "flip_x": false,
                     "flip_y": false,
@@ -5309,6 +5559,6 @@
     }
   ],
   "has_args_schemas": true,
-  "args_schema_version": "pydantic_v2",
+  "args_schema_version": "fractal_schema_v1",
   "authors": "Fractal Core Team"
 }
