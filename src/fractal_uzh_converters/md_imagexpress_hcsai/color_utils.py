@@ -1,36 +1,35 @@
 """Color utility functions."""
+from ome_zarr_converters_tools.fractal._models import DefaultColor
 
-from ome_zarr_converters_tools.models._acquisition import DefaultColors
 
-
-def wavelength_to_default_color(wavelength: float) -> DefaultColors:
-    """Map wavelength (nm) to the closest DefaultColors enum value.
+def wavelength_to_default_color(wavelength: float) -> DefaultColor:
+    """Map wavelength (nm) to the closest DefaultColor enum value.
 
     Args:
         wavelength: Wavelength in nanometers (nm)
 
     Returns:
-        The closest matching DefaultColors enum value
+        The closest matching DefaultColor enum value
     """
-    # Map wavelength ranges to DefaultColors based on visible spectrum
+    # Map wavelength ranges to DefaultColor based on visible spectrum
     if wavelength < 380:  # UV -> magenta
-        return DefaultColors.magenta
+        return DefaultColor.Magenta
     elif wavelength < 450:  # Violet/Blue
-        return DefaultColors.blue
+        return DefaultColor.Blue
     elif wavelength < 495:  # Cyan
-        return DefaultColors.cyan
+        return DefaultColor.Cyan
     elif wavelength < 520:  # Green
-        return DefaultColors.green
+        return DefaultColor.Green
     elif wavelength < 560:  # Lime/Yellow-green
-        return DefaultColors.lime
+        return DefaultColor.Lime
     elif wavelength < 590:  # Yellow
-        return DefaultColors.yellow
+        return DefaultColor.Yellow
     elif wavelength < 620:  # Orange
-        return DefaultColors.orange
+        return DefaultColor.Orange
     elif wavelength < 750:  # Red
-        return DefaultColors.red
+        return DefaultColor.Red
     else:  # Far red/IR -> magenta
-        return DefaultColors.magenta
+        return DefaultColor.Magenta
 
 
 # class WavelengthColor:
