@@ -1,4 +1,4 @@
-"""Utility functions for Olympus ScanR data."""
+"""Utility functions for Evident ScanR data."""
 
 import logging
 import re
@@ -52,7 +52,7 @@ logger = logging.getLogger(__name__)
 
 
 class ScanRAcquisitionModel(BaseAcquisitionModel):
-    """Acquisition details for the Olympus ScanR microscope data."""
+    """Acquisition details for the Evident ScanR microscope data."""
 
     path: str
     """

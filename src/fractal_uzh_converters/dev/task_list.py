@@ -8,15 +8,15 @@ DOCS_LINK = "https://fractal-analytics-platform.github.io/fractal-uzh-converters
 
 TASK_LIST = [
     ConverterCompoundTask(
-        name="Convert Olympus ScanR Plate to OME-Zarr",
-        executable_init="olympus_scanr/convert_scanr_init_task.py",
+        name="Convert Evident ScanR Plate to OME-Zarr",
+        executable_init="evident_scanr/convert_scanr_init_task.py",
         executable="common/image_in_plate_compute_task.py",
         meta_init={"cpus_per_task": 1, "mem": 4000},
         meta={"cpus_per_task": 1, "mem": 4000},
         category="Conversion",
         modality="HCS",
         tags=[
-            "Olympus",
+            "Evident",
             "ScanR",
             "Plate converter",
         ],

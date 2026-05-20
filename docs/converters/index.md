@@ -145,6 +145,6 @@ This mode can be used to incrementally add acquisitions to a plate without repro
 ## Supported Converters
 
 - [PerkinElmer Operetta / Opera Phenix](operetta.md)
-- [Olympus ScanR](scanr.md)
+- [Evident ScanR](scanr.md)
 - [Yokogawa CQ3K / CellVoyager](cq3k.md)
 - [Molecular Devices ImageXpress HCS.ai](md_imagexpress.md)

@@ -2,17 +2,17 @@
   "manifest_version": "2",
   "task_list": [
     {
-      "name": "Convert Olympus ScanR Plate to OME-Zarr",
+      "name": "Convert Evident ScanR Plate to OME-Zarr",
       "category": "Conversion",
       "modality": "HCS",
       "tags": [
-        "Olympus",
+        "Evident",
         "ScanR",
         "Plate converter"
       ],
-      "docs_info": "### Purpose\n\n- Convert images acquired with an Olympus ScanR microscope to an OME-Zarr Plate.\n\n### Outputs\n\n- An OME-Zarr Plate.\n\n### Limitations\n\n- This task has been tested on a limited set of acquisitions. It may not work on all Olympus ScanR acquisitions.\n- Make sure to set the correct `Layout` for your plate. The well ID mapping depends on it \u2014 using the wrong layout will assign images to incorrect wells.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\nmy_acquisition/\n\u2514\u2500\u2500 data/\n    \u251c\u2500\u2500 metadata.ome.xml     # OME-XML metadata file (required)\n    \u251c\u2500\u2500 image_001.tiff\n    \u251c\u2500\u2500 image_002.tiff\n    \u2514\u2500\u2500 ...\n```\n\n`Path` can point to either the base directory (`my_acquisition/`) or directly to the `data` subdirectory (`my_acquisition/data/`).\n",
+      "docs_info": "### Purpose\n\n- Convert images acquired with an Evident ScanR microscope to an OME-Zarr Plate.\n\n### Outputs\n\n- An OME-Zarr Plate.\n\n### Limitations\n\n- This task has been tested on a limited set of acquisitions. It may not work on all Evident ScanR acquisitions.\n- Make sure to set the correct `Layout` for your plate. The well ID mapping depends on it \u2014 using the wrong layout will assign images to incorrect wells.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\nmy_acquisition/\n\u2514\u2500\u2500 data/\n    \u251c\u2500\u2500 metadata.ome.xml     # OME-XML metadata file (required)\n    \u251c\u2500\u2500 image_001.tiff\n    \u251c\u2500\u2500 image_002.tiff\n    \u2514\u2500\u2500 ...\n```\n\n`Path` can point to either the base directory (`my_acquisition/`) or directly to the `data` subdirectory (`my_acquisition/data/`).\n",
       "type": "converter_compound",
-      "executable_non_parallel": "olympus_scanr/convert_scanr_init_task.py",
+      "executable_non_parallel": "evident_scanr/convert_scanr_init_task.py",
       "executable_parallel": "common/image_in_plate_compute_task.py",
       "meta_non_parallel": {
         "cpus_per_task": 1,
@@ -672,7 +672,7 @@
             "description": "Missing description for Scalings."
           },
           "ScanRAcquisitionModel": {
-            "description": "Acquisition details for the Olympus ScanR microscope data.",
+            "description": "Acquisition details for the Evident ScanR microscope data.",
             "properties": {
               "path": {
                 "description": "Path to the acquisition directory. For scanr, this should be the base directory\nof the acquisition or the \"{acquisition_dir}/data\" directory containing the\nmetadata.ome.xml file and the \"data\" directory with the tiff files.",

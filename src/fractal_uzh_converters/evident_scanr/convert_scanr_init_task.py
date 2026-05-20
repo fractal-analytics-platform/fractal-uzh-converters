@@ -10,7 +10,7 @@ from ome_zarr_converters_tools import (
 from pydantic import validate_call
 
 from fractal_uzh_converters.common import parse_acquisitions
-from fractal_uzh_converters.olympus_scanr.utils import (
+from fractal_uzh_converters.evident_scanr.utils import (
     ScanRAcquisitionModel,
     parse_scanr_metadata,
 )
