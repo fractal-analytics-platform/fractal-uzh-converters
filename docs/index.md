@@ -6,7 +6,7 @@ Fractal UZH Converters is a collection of [Fractal](https://fractal-analytics-pl
 
 | Microscope | Manufacturer | Task Name |
 |---|---|---|
-| Opera Phenix / Operetta | PerkinElmer | `Convert Operetta Plate to OME-Zarr` |
+| Opera Phenix / Operetta | Revvity | `Convert Operetta Plate to OME-Zarr` |
 | ScanR | Evident | `Convert Evident ScanR Plate to OME-Zarr` |
 | CQ3K | Yokogawa | `Convert Yokogawa CQ3K Plate to OME-Zarr` |
 | CellVoyager | Yokogawa | `Convert Yokogawa CellVoyager Plate to OME-Zarr` |

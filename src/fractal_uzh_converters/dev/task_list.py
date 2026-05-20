@@ -61,7 +61,7 @@ TASK_LIST = [
         category="Conversion",
         modality="HCS",
         tags=[
-            "PerkinElmer",
+            "Revvity",
             "Operetta",
             "Plate converter",
         ],

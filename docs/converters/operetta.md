@@ -1,4 +1,4 @@
-# PerkinElmer Operetta / Opera Phenix
+# Revvity Operetta / Opera Phenix
 
 ## Expected Data Structure
 

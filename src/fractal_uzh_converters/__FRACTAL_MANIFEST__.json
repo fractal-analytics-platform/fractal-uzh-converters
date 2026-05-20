@@ -4702,11 +4702,11 @@
       "category": "Conversion",
       "modality": "HCS",
       "tags": [
-        "PerkinElmer",
+        "Revvity",
         "Operetta",
         "Plate converter"
       ],
-      "docs_info": "### Purpose\n\n- Convert images acquired with a PerkinElmer Operetta / Opera Phenix microscope to an OME-Zarr Plate.\n\n### Outputs\n\n- An OME-Zarr Plate.\n\n### Limitations\n\n- This task has been tested on a limited set of acquisitions. It may not work on all PerkinElmer Operetta acquisitions.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\nmy_acquisition/\n\u2514\u2500\u2500 Images/\n    \u251c\u2500\u2500 Index.idx.xml        # Metadata file (required)\n    \u251c\u2500\u2500 r01c01f01p01-ch1sk1fk1fl1.tiff\n    \u251c\u2500\u2500 r01c01f01p01-ch2sk1fk1fl1.tiff\n    \u2514\u2500\u2500 ...\n```\n\n`Path` can point to either the base directory (`my_acquisition/`) or directly to the `Images` subdirectory (`my_acquisition/Images/`).\n",
+      "docs_info": "### Purpose\n\n- Convert images acquired with a Revvity Operetta / Opera Phenix microscope to an OME-Zarr Plate.\n\n### Outputs\n\n- An OME-Zarr Plate.\n\n### Limitations\n\n- This task has been tested on a limited set of acquisitions. It may not work on all Revvity Operetta acquisitions.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\nmy_acquisition/\n\u2514\u2500\u2500 Images/\n    \u251c\u2500\u2500 Index.idx.xml        # Metadata file (required)\n    \u251c\u2500\u2500 r01c01f01p01-ch1sk1fk1fl1.tiff\n    \u251c\u2500\u2500 r01c01f01p01-ch2sk1fk1fl1.tiff\n    \u2514\u2500\u2500 ...\n```\n\n`Path` can point to either the base directory (`my_acquisition/`) or directly to the `Images` subdirectory (`my_acquisition/Images/`).\n",
       "type": "converter_compound",
       "executable_non_parallel": "operetta/convert_operetta_init_task.py",
       "executable_parallel": "common/image_in_plate_compute_task.py",
