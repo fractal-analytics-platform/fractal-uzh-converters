@@ -1,7 +1,7 @@
 import pytest
 from ome_zarr_converters_tools.fractal._models import DefaultColor
 
-from fractal_uzh_converters.md_imagexpress_hcsai.color_utils import (
+from fractal_uzh_converters.imagexpress_hcs.color_utils import (
     wavelength_to_default_color,
 )
 

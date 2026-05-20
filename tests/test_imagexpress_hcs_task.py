@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from fractal_uzh_converters.md_imagexpress_hcsai.convert_md_init_task import (
-    convert_md_init_task,
+from fractal_uzh_converters.imagexpress_hcs.convert_imagexpress_hcs_init_task import (
+    convert_imagexpress_hcs_init_task,
 )
 
 from .utils import DATA_DIR, run_converter_test
@@ -39,7 +39,7 @@ def test_md_imagexpress(
 ):
     run_converter_test(
         tmp_path=tmp_path,
-        init_task_fn=convert_md_init_task,
+        init_task_fn=convert_imagexpress_hcs_init_task,
         init_task_kwargs=init_task_kwargs,
         snapshot_path=SNAPSHOT_DIR / f"{snapshot_name}.yaml",
         update_snapshots=update_snapshots,

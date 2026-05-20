@@ -1,4 +1,5 @@
 """Color utility functions."""
+
 from ome_zarr_converters_tools.fractal._models import DefaultColor
 
 

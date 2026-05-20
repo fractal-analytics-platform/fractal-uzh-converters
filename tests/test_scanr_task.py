@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from fractal_uzh_converters.evident_scanr.convert_scanr_init_task import (
+from fractal_uzh_converters.scanr.convert_scanr_init_task import (
     convert_scanr_init_task,
 )
 

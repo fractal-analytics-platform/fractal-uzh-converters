@@ -9,7 +9,7 @@ DOCS_LINK = "https://fractal-analytics-platform.github.io/fractal-uzh-converters
 TASK_LIST = [
     ConverterCompoundTask(
         name="Convert Evident ScanR Plate to OME-Zarr",
-        executable_init="evident_scanr/convert_scanr_init_task.py",
+        executable_init="scanr/convert_scanr_init_task.py",
         executable="common/image_in_plate_compute_task.py",
         meta_init={"cpus_per_task": 1, "mem": 4000},
         meta={"cpus_per_task": 1, "mem": 4000},
@@ -69,7 +69,7 @@ TASK_LIST = [
     ),
     ConverterCompoundTask(
         name="Convert MD ImageXpress HCS.ai Plate to OME-Zarr",
-        executable_init="md_imagexpress_hcsai/convert_md_init_task.py",
+        executable_init="imagexpress_hcs/convert_imagexpress_hcs_init_task.py",
         executable="common/image_in_plate_compute_task.py",
         meta_init={"cpus_per_task": 1, "mem": 4000},
         meta={"cpus_per_task": 1, "mem": 4000},
@@ -80,6 +80,6 @@ TASK_LIST = [
             "ImageXpress HCS.ai",
             "Plate converter",
         ],
-        docs_info="file:docs_info/md_imagexpress_hcsai_task.md",
+        docs_info="file:docs_info/imagexpress_hcsai_task.md",
     ),
 ]

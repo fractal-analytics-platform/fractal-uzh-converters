@@ -12,19 +12,19 @@ from pydantic import validate_call
 from fractal_uzh_converters.common import (
     parse_acquisitions,
 )
-from fractal_uzh_converters.md_imagexpress_hcsai.utils import (
+from fractal_uzh_converters.imagexpress_hcs.utils import (
     MDImageXpressHCSaiAcquisitionModel,
     parse_md_metadata,
 )
 
-logger = logging.getLogger("convert_md_task")
+logger = logging.getLogger("convert_imagexpress_hcsai_task")
 
 
 default_converter_options = ConverterOptions()
 
 
 @validate_call
-def convert_md_init_task(
+def convert_imagexpress_hcs_init_task(
     *,
     # Fractal parameters
     zarr_dir: str,
@@ -69,4 +69,6 @@ def convert_md_init_task(
 if __name__ == "__main__":
     from fractal_task_tools.task_wrapper import run_fractal_task
 
-    run_fractal_task(task_function=convert_md_init_task, logger_name=logger.name)
+    run_fractal_task(
+        task_function=convert_imagexpress_hcs_init_task, logger_name=logger.name
+    )

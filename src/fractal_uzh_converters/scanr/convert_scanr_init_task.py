@@ -10,7 +10,7 @@ from ome_zarr_converters_tools import (
 from pydantic import validate_call
 
 from fractal_uzh_converters.common import parse_acquisitions
-from fractal_uzh_converters.evident_scanr.utils import (
+from fractal_uzh_converters.scanr.utils import (
     ScanRAcquisitionModel,
     parse_scanr_metadata,
 )
@@ -34,7 +34,7 @@ def convert_scanr_init_task(
 
     Args:
         zarr_dir (str): Directory to store the Zarr files.
-        acquisitions (list[AcquisitionInputModel]): List of raw acquisitions to convert
+        acquisitions (list[ScanRAcquisitionModel]): List of raw acquisitions to convert
             to OME-Zarr.
         converter_options (ConverterOptions): Advanced converter options.
         overwrite (OverwriteMode): Overwrite mode for existing data.

@@ -28,7 +28,7 @@ from fractal_uzh_converters.common import (
     BaseAcquisitionModel,
     get_attributes_from_condition_table,
 )
-from fractal_uzh_converters.md_imagexpress_hcsai.color_utils import (
+from fractal_uzh_converters.imagexpress_hcs.color_utils import (
     wavelength_to_default_color,
 )
 
