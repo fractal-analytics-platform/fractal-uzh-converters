@@ -19,11 +19,8 @@ RAW_DIR = DATA_DIR / "MolecularDevices-ImageXpressHCSai" / "raw"
             {
                 "acquisitions": [
                     {
-                        "path": str(
-                            RAW_DIR / "hcs_1w1s1t1c1z_binning4x4" / "test_data_20260302_135747"
-                        ),
+                        "path": str(RAW_DIR / "hcs_1w1s1t1c1z_binning4x4"),
                         "acquisition_id": 0,
-                        "plate_name": "Plate",
                     }
                 ]
             },
