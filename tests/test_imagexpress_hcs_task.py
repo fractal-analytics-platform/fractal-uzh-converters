@@ -31,7 +31,7 @@ SNAPSHOT_DIR = DATA_DIR / "MDImageXpressHCSAI" / "snapshots"
         ),
     ],
 )
-def test_md_imagexpress(
+def test_imagexpress_hcs(
     tmp_path: Path,
     init_task_kwargs: dict,
     snapshot_name: str,

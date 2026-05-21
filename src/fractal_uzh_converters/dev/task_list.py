@@ -53,7 +53,7 @@ TASK_LIST = [
         docs_info="file:docs_info/cq3k_task.md",
     ),
     ConverterCompoundTask(
-        name="Convert Operetta Plate to OME-Zarr",
+        name="Convert Revvity Operetta Plate to OME-Zarr",
         executable_init="operetta/convert_operetta_init_task.py",
         executable="common/image_in_plate_compute_task.py",
         meta_init={"cpus_per_task": 1, "mem": 4000},
@@ -80,6 +80,6 @@ TASK_LIST = [
             "ImageXpress HCS.ai",
             "Plate converter",
         ],
-        docs_info="file:docs_info/imagexpress_hcsai_task.md",
+        docs_info="file:docs_info/imagexpress_hcs_task.md",
     ),
 ]

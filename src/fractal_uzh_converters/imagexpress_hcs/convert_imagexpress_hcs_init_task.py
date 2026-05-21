@@ -17,7 +17,7 @@ from fractal_uzh_converters.imagexpress_hcs.utils import (
     parse_md_metadata,
 )
 
-logger = logging.getLogger("convert_imagexpress_hcsai_task")
+logger = logging.getLogger("convert_imagexpress_hcs_task")
 
 
 default_converter_options = ConverterOptions()
