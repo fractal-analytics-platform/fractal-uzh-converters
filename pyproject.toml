@@ -71,6 +71,7 @@ dev = [
     "requests",
     "jsonschema",
     "ruff",
+    "ty",
     "pre-commit",
     "pytest-cov",
     "xmltodict",
@@ -152,6 +153,9 @@ default = { solve-group = "default" }
 dev = { features = ["dev"], solve-group = "default" }
 test = { features = ["test"], solve-group = "default" }
 docs = { features = ["docs"], solve-group = "default" }
+
+[tool.ty.environment]
+python = ".pixi/envs/dev"
 
 # Required Python version and dependencies
 [tool.pixi.tasks]

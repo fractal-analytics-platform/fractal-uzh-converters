@@ -408,6 +408,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/db/3c/33bac158f8ab7f89b2e59426d5fe2e4f63f7ed25df84c036890172b412b5/cfgv-3.5.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/db/bc/83e112abc66cd466c6b83f99118035867cecd41802f8d044638aa78a106e/locket-1.0.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/dc/9b/47798a6c91d8bdb567fe2698fe81e0c6b7cb7ef4d13da4114b41d239f65d/typing_inspection-0.4.2-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/dd/0c/c7e14d111c813e1a20b82e944f1c997c4631a2bb710eaa64fb6b26835e13/ty-0.0.38-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/df/b2/87e62e8c3e2f4b32e5fe99e0b86d576da1312593b39f47d8ceef365e95ed/packaging-26.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/e0/07/a000fe835f76b7e1143242ab1122e6362ef1c03f23f83a045c38859c2ae0/jupyterlab_server-2.28.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/e0/c3/7f67dea8ccf8fdcb9c99033bbe3e90b9e7395415843accb81428c441be2d/debugpy-1.8.20-py2.py3-none-any.whl
@@ -638,6 +639,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/e7/05/c19819d5e3d95294a6f5947fb9b9629efb316b96de511b418c53d245aae6/cycler-0.12.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/e7/e7/80988e32bf6f73919a113473a604f5a8f09094de312b9d52b79c2df7612b/jupyter_core-5.9.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/e8/3e/0742d724901fa36bc54b338c6e62e463a7601180da896aa44978f0adf004/numpy-2.4.5-cp314-cp314-macosx_11_0_arm64.whl
+      - pypi: https://files.pythonhosted.org/packages/e9/41/4f0d910f0acbd20b358eda80a5cd6a8361d27ff5b8e87ab559d3f69f125e/ty-0.0.38-py3-none-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/e9/d6/1fd0646b9bbd9efbb0b8ae21b2325fbef515769a5621c03e31d8eb8da587/notebook-7.5.6-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/ea/91/74fc60d94488685a92ac9d49d7ec55f3e91fe9b77942a6235a5fa7f249c3/polars-1.40.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/eb/45/cee4cf203ef0bab5c52afc118da61d6b460c928f2893d40023cfa27e0b80/lxml-6.1.0-cp314-cp314-macosx_10_15_universal2.whl
@@ -1590,6 +1592,7 @@ packages:
   - pytest-cov ; extra == 'dev'
   - requests ; extra == 'dev'
   - ruff ; extra == 'dev'
+  - ty ; extra == 'dev'
   - xmltodict ; extra == 'dev'
   - mike ; extra == 'docs'
   - mkdocs-material ; extra == 'docs'
@@ -4597,6 +4600,11 @@ packages:
   requires_dist:
   - typing-extensions>=4.12.0
   requires_python: '>=3.9'
+- pypi: https://files.pythonhosted.org/packages/dd/0c/c7e14d111c813e1a20b82e944f1c997c4631a2bb710eaa64fb6b26835e13/ty-0.0.38-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+  name: ty
+  version: 0.0.38
+  sha256: 375d3a964c6b4aea2e9237fdb5eb9ed03dc43088986a94209a28a4ea3b62001c
+  requires_python: '>=3.8'
 - pypi: https://files.pythonhosted.org/packages/de/1f/77fa3081e4f66ca3576c896ae5d31c3002ac6607f9747d2e3aa49227e464/markdown-3.10.2-py3-none-any.whl
   name: markdown
   version: 3.10.2
@@ -4883,6 +4891,11 @@ packages:
   version: 2.4.5
   sha256: 89e89304fb1f8c3f0ecfa4a7d48f311dd79771336a940e920159d643d1307e77
   requires_python: '>=3.11'
+- pypi: https://files.pythonhosted.org/packages/e9/41/4f0d910f0acbd20b358eda80a5cd6a8361d27ff5b8e87ab559d3f69f125e/ty-0.0.38-py3-none-macosx_11_0_arm64.whl
+  name: ty
+  version: 0.0.38
+  sha256: c518ad33a877677365baab2e21d82cf59ffee789203a15a143f5179ee5a1d3f8
+  requires_python: '>=3.8'
 - pypi: https://files.pythonhosted.org/packages/e9/d6/1fd0646b9bbd9efbb0b8ae21b2325fbef515769a5621c03e31d8eb8da587/notebook-7.5.6-py3-none-any.whl
   name: notebook
   version: 7.5.6
