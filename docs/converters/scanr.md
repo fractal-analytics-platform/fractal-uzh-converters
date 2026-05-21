@@ -1,4 +1,4 @@
-# Olympus ScanR
+# Evident ScanR
 
 ## Expected Data Structure
 

@@ -1,6 +1,6 @@
 ### Purpose
 
-- Convert images acquired with an Olympus ScanR microscope to an OME-Zarr Plate.
+- Convert images acquired with an Evident ScanR microscope to an OME-Zarr Plate.
 
 ### Outputs
 
@@ -8,7 +8,7 @@
 
 ### Limitations
 
-- This task has been tested on a limited set of acquisitions. It may not work on all Olympus ScanR acquisitions.
+- This task has been tested on a limited set of acquisitions. It may not work on all Evident ScanR acquisitions.
 - Make sure to set the correct `Layout` for your plate. The well ID mapping depends on it — using the wrong layout will assign images to incorrect wells.
 
 ### Expected inputs

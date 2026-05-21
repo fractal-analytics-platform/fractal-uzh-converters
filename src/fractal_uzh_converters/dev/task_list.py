@@ -8,15 +8,15 @@ DOCS_LINK = "https://fractal-analytics-platform.github.io/fractal-uzh-converters
 
 TASK_LIST = [
     ConverterCompoundTask(
-        name="Convert Olympus ScanR Plate to OME-Zarr",
-        executable_init="olympus_scanr/convert_scanr_init_task.py",
+        name="Convert Evident ScanR Plate to OME-Zarr",
+        executable_init="scanr/convert_scanr_init_task.py",
         executable="common/image_in_plate_compute_task.py",
         meta_init={"cpus_per_task": 1, "mem": 4000},
         meta={"cpus_per_task": 1, "mem": 4000},
         category="Conversion",
         modality="HCS",
         tags=[
-            "Olympus",
+            "Evident",
             "ScanR",
             "Plate converter",
         ],
@@ -53,7 +53,7 @@ TASK_LIST = [
         docs_info="file:docs_info/cq3k_task.md",
     ),
     ConverterCompoundTask(
-        name="Convert Operetta Plate to OME-Zarr",
+        name="Convert Revvity Operetta Plate to OME-Zarr",
         executable_init="operetta/convert_operetta_init_task.py",
         executable="common/image_in_plate_compute_task.py",
         meta_init={"cpus_per_task": 1, "mem": 4000},
@@ -61,7 +61,7 @@ TASK_LIST = [
         category="Conversion",
         modality="HCS",
         tags=[
-            "PerkinElmer",
+            "Revvity",
             "Operetta",
             "Plate converter",
         ],
@@ -69,7 +69,7 @@ TASK_LIST = [
     ),
     ConverterCompoundTask(
         name="Convert MD ImageXpress HCS.ai Plate to OME-Zarr",
-        executable_init="md_imagexpress_hcsai/convert_md_init_task.py",
+        executable_init="imagexpress_hcs/convert_imagexpress_hcs_init_task.py",
         executable="common/image_in_plate_compute_task.py",
         meta_init={"cpus_per_task": 1, "mem": 4000},
         meta={"cpus_per_task": 1, "mem": 4000},
@@ -80,6 +80,6 @@ TASK_LIST = [
             "ImageXpress HCS.ai",
             "Plate converter",
         ],
-        docs_info="file:docs_info/md_imagexpress_hcsai_task.md",
+        docs_info="file:docs_info/imagexpress_hcs_task.md",
     ),
 ]

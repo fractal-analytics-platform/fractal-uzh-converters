@@ -1,6 +1,6 @@
 ### Purpose
 
-- Convert images acquired with a PerkinElmer Operetta / Opera Phenix microscope to an OME-Zarr Plate.
+- Convert images acquired with a Revvity Operetta / Opera Phenix microscope to an OME-Zarr Plate.
 
 ### Outputs
 
@@ -8,7 +8,7 @@
 
 ### Limitations
 
-- This task has been tested on a limited set of acquisitions. It may not work on all PerkinElmer Operetta acquisitions.
+- This task has been tested on a limited set of acquisitions. It may not work on all Revvity Operetta acquisitions.
 
 ### Expected inputs
 

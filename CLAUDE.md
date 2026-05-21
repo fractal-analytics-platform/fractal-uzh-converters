@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Fractal tasks to convert HCS (High-Content Screening) plate data from microscopes into OME-Zarr format. Supports three microscope systems: PerkinElmer Operetta, Olympus ScanR, and Yokogawa CQ3K/CellVoyager.
+Fractal tasks to convert HCS (High-Content Screening) plate data from microscopes into OME-Zarr format. Supports three microscope systems: Revvity Operetta, Evident ScanR, and Yokogawa CQ3K/CellVoyager.
 
 ## Environment & Commands
 

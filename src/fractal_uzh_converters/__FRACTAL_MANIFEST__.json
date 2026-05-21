@@ -2,17 +2,17 @@
   "manifest_version": "2",
   "task_list": [
     {
-      "name": "Convert Olympus ScanR Plate to OME-Zarr",
+      "name": "Convert Evident ScanR Plate to OME-Zarr",
       "category": "Conversion",
       "modality": "HCS",
       "tags": [
-        "Olympus",
+        "Evident",
         "ScanR",
         "Plate converter"
       ],
-      "docs_info": "### Purpose\n\n- Convert images acquired with an Olympus ScanR microscope to an OME-Zarr Plate.\n\n### Outputs\n\n- An OME-Zarr Plate.\n\n### Limitations\n\n- This task has been tested on a limited set of acquisitions. It may not work on all Olympus ScanR acquisitions.\n- Make sure to set the correct `Layout` for your plate. The well ID mapping depends on it \u2014 using the wrong layout will assign images to incorrect wells.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\nmy_acquisition/\n\u2514\u2500\u2500 data/\n    \u251c\u2500\u2500 metadata.ome.xml     # OME-XML metadata file (required)\n    \u251c\u2500\u2500 image_001.tiff\n    \u251c\u2500\u2500 image_002.tiff\n    \u2514\u2500\u2500 ...\n```\n\n`Path` can point to either the base directory (`my_acquisition/`) or directly to the `data` subdirectory (`my_acquisition/data/`).\n",
+      "docs_info": "### Purpose\n\n- Convert images acquired with an Evident ScanR microscope to an OME-Zarr Plate.\n\n### Outputs\n\n- An OME-Zarr Plate.\n\n### Limitations\n\n- This task has been tested on a limited set of acquisitions. It may not work on all Evident ScanR acquisitions.\n- Make sure to set the correct `Layout` for your plate. The well ID mapping depends on it \u2014 using the wrong layout will assign images to incorrect wells.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\nmy_acquisition/\n\u2514\u2500\u2500 data/\n    \u251c\u2500\u2500 metadata.ome.xml     # OME-XML metadata file (required)\n    \u251c\u2500\u2500 image_001.tiff\n    \u251c\u2500\u2500 image_002.tiff\n    \u2514\u2500\u2500 ...\n```\n\n`Path` can point to either the base directory (`my_acquisition/`) or directly to the `data` subdirectory (`my_acquisition/data/`).\n",
       "type": "converter_compound",
-      "executable_non_parallel": "olympus_scanr/convert_scanr_init_task.py",
+      "executable_non_parallel": "scanr/convert_scanr_init_task.py",
       "executable_parallel": "common/image_in_plate_compute_task.py",
       "meta_non_parallel": {
         "cpus_per_task": 1,
@@ -672,7 +672,7 @@
             "description": "Missing description for Scalings."
           },
           "ScanRAcquisitionModel": {
-            "description": "Acquisition details for the Olympus ScanR microscope data.",
+            "description": "Acquisition details for the Evident ScanR microscope data.",
             "properties": {
               "path": {
                 "description": "Path to the acquisition directory. For scanr, this should be the base directory\nof the acquisition or the \"{acquisition_dir}/data\" directory containing the\nmetadata.ome.xml file and the \"data\" directory with the tiff files.",
@@ -4698,15 +4698,15 @@
       "docs_link": "https://fractal-analytics-platform.github.io/fractal-uzh-converters/stable"
     },
     {
-      "name": "Convert Operetta Plate to OME-Zarr",
+      "name": "Convert Revvity Operetta Plate to OME-Zarr",
       "category": "Conversion",
       "modality": "HCS",
       "tags": [
-        "PerkinElmer",
+        "Revvity",
         "Operetta",
         "Plate converter"
       ],
-      "docs_info": "### Purpose\n\n- Convert images acquired with a PerkinElmer Operetta / Opera Phenix microscope to an OME-Zarr Plate.\n\n### Outputs\n\n- An OME-Zarr Plate.\n\n### Limitations\n\n- This task has been tested on a limited set of acquisitions. It may not work on all PerkinElmer Operetta acquisitions.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\nmy_acquisition/\n\u2514\u2500\u2500 Images/\n    \u251c\u2500\u2500 Index.idx.xml        # Metadata file (required)\n    \u251c\u2500\u2500 r01c01f01p01-ch1sk1fk1fl1.tiff\n    \u251c\u2500\u2500 r01c01f01p01-ch2sk1fk1fl1.tiff\n    \u2514\u2500\u2500 ...\n```\n\n`Path` can point to either the base directory (`my_acquisition/`) or directly to the `Images` subdirectory (`my_acquisition/Images/`).\n",
+      "docs_info": "### Purpose\n\n- Convert images acquired with a Revvity Operetta / Opera Phenix microscope to an OME-Zarr Plate.\n\n### Outputs\n\n- An OME-Zarr Plate.\n\n### Limitations\n\n- This task has been tested on a limited set of acquisitions. It may not work on all Revvity Operetta acquisitions.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\nmy_acquisition/\n\u2514\u2500\u2500 Images/\n    \u251c\u2500\u2500 Index.idx.xml        # Metadata file (required)\n    \u251c\u2500\u2500 r01c01f01p01-ch1sk1fk1fl1.tiff\n    \u251c\u2500\u2500 r01c01f01p01-ch2sk1fk1fl1.tiff\n    \u2514\u2500\u2500 ...\n```\n\n`Path` can point to either the base directory (`my_acquisition/`) or directly to the `Images` subdirectory (`my_acquisition/Images/`).\n",
       "type": "converter_compound",
       "executable_non_parallel": "operetta/convert_operetta_init_task.py",
       "executable_parallel": "common/image_in_plate_compute_task.py",
@@ -6266,7 +6266,7 @@
       ],
       "docs_info": "### Purpose\n\n- Convert images acquired with an MD ImageXpress HCS.ai microscope to an OME-Zarr Plate.\n\n### Outputs\n\n- An OME-Zarr Plate.\n\n### Limitations\n\n- This task has been tested on a limited set of acquisitions. It may not work on all MD ImageXpress acquisitions.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\n{protocol_name}_{date-time}\n\u251c\u2500\u2500 {protocol_name}.mxprotocol\n\u251c\u2500\u2500 autofocus/\n\u2514\u2500\u2500 experiment{_mode}/\n    \u251c\u2500\u2500 {acquisition_name}.jdce\n    \u251c\u2500\u2500 image_metadata_1.csv\n    \u251c\u2500\u2500 timepoint0/\n    \u2514\u2500\u2500 timepoint1/\n        \u251c\u2500\u2500 {protocol_name}_t1_C05_s0_w0_z0.tif\n        \u251c\u2500\u2500 {protocol_name}_t1_C05_s0_w0_z1.tif\n        \u2514\u2500\u2500 ...\n```\n\n`Path` should point to the `{protocol_name}_{date-time}` folder or the `{protocol_name}.mxprotocol` file.\n",
       "type": "converter_compound",
-      "executable_non_parallel": "md_imagexpress_hcsai/convert_md_init_task.py",
+      "executable_non_parallel": "imagexpress_hcs/convert_imagexpress_hcs_init_task.py",
       "executable_parallel": "common/image_in_plate_compute_task.py",
       "meta_non_parallel": {
         "cpus_per_task": 1,
@@ -7256,7 +7256,7 @@
           "acquisitions"
         ],
         "type": "object",
-        "title": "ConvertMdInitTask"
+        "title": "ConvertImagexpressHcsInitTask"
       },
       "args_schema_parallel": {
         "$defs": {

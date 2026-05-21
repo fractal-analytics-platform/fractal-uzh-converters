@@ -56,8 +56,8 @@ nav:
   - Home: index.md
   - Converters:
     - Overview: converters/index.md
-    - PerkinElmer Operetta: converters/operetta.md
-    - Olympus ScanR: converters/scanr.md
+    - Revvity Operetta/Opera Phenix: converters/operetta.md
+    - Evident ScanR: converters/scanr.md
     - Yokogawa CQ3K: converters/cq3k.md
     - Yokogawa CellVoyager: converters/cellvoyager.md
     - Molecular Devices ImageXpress: converters/md_imagexpress.md

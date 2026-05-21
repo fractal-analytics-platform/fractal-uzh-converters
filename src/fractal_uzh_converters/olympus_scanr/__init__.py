@@ -1,9 +1,0 @@
-"""Olympus ScanR module for converting Olympus ScanR data to Fractal HCS format."""
-
-from fractal_uzh_converters.olympus_scanr.convert_scanr_init_task import (
-    convert_scanr_init_task,
-)
-
-__all__ = [
-    "convert_scanr_init_task",
-]

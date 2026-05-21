@@ -1,0 +1,43 @@
+plates:
+  hcs_1w1p1c1z1t.zarr:
+    wells:
+    - B/03
+    images:
+      B/03/0:
+        axes:
+        - c
+        - z
+        - y
+        - x
+        shape:
+        - 1
+        - 1
+        - 2160
+        - 2560
+        pixelsize:
+        - 1.0
+        - 1.0
+        - 0.1625
+        - 0.1625
+        channel_labels:
+        - channel_0
+        wavelength_ids:
+        - channel_0
+        types:
+          is_3D: false
+        attributes:
+          plate: hcs_1w1p1c1z1t.zarr
+          well: B03
+          acquisition: 0
+        tables:
+          well_ROI_table:
+            rois:
+              image:
+                slice_repr: '[x: 0.0->2560.0, y: 0.0->2160.0, z: 0.0->1.0]'
+                finger_print:
+                  mean: 221.60205765335647
+                  std: 100.84931184107667
+                  min: 33.0
+                  max: 905.0
+                  hash: aaa47ebc113271f4a3efc98ada9d551ed4a6ddff7286dda4e41d04d536f78547
+                yx_origin: null
