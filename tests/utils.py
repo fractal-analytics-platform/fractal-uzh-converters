@@ -311,7 +311,7 @@ def run_converter_test(
         update_snapshots: If True, regenerate the snapshot file.
     """
     if update_snapshots:
-        zarr_dir = snapshot_path.parent.parent / "output" / snapshot_path.stem
+        zarr_dir = snapshot_path.parent.parent / "output"
         zarr_dir.mkdir(parents=True, exist_ok=True)
         init_task_kwargs = init_task_kwargs | {"overwrite": OverwriteMode.OVERWRITE}
     else:
