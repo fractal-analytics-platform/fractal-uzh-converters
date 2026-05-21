@@ -19,6 +19,10 @@ plates:
         - 1.0
         - 1.294
         - 1.294
+        channel_labels:
+        - DAPI
+        wavelength_ids:
+        - '440'
         types:
           is_3D: false
         attributes:
