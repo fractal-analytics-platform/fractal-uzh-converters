@@ -34,7 +34,7 @@ class FingerprintModel(BaseModel):
 class RoiAssertionModel(BaseModel):
     slice_repr: str
     finger_print: FingerprintModel
-    xy_origin: list[float] | None = None
+    yx_origin: list[float] | None = None
 
 
 class TableAssertionModel(BaseModel):
@@ -172,10 +172,10 @@ def _check_roi_tables(
             roi_array = image.get_roi_as_numpy(roi)
             fingerprint = FingerprintModel.from_array(roi_array)
             assert fingerprint == roi_assert.finger_print, fingerprint
-            if roi_assert.xy_origin is not None:
+            if roi_assert.yx_origin is not None:
                 y_origin = getattr(roi, "y_micrometer_original", None)
                 x_origin = getattr(roi, "x_micrometer_original", None)
-                assert (y_origin, x_origin) == roi_assert.xy_origin
+                assert [y_origin, x_origin] == roi_assert.yx_origin
 
 
 def _post_compute_checks(
@@ -261,7 +261,7 @@ def _generate_snapshot(
                         y_origin = getattr(roi, "y_micrometer_original", None)
                         x_origin = getattr(roi, "x_micrometer_original", None)
                         if y_origin is not None and x_origin is not None:
-                            yx_origin = (y_origin, x_origin)
+                            yx_origin = [y_origin, x_origin]
                         else:
                             yx_origin = None
                         rois_dict[roi.name] = {
@@ -311,7 +311,7 @@ def run_converter_test(
         update_snapshots: If True, regenerate the snapshot file.
     """
     if update_snapshots:
-        zarr_dir = snapshot_path.parent.parent / "output"
+        zarr_dir = snapshot_path.parent.parent / "output" / snapshot_path.stem
         zarr_dir.mkdir(parents=True, exist_ok=True)
         init_task_kwargs = init_task_kwargs | {"overwrite": OverwriteMode.OVERWRITE}
     else:
