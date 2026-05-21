@@ -119,8 +119,7 @@ ENV/
 *.zarr
 
 # Extended test data
-tests/data/extended_test_data*
-tests/data/ref_acq*
+tests/data-extended/
 
 # Claude
 .claude/
