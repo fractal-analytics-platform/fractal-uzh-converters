@@ -2,13 +2,14 @@ from pathlib import Path
 
 import pytest
 
-from fractal_uzh_converters.scanr.convert_scanr_init_task import (
-    convert_scanr_init_task,
+from fractal_uzh_converters.cq3k.convert_cq3k_init_task import (
+    convert_cq3k_init_task,
 )
 
 from .utils import DATA_DIR, run_converter_test
 
-SNAPSHOT_DIR = DATA_DIR / "EvidentScanR" / "snapshots"
+SNAPSHOT_DIR = DATA_DIR / "Yokogawa-CQ3K" / "snapshots"
+RAW_DIR = DATA_DIR / "Yokogawa-CQ3K" / "raw"
 
 
 @pytest.mark.parametrize(
@@ -18,18 +19,16 @@ SNAPSHOT_DIR = DATA_DIR / "EvidentScanR" / "snapshots"
             {
                 "acquisitions": [
                     {
-                        "path": f"{DATA_DIR}/EvidentScanR"
-                        "/EvidentScanR_reference_acquisitions"
-                        "/1w1p1c1z1t",
+                        "path": str(RAW_DIR / "hcs_2w1p1c1z1t_mip"),
                         "acquisition_id": 0,
                     }
                 ]
             },
-            "1w1p1c1z1t",
+            "hcs_2w1p1c1z1t_mip",
         ),
     ],
 )
-def test_scanr(
+def test_cq3k(
     tmp_path: Path,
     init_task_kwargs: dict,
     snapshot_name: str,
@@ -37,7 +36,7 @@ def test_scanr(
 ):
     run_converter_test(
         tmp_path=tmp_path,
-        init_task_fn=convert_scanr_init_task,
+        init_task_fn=convert_cq3k_init_task,
         init_task_kwargs=init_task_kwargs,
         snapshot_path=SNAPSHOT_DIR / f"{snapshot_name}.yaml",
         update_snapshots=update_snapshots,

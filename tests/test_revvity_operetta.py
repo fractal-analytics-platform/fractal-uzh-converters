@@ -8,7 +8,8 @@ from fractal_uzh_converters.operetta.convert_operetta_init_task import (
 
 from .utils import DATA_DIR, run_converter_test
 
-SNAPSHOT_DIR = DATA_DIR / "Operetta" / "snapshots"
+SNAPSHOT_DIR = DATA_DIR / "Revvity-Operetta" / "snapshots"
+RAW_DIR = DATA_DIR / "Revvity-Operetta" / "raw"
 
 
 @pytest.mark.parametrize(
@@ -18,31 +19,28 @@ SNAPSHOT_DIR = DATA_DIR / "Operetta" / "snapshots"
             {
                 "acquisitions": [
                     {
-                        "path": f"{DATA_DIR}/Operetta/Operetta_reference_acquisitions/"
-                        "1w1p1c1z1t",
+                        "path": str(RAW_DIR / "hcs_1w1p1c1z1t"),
                         "acquisition_id": 0,
                     }
                 ]
             },
-            "1w1p1c1z1t",
+            "hcs_1w1p1c1z1t",
         ),
         (
             {
                 "acquisitions": [
                     {
-                        "path": f"{DATA_DIR}/Operetta/Operetta_reference_acquisitions/"
-                        "1w1p1c1z1t",
+                        "path": str(RAW_DIR / "hcs_1w1p1c1z1t"),
                         "acquisition_id": 0,
                         "advanced": {
-                            "condition_table_path": (
-                                f"{DATA_DIR}/Operetta/Operetta_reference_acquisitions/"
-                                "1w1p1c1z1t/condition_table.csv"
+                            "condition_table_path": str(
+                                RAW_DIR / "hcs_1w1p1c1z1t" / "condition_table.csv"
                             )
                         },
                     }
                 ]
             },
-            "1w1p1c1z1t_with_condition_table",
+            "hcs_1w1p1c1z1t_with_condition_table",
         ),
     ],
 )

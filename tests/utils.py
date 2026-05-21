@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 import yaml
 from ngio import OmeZarrContainer, open_ome_zarr_plate
+from ome_zarr_converters_tools import OverwriteMode
 from pydantic import BaseModel, Field, model_validator
 
 from fractal_uzh_converters.common import image_in_plate_compute_task
@@ -33,7 +34,7 @@ class FingerprintModel(BaseModel):
 class RoiAssertionModel(BaseModel):
     slice_repr: str
     finger_print: FingerprintModel
-    xy_origin: tuple[float, float] | None = None
+    xy_origin: list[float] | None = None
 
 
 class TableAssertionModel(BaseModel):
@@ -309,7 +310,13 @@ def run_converter_test(
         snapshot_path: Path to the snapshot YAML file.
         update_snapshots: If True, regenerate the snapshot file.
     """
-    zarr_dir = tmp_path / "ome_zarr_output"
+    if update_snapshots:
+        zarr_dir = snapshot_path.parent.parent / "output"
+        zarr_dir.mkdir(parents=True, exist_ok=True)
+        init_task_kwargs = init_task_kwargs | {"overwrite": OverwriteMode.OVERWRITE}
+    else:
+        zarr_dir = tmp_path / "output"
+        zarr_dir.mkdir(parents=True, exist_ok=True)
 
     # 1. Run init task
     output = init_task_fn(zarr_dir=str(zarr_dir), **init_task_kwargs)

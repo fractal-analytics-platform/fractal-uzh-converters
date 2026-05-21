@@ -1,5 +1,5 @@
 plates:
-  1w1p1c1z1t.zarr:
+  hcs_1w1p1c1z1t.zarr:
     wells:
     - C/11
     images:
@@ -30,7 +30,7 @@ plates:
           concentration: 0.2 & None
           replicate: 1 & 2
           bool_col: True & False
-          plate: 1w1p1c1z1t.zarr
+          plate: hcs_1w1p1c1z1t.zarr
           well: C11
           acquisition: 0
         tables:

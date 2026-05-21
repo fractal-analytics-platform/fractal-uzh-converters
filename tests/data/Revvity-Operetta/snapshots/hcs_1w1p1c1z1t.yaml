@@ -1,5 +1,5 @@
 plates:
-  1w1p1c1z1t.zarr:
+  hcs_1w1p1c1z1t.zarr:
     wells:
     - C/11
     images:
@@ -26,7 +26,7 @@ plates:
         types:
           is_3D: false
         attributes:
-          plate: 1w1p1c1z1t.zarr
+          plate: hcs_1w1p1c1z1t.zarr
           well: C11
           acquisition: 0
         tables:

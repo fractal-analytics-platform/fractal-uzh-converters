@@ -8,7 +8,8 @@ from fractal_uzh_converters.imagexpress_hcs.convert_imagexpress_hcs_init_task im
 
 from .utils import DATA_DIR, run_converter_test
 
-SNAPSHOT_DIR = DATA_DIR / "MDImageXpressHCSAI" / "snapshots"
+SNAPSHOT_DIR = DATA_DIR / "MolecularDevices-ImageXpressHCSai" / "snapshots"
+RAW_DIR = DATA_DIR / "MolecularDevices-ImageXpressHCSai" / "raw"
 
 
 @pytest.mark.parametrize(
@@ -18,16 +19,15 @@ SNAPSHOT_DIR = DATA_DIR / "MDImageXpressHCSAI" / "snapshots"
             {
                 "acquisitions": [
                     {
-                        "path": f"{DATA_DIR}/MDImageXpressHCSAI"
-                        "/MD_reference_acquisitions"
-                        "/1w1s1t1c1z_binning4x4"
-                        "/test_data_20260302_135747",
+                        "path": str(
+                            RAW_DIR / "hcs_1w1s1t1c1z_binning4x4" / "test_data_20260302_135747"
+                        ),
                         "acquisition_id": 0,
                         "plate_name": "Plate",
                     }
                 ]
             },
-            "1w1s1t1c1z_binning4x4",
+            "hcs_1w1s1t1c1z_binning4x4",
         ),
     ],
 )

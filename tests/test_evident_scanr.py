@@ -2,13 +2,14 @@ from pathlib import Path
 
 import pytest
 
-from fractal_uzh_converters.cellvoyager.convert_cellvoyager_init_task import (
-    convert_cellvoyager_init_task,
+from fractal_uzh_converters.scanr.convert_scanr_init_task import (
+    convert_scanr_init_task,
 )
 
 from .utils import DATA_DIR, run_converter_test
 
-SNAPSHOT_DIR = DATA_DIR / "CellVoyager" / "snapshots"
+SNAPSHOT_DIR = DATA_DIR / "Evident-scanR" / "snapshots"
+RAW_DIR = DATA_DIR / "Evident-scanR" / "raw"
 
 
 @pytest.mark.parametrize(
@@ -18,19 +19,16 @@ SNAPSHOT_DIR = DATA_DIR / "CellVoyager" / "snapshots"
             {
                 "acquisitions": [
                     {
-                        "path": f"{DATA_DIR}/CellVoyager"
-                        "/CellVoyager_reference_acquisitions"
-                        "/1w1p1c1z1t",
+                        "path": str(RAW_DIR / "hcs_1w1p1c1z1t"),
                         "acquisition_id": 0,
-                        "image_extension": ".png",
                     }
                 ]
             },
-            "1w1p1c1z1t",
+            "hcs_1w1p1c1z1t",
         ),
     ],
 )
-def test_cellvoyager(
+def test_scanr(
     tmp_path: Path,
     init_task_kwargs: dict,
     snapshot_name: str,
@@ -38,7 +36,7 @@ def test_cellvoyager(
 ):
     run_converter_test(
         tmp_path=tmp_path,
-        init_task_fn=convert_cellvoyager_init_task,
+        init_task_fn=convert_scanr_init_task,
         init_task_kwargs=init_task_kwargs,
         snapshot_path=SNAPSHOT_DIR / f"{snapshot_name}.yaml",
         update_snapshots=update_snapshots,

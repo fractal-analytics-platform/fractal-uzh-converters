@@ -1,5 +1,5 @@
 plates:
-  2w1p1c1z1t_mip_Maximum.zarr:
+  hcs_2w1p1c1z1t_mip_Maximum.zarr:
     wells:
     - C/05
     - F/09
@@ -27,7 +27,7 @@ plates:
         types:
           is_3D: false
         attributes:
-          plate: 2w1p1c1z1t_mip_Maximum.zarr
+          plate: hcs_2w1p1c1z1t_mip_Maximum.zarr
           well: C05
           acquisition: 0
         tables:
@@ -65,7 +65,7 @@ plates:
         types:
           is_3D: false
         attributes:
-          plate: 2w1p1c1z1t_mip_Maximum.zarr
+          plate: hcs_2w1p1c1z1t_mip_Maximum.zarr
           well: F09
           acquisition: 0
         tables:
