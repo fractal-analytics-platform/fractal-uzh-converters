@@ -209,7 +209,11 @@ def _generate_snapshot(
 ) -> None:
     """Generate multi_plate_assertions dict from converted plates."""
     # Discover all plate dirs (they end with .zarr)
-    plate_names = sorted(p.name for p in zarr_dir.iterdir() if p.suffix == ".zarr")
+    plate_names = sorted({
+        Path(upd["zarr_url"]).relative_to(zarr_dir).parts[0]
+        for updates in image_list_updates
+        for upd in updates.get("image_list_updates", [])
+    })
 
     # Build updates lookup
     updates_by_image: dict[str, dict] = {}
