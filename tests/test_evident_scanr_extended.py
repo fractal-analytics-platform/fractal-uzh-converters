@@ -20,7 +20,7 @@ _DATASETS = [
     "hcs_2w4p4c1z1t_dual",
     "hcs_2w4p4c1z1t_seq",
     "hcs_2w4p4c5z1t_seq",
-    "hcs_2w4p4c5z3t_dual",
+    "hcs_2w4p4c5z4t_dual",
     "hcs_2w4p4c5z3t_seq",
 ]
 

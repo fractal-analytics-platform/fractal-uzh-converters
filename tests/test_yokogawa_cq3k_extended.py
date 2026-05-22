@@ -13,17 +13,17 @@ SNAPSHOT_DIR = EXTENDED_DATA_DIR / "Yokogawa-CQ3K" / "snapshots"
 RAW_DIR = EXTENDED_DATA_DIR / "Yokogawa-CQ3K" / "raw"
 
 _DATASETS = [
-    "hcs_1w1p1c1z1t_TS_FP_SF_Centered",
-    "hcs_1w1p1c1z1t_TS_FP_SF_Grid",
-    "hcs_1w1p1c1z1t_TS_SP_Centered",
-    "hcs_1w1p1c1z1t_TS_SP_Grid",
+    "hcs_1w2p1c1z1t_TS_FP_SF_Centered",
+    "hcs_1w2p1c1z1t_TS_FP_SF_Grid",
+    "hcs_1w2p1c1z1t_TS_SP_Centered",
+    "hcs_1w2p1c1z1t_TS_SP_Grid",
     "hcs_2w1p1c1z1t_Channel_MIP_Only",
     "hcs_2w1p1c1z1t_Channel_MIP_SUM",
     "hcs_2w1p1c3z1t_Channel_MIP_Slice",
     "hcs_2w1p1c3z1t_Channel_MIP_Slice_2bin",
     "hcs_2w1p1c3z1t_Channel_MIP_SUM_Slice",
     "hcs_3w1p1c1z1t_Channel_MIP",
-    "hcs_3w1p8c1z1t_Channel",
+    "hcs_3w2p8c1z1t_Channel",
 ]
 
 
