@@ -34,7 +34,7 @@ class FingerprintModel(BaseModel):
 class RoiAssertionModel(BaseModel):
     slice_repr: str
     finger_print: FingerprintModel
-    xy_origin: list[float] | None = None
+    yx_origin: list[float] | None = None
 
 
 class TableAssertionModel(BaseModel):
@@ -172,10 +172,10 @@ def _check_roi_tables(
             roi_array = image.get_roi_as_numpy(roi)
             fingerprint = FingerprintModel.from_array(roi_array)
             assert fingerprint == roi_assert.finger_print, fingerprint
-            if roi_assert.xy_origin is not None:
+            if roi_assert.yx_origin is not None:
                 y_origin = getattr(roi, "y_micrometer_original", None)
                 x_origin = getattr(roi, "x_micrometer_original", None)
-                assert (y_origin, x_origin) == roi_assert.xy_origin
+                assert [y_origin, x_origin] == roi_assert.yx_origin
 
 
 def _post_compute_checks(
@@ -209,7 +209,11 @@ def _generate_snapshot(
 ) -> None:
     """Generate multi_plate_assertions dict from converted plates."""
     # Discover all plate dirs (they end with .zarr)
-    plate_names = sorted(p.name for p in zarr_dir.iterdir() if p.suffix == ".zarr")
+    plate_names = sorted({
+        Path(upd["zarr_url"]).relative_to(zarr_dir).parts[0]
+        for updates in image_list_updates
+        for upd in updates.get("image_list_updates", [])
+    })
 
     # Build updates lookup
     updates_by_image: dict[str, dict] = {}
@@ -261,7 +265,7 @@ def _generate_snapshot(
                         y_origin = getattr(roi, "y_micrometer_original", None)
                         x_origin = getattr(roi, "x_micrometer_original", None)
                         if y_origin is not None and x_origin is not None:
-                            yx_origin = (y_origin, x_origin)
+                            yx_origin = [y_origin, x_origin]
                         else:
                             yx_origin = None
                         rois_dict[roi.name] = {
