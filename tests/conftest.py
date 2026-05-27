@@ -1,4 +1,8 @@
 import pytest
+from ome_zarr_converters_tools import ConverterOptions, OmeZarrOptions
+from ome_zarr_converters_tools.models._converter_options import (
+    BackendType,
+)
 
 
 def pytest_addoption(parser):
@@ -33,3 +37,12 @@ def pytest_collection_modifyitems(config, items):
 @pytest.fixture
 def update_snapshots(request):
     return request.config.getoption("--update-snapshots")
+
+
+@pytest.fixture
+def converter_options():
+    return ConverterOptions(
+        omezarr_options=OmeZarrOptions(
+            ngff_version="0.5", table_backend=BackendType.CSV
+        )
+    )

@@ -122,7 +122,7 @@ minversion = "8.0"
 testpaths = ["tests"]
 filterwarnings = [
     "error",
-    # "ignore::zarr.errors.ZarrUserWarning",                   # required for anndata
+    "ignore::zarr.errors.ZarrUserWarning", # required for anndata
     # "ignore::anndata._warnings.ImplicitModificationWarning", # anndata internal index coercion
     "ignore::UserWarning:anndata._io.zarr", # anndata zarr v2→v3 migration notice
 ]
