@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 import yaml
 from ngio import OmeZarrContainer, open_ome_zarr_plate
-from ome_zarr_converters_tools import OverwriteMode
+from ome_zarr_converters_tools import ConverterOptions, OverwriteMode
 from pydantic import BaseModel, Field, model_validator
 
 from fractal_uzh_converters.common import image_in_plate_compute_task
@@ -209,11 +209,13 @@ def _generate_snapshot(
 ) -> None:
     """Generate multi_plate_assertions dict from converted plates."""
     # Discover all plate dirs (they end with .zarr)
-    plate_names = sorted({
-        Path(upd["zarr_url"]).relative_to(zarr_dir).parts[0]
-        for updates in image_list_updates
-        for upd in updates.get("image_list_updates", [])
-    })
+    plate_names = sorted(
+        {
+            Path(upd["zarr_url"]).relative_to(zarr_dir).parts[0]
+            for updates in image_list_updates
+            for upd in updates.get("image_list_updates", [])
+        }
+    )
 
     # Build updates lookup
     updates_by_image: dict[str, dict] = {}
@@ -304,6 +306,7 @@ def run_converter_test(
     init_task_kwargs: dict,
     snapshot_path: Path,
     update_snapshots: bool,
+    converter_options: ConverterOptions,
 ):
     """Run a converter end-to-end and check against snapshot assertions.
 
@@ -318,12 +321,15 @@ def run_converter_test(
         zarr_dir = snapshot_path.parent.parent / "output"
         zarr_dir.mkdir(parents=True, exist_ok=True)
         init_task_kwargs = init_task_kwargs | {"overwrite": OverwriteMode.OVERWRITE}
+        print(f"Running test in update mode. Output Zarr dir: {zarr_dir}")
     else:
         zarr_dir = tmp_path / "output"
         zarr_dir.mkdir(parents=True, exist_ok=True)
 
     # 1. Run init task
-    output = init_task_fn(zarr_dir=str(zarr_dir), **init_task_kwargs)
+    output = init_task_fn(
+        zarr_dir=str(zarr_dir), **init_task_kwargs, converter_options=converter_options
+    )
 
     # 2. Run compute tasks
     updates_list = []

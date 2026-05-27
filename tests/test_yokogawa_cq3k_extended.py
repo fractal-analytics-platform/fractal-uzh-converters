@@ -32,11 +32,7 @@ _DATASETS = [
     "init_task_kwargs, snapshot_name",
     [
         (
-            {
-                "acquisitions": [
-                    {"path": str(RAW_DIR / name), "acquisition_id": 0}
-                ]
-            },
+            {"acquisitions": [{"path": str(RAW_DIR / name), "acquisition_id": 0}]},
             name,
         )
         for name in _DATASETS
@@ -47,6 +43,7 @@ def test_cq3k_extended(
     init_task_kwargs: dict,
     snapshot_name: str,
     update_snapshots: bool,
+    converter_options,
 ):
     run_converter_test(
         tmp_path=tmp_path,
@@ -54,4 +51,5 @@ def test_cq3k_extended(
         init_task_kwargs=init_task_kwargs,
         snapshot_path=SNAPSHOT_DIR / f"{snapshot_name}.yaml",
         update_snapshots=update_snapshots,
+        converter_options=converter_options,
     )

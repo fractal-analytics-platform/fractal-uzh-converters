@@ -46,7 +46,7 @@ authors = [{ name = "Lorenzo Cerrone", email = "lorenzo.cerrone@uzh.ch" }]
 requires-python = ">=3.11,<3.15"
 
 dependencies = [
-    "ome-zarr-converters-tools>=0.8.0,<0.9.0",
+    "ome-zarr-converters-tools>=0.8.1,<0.9.0",
     "fractal-task-tools>=0.5.0,<0.6.0",
     "ngio>=0.5.8,<0.6.0",
     "zarrs",
@@ -122,7 +122,7 @@ minversion = "8.0"
 testpaths = ["tests"]
 filterwarnings = [
     "error",
-    # "ignore::zarr.errors.ZarrUserWarning",                   # required for anndata
+    "ignore::zarr.errors.ZarrUserWarning", # required for anndata
     # "ignore::anndata._warnings.ImplicitModificationWarning", # anndata internal index coercion
     "ignore::UserWarning:anndata._io.zarr", # anndata zarr v2→v3 migration notice
 ]
