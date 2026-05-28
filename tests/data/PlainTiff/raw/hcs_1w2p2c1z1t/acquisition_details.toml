@@ -1,0 +1,8 @@
+start_z_coo = "pixel"
+start_t_coo = "pixel"
+pixelsize = 0.65
+z_spacing = 5.0
+
+[[channels]]
+channel_label = "DAPI"
+wavelength_id = "405"

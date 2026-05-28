@@ -1,0 +1,62 @@
+images:
+  img_2p2c1z1t.zarr:
+    axes:
+    - t
+    - c
+    - z
+    - y
+    - x
+    shape:
+    - 1
+    - 1
+    - 2
+    - 128
+    - 128
+    pixelsize:
+    - 1.0
+    - 5.0
+    - 0.65
+    - 0.65
+    channel_labels:
+    - DAPI
+    wavelength_ids:
+    - '405'
+    types:
+      is_3D: true
+    attributes: {}
+    tables:
+      FOV_ROI_table:
+        rois:
+          FOV_1:
+            slice_repr: '[x: 0.0->64.0, y: 0.0->64.0, z: 0.0->2.0, t: 0.0->1.0]'
+            finger_print:
+              mean: 32977.95812988281
+              std: 18896.40716080038
+              min: 18.0
+              max: 65532.0
+              hash: 373276fbd2e9163ee9a99f763758cc14e282b2683366f8a691414cb325490d3b
+            yx_origin:
+            - 10
+            - 10
+          FOV_2:
+            slice_repr: '[x: 64.0->128.0, y: 64.0->128.0, z: 0.0->2.0, t: 0.0->1.0]'
+            finger_print:
+              mean: 32587.329467773438
+              std: 18983.163806347045
+              min: 10.0
+              max: 65533.0
+              hash: a24c9430d3107e1573722b14ef064a91f8f400c7e7276943692b2592ebf9b99d
+            yx_origin:
+            - 1000
+            - 1000
+      well_ROI_table:
+        rois:
+          image:
+            slice_repr: '[x: 0.0->128.0, y: 0.0->128.0, z: 0.0->2.0, t: 0.0->1.0]'
+            finger_print:
+              mean: 16391.321899414062
+              std: 21167.266837631796
+              min: 0.0
+              max: 65533.0
+              hash: 3061f050f95197279aa4edcab996deb59872f6bb57b333c60c0d67dc0cb4f82d
+            yx_origin: null

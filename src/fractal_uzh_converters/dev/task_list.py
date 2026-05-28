@@ -82,4 +82,29 @@ TASK_LIST = [
         ],
         docs_info="file:docs_info/imagexpress_hcs_task.md",
     ),
+    ConverterCompoundTask(
+        name="Convert Plain TIFF HCS Plate to OME-Zarr",
+        executable_init="plain_tiff/convert_hcs_tiff_init_task.py",
+        executable="common/image_in_plate_compute_task.py",
+        meta_init={"cpus_per_task": 1, "mem": 4000},
+        meta={"cpus_per_task": 1, "mem": 4000},
+        category="Conversion",
+        modality="HCS",
+        tags=[
+            "Plain TIFF",
+            "Plate converter",
+        ],
+    ),
+    ConverterCompoundTask(
+        name="Convert Plain TIFF Images to OME-Zarr",
+        executable_init="plain_tiff/convert_single_tiff_task.py",
+        executable="common/single_image_compute_task.py",
+        meta_init={"cpus_per_task": 1, "mem": 4000},
+        meta={"cpus_per_task": 1, "mem": 4000},
+        category="Conversion",
+        tags=[
+            "Plain TIFF",
+            "Single Image Converter",
+        ],
+    ),
 ]
