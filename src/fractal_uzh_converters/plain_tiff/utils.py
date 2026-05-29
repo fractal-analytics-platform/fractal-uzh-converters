@@ -153,12 +153,8 @@ def parse_single_tiff_metadata(
         acquisition_details
     )
 
-    # SingleImage collection requires an ``image_path`` column. If absent,
-    # derive it from ``fov_name`` so tiles with the same FOV name are grouped
-    # into the same output zarr.
-    if "image_path" not in tiles_table.columns and "fov_name" in tiles_table.columns:
-        tiles_table = tiles_table.copy()
-        tiles_table["image_path"] = tiles_table["fov_name"]
+    tiles_table = tiles_table.copy()
+    tiles_table["image_path"] = acquisition_model.normalized_plate_name
 
     tiles = single_images_from_dataframe(
         tiles_table=tiles_table,
