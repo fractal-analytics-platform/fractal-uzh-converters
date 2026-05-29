@@ -11,6 +11,8 @@ A collection of [Fractal](https://fractal-analytics-platform.github.io/) tasks t
 | CQ3K | Yokogawa | `Convert Yokogawa CQ3K Plate to OME-Zarr` |
 | CellVoyager | Yokogawa | `Convert Yokogawa CellVoyager Plate to OME-Zarr` |
 | ImageXpress HCS.ai | Molecular Devices | `Convert MD ImageXpress HCS.ai Plate to OME-Zarr` |
+| Plain TIFF (HCS plate) | Any | `Convert Plain TIFF HCS Plate to OME-Zarr` |
+| Plain TIFF (single images) | Any | `Convert Plain TIFF Images to OME-Zarr` |
 
 Each converter reads the microscope's native metadata and image files, then produces a well-structured OME-Zarr HCS plate.
 ## Installation

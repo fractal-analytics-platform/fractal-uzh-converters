@@ -61,5 +61,6 @@ nav:
     - Yokogawa CQ3K: converters/cq3k.md
     - Yokogawa CellVoyager: converters/cellvoyager.md
     - Molecular Devices ImageXpress: converters/md_imagexpress.md
+    - Plain TIFF: converters/plain_tiff.md
   - Condition Tables: condition_tables.md
   - Changelog: changelog.md
