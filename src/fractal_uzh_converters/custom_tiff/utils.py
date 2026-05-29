@@ -4,6 +4,7 @@ import logging
 from pathlib import Path
 
 import pandas as pd
+import tifffile
 import tomllib
 from ome_zarr_converters_tools import (
     AcquisitionDetails,
@@ -147,8 +148,24 @@ def parse_single_tiff_metadata(
 ) -> list[TiledImage]:
     """Parse custom single-image TIFF metadata and return a list of TiledImages."""
     acq_path = acquisition_model.path
-    tiles_table = _load_tiles_table(acq_path)
-    acquisition_details = _load_acquisition_details(acq_path)
+    path = Path(acq_path)
+
+    if path.is_file():
+        with tifffile.TiffFile(str(path)) as tif:
+            page_shape = tif.pages[0].shape
+        length_y, length_x = page_shape[0], page_shape[1]
+        tiles_table = pd.DataFrame({
+            "file_path": [str(path.resolve())],
+            "fov_name": [path.stem],
+            "start_x": [0.0],
+            "start_y": [0.0],
+            "length_x": [length_x],
+            "length_y": [length_y],
+        })
+        acquisition_details = _load_acquisition_details(str(path.parent))
+    else:
+        tiles_table = _load_tiles_table(acq_path)
+        acquisition_details = _load_acquisition_details(acq_path)
     acquisition_details = acquisition_model.advanced.update_acquisition_details(
         acquisition_details
     )

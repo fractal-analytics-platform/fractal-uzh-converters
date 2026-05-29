@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from fractal_uzh_converters.common import single_image_compute_task
 from fractal_uzh_converters.custom_tiff import (
     convert_hcs_tiff_init_task,
     convert_single_tiff_init_task,
@@ -69,3 +70,21 @@ def test_single_tiff(
         update_snapshots=update_snapshots,
         converter_options=converter_options,
     )
+
+
+def test_single_tiff_file_path(tmp_path: Path, converter_options):
+    """Single-file shortcut: a TIFF path passed directly instead of a directory."""
+    tif_file = RAW_DIR / "img_2p2c1z1t" / "data" / "fov1_z0.tif"
+    zarr_dir = tmp_path / "output"
+    zarr_dir.mkdir()
+
+    output = convert_single_tiff_init_task(
+        zarr_dir=str(zarr_dir),
+        acquisitions=[{"path": str(tif_file)}],
+        converter_options=converter_options,
+    )
+    assert len(output["parallelization_list"]) == 1
+
+    updates = single_image_compute_task(**output["parallelization_list"][0])
+    assert len(updates["image_list_updates"]) == 1
+    assert Path(updates["image_list_updates"][0]["zarr_url"]).exists()
