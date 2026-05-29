@@ -1,4 +1,4 @@
-"""Convert Plain HCS TIFF datasets to OME-Zarr."""
+"""Convert Custom Single TIFF datasets to OME-Zarr."""
 
 import logging
 
@@ -10,9 +10,9 @@ from ome_zarr_converters_tools import (
 from pydantic import validate_call
 
 from fractal_uzh_converters.common import parse_acquisitions
-from fractal_uzh_converters.plain_tiff.utils import (
-    HcsTiffAcquisitionModel,
-    parse_hcs_tiff_metadata,
+from fractal_uzh_converters.custom_tiff.utils import (
+    SingleTiffAcquisitionModel,
+    parse_single_tiff_metadata,
 )
 
 logger = logging.getLogger(__name__)
@@ -21,20 +21,20 @@ default_converter_options = ConverterOptions()
 
 
 @validate_call
-def convert_hcs_tiff_init_task(
+def convert_single_tiff_init_task(
     *,
     # Fractal parameters
     zarr_dir: str,
     # Task parameters
-    acquisitions: list[HcsTiffAcquisitionModel],
+    acquisitions: list[SingleTiffAcquisitionModel],
     converter_options: ConverterOptions = default_converter_options,
     overwrite: OverwriteMode = OverwriteMode.NO_OVERWRITE,
 ) -> dict:
-    """Initialize the task to convert a plain HCS TIFF dataset to OME-Zarr.
+    """Initialize the task to convert custom single-image TIFF datasets to OME-Zarr.
 
     Args:
         zarr_dir (str): Directory to store the Zarr files.
-        acquisitions (list[HcsTiffAcquisitionModel]): List of raw acquisitions to
+        acquisitions (list[SingleTiffAcquisitionModel]): List of raw acquisitions to
             convert to OME-Zarr.
         converter_options (ConverterOptions): Advanced converter options.
         overwrite (OverwriteMode): Overwrite mode for existing data.
@@ -44,7 +44,7 @@ def convert_hcs_tiff_init_task(
             Default is "No Overwrite".
     """
     tiled_images = parse_acquisitions(
-        parse_function=parse_hcs_tiff_metadata,
+        parse_function=parse_single_tiff_metadata,
         acquisitions=acquisitions,
         converter_options=converter_options,
     )
@@ -53,7 +53,7 @@ def convert_hcs_tiff_init_task(
         tiled_images=tiled_images,
         zarr_dir=zarr_dir,
         converter_options=converter_options,
-        collection_type="ImageInPlate",
+        collection_type="SingleImage",
         overwrite_mode=overwrite,
         ngff_version=converter_options.omezarr_options.ngff_version,
     )
@@ -66,4 +66,6 @@ def convert_hcs_tiff_init_task(
 if __name__ == "__main__":
     from fractal_task_tools.task_wrapper import run_fractal_task
 
-    run_fractal_task(task_function=convert_hcs_tiff_init_task, logger_name=logger.name)
+    run_fractal_task(
+        task_function=convert_single_tiff_init_task, logger_name=logger.name
+    )

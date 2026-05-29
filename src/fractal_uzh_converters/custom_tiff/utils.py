@@ -1,4 +1,4 @@
-"""Utility functions for Plain TIFF data."""
+"""Utility functions for Custom TIFF data."""
 
 import logging
 from pathlib import Path
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 class HcsTiffAcquisitionModel(BaseAcquisitionModel):
-    """Acquisition model for plain HCS TIFF datasets.
+    """Acquisition model for custom HCS TIFF datasets.
 
     The acquisition directory (``path``) must contain a ``tiles.csv`` file
     with columns: ``file_path``, ``row``, ``column``, and optionally
@@ -41,7 +41,7 @@ class HcsTiffAcquisitionModel(BaseAcquisitionModel):
 
 
 class SingleTiffAcquisitionModel(BaseAcquisitionModel):
-    """Acquisition model for plain single-image TIFF datasets.
+    """Acquisition model for custom single-image TIFF datasets.
 
     The acquisition directory (``path``) must contain a ``tiles.csv`` file
     with columns: ``file_path``, ``fov_name`` (used as the output zarr name),
@@ -116,7 +116,7 @@ def parse_hcs_tiff_metadata(
     acquisition_model: HcsTiffAcquisitionModel,
     converter_options: ConverterOptions,
 ) -> list[TiledImage]:
-    """Parse plain HCS TIFF metadata and return a list of TiledImages."""
+    """Parse custom HCS TIFF metadata and return a list of TiledImages."""
     acq_path = acquisition_model.path
     tiles_table = _load_tiles_table(acq_path)
     acquisition_details = _load_acquisition_details(acq_path)
@@ -145,7 +145,7 @@ def parse_single_tiff_metadata(
     acquisition_model: SingleTiffAcquisitionModel,
     converter_options: ConverterOptions,
 ) -> list[TiledImage]:
-    """Parse plain single-image TIFF metadata and return a list of TiledImages."""
+    """Parse custom single-image TIFF metadata and return a list of TiledImages."""
     acq_path = acquisition_model.path
     tiles_table = _load_tiles_table(acq_path)
     acquisition_details = _load_acquisition_details(acq_path)

@@ -1,11 +1,11 @@
-# Plain TIFF
+# Custom TIFF
 
-The Plain TIFF converters handle generic TIFF image files without any proprietary microscope metadata. Instead of reading a vendor-specific format, these converters rely on a user-supplied `tiles.csv` file that describes the location and dimensions of each tile. An optional `acquisition_details.toml` provides global metadata such as pixel size and channel names.
+The Custom TIFF converters handle generic TIFF image files without any proprietary microscope metadata. Instead of reading a vendor-specific format, these converters rely on a user-supplied `tiles.csv` file that describes the location and dimensions of each tile. An optional `acquisition_details.toml` provides global metadata such as pixel size and channel names.
 
 Two variants are available:
 
-- **HCS (plate)** — organises images into an OME-Zarr HCS plate with well structure. Use task `Convert Plain TIFF HCS Plate to OME-Zarr`.
-- **Single Image** — produces flat OME-Zarr images with no well structure. Use task `Convert Plain TIFF Images to OME-Zarr`.
+- **HCS (plate)** — organises images into an OME-Zarr HCS plate with well structure. Use task `Convert Custom TIFF HCS Plate to OME-Zarr`.
+- **Single Image** — produces flat OME-Zarr images with no well structure. Use task `Convert Custom TIFF Images to OME-Zarr`.
 
 ## Expected Data Structure
 
