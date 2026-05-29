@@ -16,6 +16,19 @@ Two variants are available:
     2. Columns in `tiles.csv` and values in `acquisition_details.toml`
     3. `Advanced` acquisition options set by the user
 
+!!! warning "TIFF axis requirements"
+    The converter only supports TIFF files whose axes are a canonical
+    subsequence of `t, c, z, y, x` in that order. Files with non-canonical or
+    unrecognized axis labels are **not supported** and will raise a `ValueError`
+    at startup.
+
+    - **OME-TIFF** with standard `DimensionOrder` (e.g. `XYZCT`): tifffile
+      normalizes to `TCZYX` — fully supported.
+    - **ImageJ TIFF** with explicit channel metadata: supported.
+    - **Plain TIFF** (no axis metadata): tifffile may assign arbitrary labels
+      (`I`, `Q`, …). Such files are not supported; convert them to OME-TIFF
+      first.
+
 ## HCS Mode
 
 ### Expected Data Structure
@@ -50,7 +63,7 @@ The only truly required columns are `file_path`, `row`, and `column`. All other 
 | `start_c` | No | `0` | Channel index of the tile. |
 | `start_t` | No | `0` | Timepoint index of the tile. |
 | `length_z` | No | From TIFF dimensions, else `1` | Extent in Z (number of Z planes covered). |
-| `length_c` | No | `1` | Extent in C (number of channels covered). |
+| `length_c` | No | From TIFF dimensions for OME-TIFF/ImageJ TIFF, else `1` | Extent in C (number of channels covered). |
 | `length_t` | No | From TIFF dimensions, else `1` | Extent in T (number of timepoints covered). |
 | *any other column* | No | — | Treated as a well attribute and stored in the condition table (e.g., `drug`, `concentration`). |
 

@@ -111,12 +111,39 @@ def _convert_time_unit(value: float, unit: str) -> float | None:
     return value * factor
 
 
+_CANONICAL_AXES_ORDER = ["t", "c", "z", "y", "x"]
+
+
+def _validate_series_axes(axes: str, path: Path) -> None:
+    known = set(_CANONICAL_AXES_ORDER)
+    unknown = [a for a in axes if a not in known]
+    if unknown:
+        raise ValueError(
+            f"{path}: unrecognized TIFF axis labels {unknown!r}. "
+            "The converter only supports axes that are a canonical subsequence "
+            f"of {_CANONICAL_AXES_ORDER}."
+        )
+    canonical_idx = {ax: i for i, ax in enumerate(_CANONICAL_AXES_ORDER)}
+    indices = [canonical_idx[a] for a in axes]
+    if indices != sorted(indices):
+        raise ValueError(
+            f"{path}: TIFF axes '{axes}' are not in canonical order. "
+            "The converter only supports axes in canonical order "
+            f"{_CANONICAL_AXES_ORDER}. "
+            "For OME-TIFF, ensure DimensionOrder follows the OME standard "
+            "(e.g. XYZCT)."
+        )
+
+
 def _parse_tiff_metadata(path: Path) -> dict:
-    """Parse metadata from a TIFF file. Never raises.
+    """Parse metadata from a TIFF file.
 
     Returns a partial dict with any subset of:
       pixelsize, z_spacing, t_spacing (floats, µm or s),
-      length_x, length_y, length_z, length_t (ints, pixels).
+      length_x, length_y, length_z, length_t, length_c (ints, pixels).
+
+    Raises ValueError if the TIFF series axes are not a canonical subsequence
+    of t, c, z, y, x.  All other I/O errors are logged as warnings.
     """
     result: dict = {}
     try:
@@ -130,19 +157,25 @@ def _parse_tiff_metadata(path: Path) -> dict:
             except Exception as exc:
                 logger.warning(f"Could not read page shape from {path}: {exc}")
 
-            # Shape from series — may provide z/t dims and refine x/y
+            # Shape from series — may provide z/t/c dims and refine x/y
             try:
                 if tif.series:
                     series = tif.series[0]
-                    for ax, size in zip(series.axes.lower(), series.shape, strict=True):
+                    axes = series.axes.lower()
+                    _validate_series_axes(axes, path)
+                    for ax, size in zip(axes, series.shape, strict=True):
                         if ax == "z":
                             result["length_z"] = int(size)
                         elif ax == "t":
                             result["length_t"] = int(size)
+                        elif ax == "c":
+                            result["length_c"] = int(size)
                         elif ax == "y":
                             result["length_y"] = int(size)
                         elif ax == "x":
                             result["length_x"] = int(size)
+            except ValueError:
+                raise
             except Exception as exc:
                 logger.warning(f"Could not read series shape from {path}: {exc}")
 
@@ -202,6 +235,8 @@ def _parse_tiff_metadata(path: Path) -> dict:
                         f"Could not parse ImageJ metadata from {path}: {exc}"
                     )
 
+    except ValueError:
+        raise
     except Exception as exc:
         logger.warning(f"Could not open {path} for metadata parsing: {exc}")
 
@@ -307,6 +342,7 @@ def _apply_table_defaults(
     _add_if_missing("length_y", tiff_meta.get("length_y"))
     _add_if_missing("length_z", tiff_meta.get("length_z"))
     _add_if_missing("length_t", tiff_meta.get("length_t"))
+    _add_if_missing("length_c", tiff_meta.get("length_c"))
 
     return df
 
@@ -376,6 +412,11 @@ def parse_single_tiff_metadata(
                 "start_y": [0.0],
                 "length_x": [tiff_meta["length_x"]],
                 "length_y": [tiff_meta["length_y"]],
+                **(
+                    {"length_c": [tiff_meta["length_c"]]}
+                    if "length_c" in tiff_meta
+                    else {}
+                ),
             }
         )
         acquisition_details = _load_acquisition_details(
