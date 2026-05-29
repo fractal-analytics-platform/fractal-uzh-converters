@@ -80,7 +80,7 @@ def test_single_tiff_file_path(tmp_path: Path, converter_options):
 
     output = convert_single_tiff_init_task(
         zarr_dir=str(zarr_dir),
-        acquisitions=[{"path": str(tif_file)}],
+        acquisitions=[{"path": str(tif_file)}], # ty: ignore
         converter_options=converter_options,
     )
     assert len(output["parallelization_list"]) == 1
