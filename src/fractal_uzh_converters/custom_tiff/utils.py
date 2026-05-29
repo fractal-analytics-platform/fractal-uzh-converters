@@ -19,7 +19,10 @@ from ome_zarr_converters_tools.core import (
     single_images_from_dataframe,
 )
 
-from fractal_uzh_converters.common import HCSBaseAcquisitionModel
+from fractal_uzh_converters.common import (
+    HCSBaseAcquisitionModel,
+    SingleBaseAcquisitionModel,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -42,13 +45,18 @@ class HcsTiffAcquisitionModel(HCSBaseAcquisitionModel):
     """
 
 
-class SingleTiffAcquisitionModel(HCSBaseAcquisitionModel):
+class SingleTiffAcquisitionModel(SingleBaseAcquisitionModel):
     """Acquisition model for custom single-image TIFF datasets.
 
-    The acquisition directory (``path``) must contain a ``tiles.csv`` file
-    with columns: ``file_path``, ``fov_name`` (used as the output zarr name),
-    and optionally ``start_*``, ``length_*``.  An optional
-    ``acquisition_details.toml`` provides global metadata.
+    The acquisition ``path`` may be either a single ``.tif`` file or a
+    directory containing a ``tiles.csv`` file with columns: ``file_path``,
+    ``fov_name``, and optionally ``start_*``, ``length_*``.  An optional
+    ``acquisition_details.toml`` in the same directory provides global
+    metadata (pixel size, channels, axes).
+
+    The ``image_name`` field (inherited from ``SingleBaseAcquisitionModel``)
+    controls the output OME-Zarr image name; it defaults to the directory or
+    file name when not set.
     """
 
 
@@ -387,7 +395,7 @@ def parse_single_tiff_metadata(
     )
 
     tiles_table = tiles_table.copy()
-    tiles_table["image_path"] = acquisition_model.normalized_plate_name
+    tiles_table["image_path"] = acquisition_model.normalized_image_name
 
     tiles = single_images_from_dataframe(
         tiles_table=tiles_table,

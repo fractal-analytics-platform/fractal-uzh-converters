@@ -18,12 +18,11 @@ STANDARD_ROWS_NAMES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 
 class BaseAcquisitionModel(BaseModel):
-    """Base model for acquisitions."""
+    """Shared base model for HCS and single-image acquisitions."""
 
     path: str
     """
-    Path to the acquisition directory. Should contain MeasurementData.mlf and
-    MeasurementDetail.mrf files.
+    Path to the acquisition directory or file.
     """
     advanced: AcquisitionOptions = Field(default_factory=AcquisitionOptions)
     """
@@ -44,13 +43,12 @@ class BaseAcquisitionModel(BaseModel):
 
 
 class HCSBaseAcquisitionModel(BaseAcquisitionModel):
-    """Base model for HCS acquisitions."""
+    """Base model for HCS (plate) acquisitions.
 
-    path: str
+    Extends ``BaseAcquisitionModel`` with plate-specific fields: ``plate_name``
+    and ``acquisition_id``.
     """
-    Path to the acquisition directory. Should contain MeasurementData.mlf and
-    MeasurementDetail.mrf files.
-    """
+
     plate_name: str | None = None
     """
     Optional custom name for the plate. If not provided, the name will be the
@@ -59,10 +57,6 @@ class HCSBaseAcquisitionModel(BaseAcquisitionModel):
     acquisition_id: int = Field(default=0, ge=0)
     """
     Acquisition ID, used to identify the acquisition in case of multiple acquisitions.
-    """
-    advanced: AcquisitionOptions = Field(default_factory=AcquisitionOptions)
-    """
-    Advanced acquisition options.
     """
 
     @property
@@ -75,21 +69,16 @@ class HCSBaseAcquisitionModel(BaseAcquisitionModel):
 
 
 class SingleBaseAcquisitionModel(BaseAcquisitionModel):
-    """Base model for Single acquisitions."""
+    """Base model for single-image acquisitions.
 
-    path: str
+    Extends ``BaseAcquisitionModel`` with ``image_name`` for controlling the
+    output OME-Zarr image name.
     """
-    Path to the acquisition directory. Should contain MeasurementData.mlf and
-    MeasurementDetail.mrf files.
-    """
+
     image_name: str | None = None
     """
-    Optional custom name for the image. If not provided, the name will be the
-    acquisition directory or file name.
-    """
-    advanced: AcquisitionOptions = Field(default_factory=AcquisitionOptions)
-    """
-    Advanced acquisition options.
+    Optional custom name for the output OME-Zarr image. If not provided, the
+    name will be derived from the acquisition directory or file name.
     """
 
     @property
@@ -102,12 +91,16 @@ class SingleBaseAcquisitionModel(BaseAcquisitionModel):
 
 
 AcquisitionModelType = TypeVar(
-    "AcquisitionModelType", bound=HCSBaseAcquisitionModel, contravariant=True
+    "AcquisitionModelType", bound=BaseAcquisitionModel, contravariant=True
 )
 
 
 class ParserProtocol(Protocol[AcquisitionModelType]):
-    """Protocol for acquisition metadata parser."""
+    """Protocol for acquisition metadata parser.
+
+    Accepts any ``BaseAcquisitionModel``-derived type, including both HCS and
+    single-image acquisition models.
+    """
 
     def __call__(
         self,

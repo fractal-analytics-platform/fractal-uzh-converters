@@ -679,6 +679,24 @@
                 "title": "Path",
                 "type": "string"
               },
+              "advanced": {
+                "$ref": "#/$defs/AcquisitionOptions",
+                "default": {
+                  "channels": null,
+                  "pixel_info": null,
+                  "condition_table_path": null,
+                  "axes": null,
+                  "data_type": "autodetect",
+                  "stage_orientation": {
+                    "flip_x": false,
+                    "flip_y": false,
+                    "swap_xy": false
+                  },
+                  "filters": []
+                },
+                "description": "Advanced acquisition options.",
+                "title": "Advanced"
+              },
               "plate_name": {
                 "anyOf": [
                   {
@@ -698,24 +716,6 @@
                 "minimum": 0,
                 "title": "Acquisition Id",
                 "type": "integer"
-              },
-              "advanced": {
-                "$ref": "#/$defs/AcquisitionOptions",
-                "default": {
-                  "channels": null,
-                  "pixel_info": null,
-                  "condition_table_path": null,
-                  "axes": null,
-                  "data_type": "autodetect",
-                  "stage_orientation": {
-                    "flip_x": false,
-                    "flip_y": false,
-                    "swap_xy": false
-                  },
-                  "filters": []
-                },
-                "description": "Advanced acquisition options.",
-                "title": "Advanced"
               },
               "layout": {
                 "default": "96-well",
@@ -1737,9 +1737,27 @@
             "description": "Acquisition details for the CellVoyager microscope data.",
             "properties": {
               "path": {
-                "description": "Path to the acquisition directory. Should contain MeasurementData.mlf and\nMeasurementDetail.mrf files.",
+                "description": "Path to the acquisition directory or file.",
                 "title": "Path",
                 "type": "string"
+              },
+              "advanced": {
+                "$ref": "#/$defs/AcquisitionOptions",
+                "default": {
+                  "channels": null,
+                  "pixel_info": null,
+                  "condition_table_path": null,
+                  "axes": null,
+                  "data_type": "autodetect",
+                  "stage_orientation": {
+                    "flip_x": false,
+                    "flip_y": false,
+                    "swap_xy": false
+                  },
+                  "filters": []
+                },
+                "description": "Advanced acquisition options.",
+                "title": "Advanced"
               },
               "plate_name": {
                 "anyOf": [
@@ -1760,24 +1778,6 @@
                 "minimum": 0,
                 "title": "Acquisition Id",
                 "type": "integer"
-              },
-              "advanced": {
-                "$ref": "#/$defs/AcquisitionOptions",
-                "default": {
-                  "channels": null,
-                  "pixel_info": null,
-                  "condition_table_path": null,
-                  "axes": null,
-                  "data_type": "autodetect",
-                  "stage_orientation": {
-                    "flip_x": false,
-                    "flip_y": false,
-                    "swap_xy": false
-                  },
-                  "filters": []
-                },
-                "description": "Advanced acquisition options.",
-                "title": "Advanced"
               },
               "image_extension": {
                 "default": ".tif",
@@ -3305,9 +3305,27 @@
             "description": "Acquisition details for the CQ3K microscope data.",
             "properties": {
               "path": {
-                "description": "Path to the acquisition directory. Should contain MeasurementData.mlf and\nMeasurementDetail.mrf files.",
+                "description": "Path to the acquisition directory or file.",
                 "title": "Path",
                 "type": "string"
+              },
+              "advanced": {
+                "$ref": "#/$defs/AcquisitionOptions",
+                "default": {
+                  "channels": null,
+                  "pixel_info": null,
+                  "condition_table_path": null,
+                  "axes": null,
+                  "data_type": "autodetect",
+                  "stage_orientation": {
+                    "flip_x": false,
+                    "flip_y": false,
+                    "swap_xy": false
+                  },
+                  "filters": []
+                },
+                "description": "Advanced acquisition options.",
+                "title": "Advanced"
               },
               "plate_name": {
                 "anyOf": [
@@ -3328,24 +3346,6 @@
                 "minimum": 0,
                 "title": "Acquisition Id",
                 "type": "integer"
-              },
-              "advanced": {
-                "$ref": "#/$defs/AcquisitionOptions",
-                "default": {
-                  "channels": null,
-                  "pixel_info": null,
-                  "condition_table_path": null,
-                  "axes": null,
-                  "data_type": "autodetect",
-                  "stage_orientation": {
-                    "flip_x": false,
-                    "flip_y": false,
-                    "swap_xy": false
-                  },
-                  "filters": []
-                },
-                "description": "Advanced acquisition options.",
-                "title": "Advanced"
               }
             },
             "required": [
@@ -5208,6 +5208,24 @@
                 "title": "Path",
                 "type": "string"
               },
+              "advanced": {
+                "$ref": "#/$defs/AcquisitionOptions",
+                "default": {
+                  "channels": null,
+                  "pixel_info": null,
+                  "condition_table_path": null,
+                  "axes": null,
+                  "data_type": "autodetect",
+                  "stage_orientation": {
+                    "flip_x": false,
+                    "flip_y": false,
+                    "swap_xy": false
+                  },
+                  "filters": []
+                },
+                "description": "Advanced acquisition options.",
+                "title": "Advanced"
+              },
               "plate_name": {
                 "anyOf": [
                   {
@@ -5227,24 +5245,6 @@
                 "minimum": 0,
                 "title": "Acquisition Id",
                 "type": "integer"
-              },
-              "advanced": {
-                "$ref": "#/$defs/AcquisitionOptions",
-                "default": {
-                  "channels": null,
-                  "pixel_info": null,
-                  "condition_table_path": null,
-                  "axes": null,
-                  "data_type": "autodetect",
-                  "stage_orientation": {
-                    "flip_x": false,
-                    "flip_y": false,
-                    "swap_xy": false
-                  },
-                  "filters": []
-                },
-                "description": "Advanced acquisition options.",
-                "title": "Advanced"
               }
             },
             "required": [
@@ -6703,29 +6703,9 @@
             "description": "Acquisition details for the MD ImageXpress HCS.ai microscope data.",
             "properties": {
               "path": {
-                "description": "Path to the acquisition directory. Should contain MeasurementData.mlf and\nMeasurementDetail.mrf files.",
+                "description": "Path to the acquisition directory or file.",
                 "title": "Path",
                 "type": "string"
-              },
-              "plate_name": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "description": "Optional custom name for the plate. If not provided, the name will be the\nacquisition directory name.",
-                "title": "Plate Name"
-              },
-              "acquisition_id": {
-                "default": 0,
-                "description": "Acquisition ID, used to identify the acquisition in case of multiple acquisitions.",
-                "minimum": 0,
-                "title": "Acquisition Id",
-                "type": "integer"
               },
               "advanced": {
                 "$ref": "#/$defs/MDAcquisitionOptions",
@@ -6746,6 +6726,26 @@
                 },
                 "description": "Advanced acquisition options.",
                 "title": "Advanced"
+              },
+              "plate_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Optional custom name for the plate. If not provided, the name will be the\nacquisition directory name.",
+                "title": "Plate Name"
+              },
+              "acquisition_id": {
+                "default": 0,
+                "description": "Acquisition ID, used to identify the acquisition in case of multiple acquisitions.",
+                "minimum": 0,
+                "title": "Acquisition Id",
+                "type": "integer"
               }
             },
             "required": [
@@ -8247,9 +8247,27 @@
             "description": "Acquisition model for custom HCS TIFF datasets.",
             "properties": {
               "path": {
-                "description": "Path to the acquisition directory. Should contain MeasurementData.mlf and\nMeasurementDetail.mrf files.",
+                "description": "Path to the acquisition directory or file.",
                 "title": "Path",
                 "type": "string"
+              },
+              "advanced": {
+                "$ref": "#/$defs/AcquisitionOptions",
+                "default": {
+                  "channels": null,
+                  "pixel_info": null,
+                  "condition_table_path": null,
+                  "axes": null,
+                  "data_type": "autodetect",
+                  "stage_orientation": {
+                    "flip_x": false,
+                    "flip_y": false,
+                    "swap_xy": false
+                  },
+                  "filters": []
+                },
+                "description": "Advanced acquisition options.",
+                "title": "Advanced"
               },
               "plate_name": {
                 "anyOf": [
@@ -8270,24 +8288,6 @@
                 "minimum": 0,
                 "title": "Acquisition Id",
                 "type": "integer"
-              },
-              "advanced": {
-                "$ref": "#/$defs/AcquisitionOptions",
-                "default": {
-                  "channels": null,
-                  "pixel_info": null,
-                  "condition_table_path": null,
-                  "axes": null,
-                  "data_type": "autodetect",
-                  "stage_orientation": {
-                    "flip_x": false,
-                    "flip_y": false,
-                    "swap_xy": false
-                  },
-                  "filters": []
-                },
-                "description": "Advanced acquisition options.",
-                "title": "Advanced"
               }
             },
             "required": [
@@ -10055,29 +10055,9 @@
             "description": "Acquisition model for custom single-image TIFF datasets.",
             "properties": {
               "path": {
-                "description": "Path to the acquisition directory. Should contain MeasurementData.mlf and\nMeasurementDetail.mrf files.",
+                "description": "Path to the acquisition directory or file.",
                 "title": "Path",
                 "type": "string"
-              },
-              "plate_name": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "description": "Optional custom name for the plate. If not provided, the name will be the\nacquisition directory name.",
-                "title": "Plate Name"
-              },
-              "acquisition_id": {
-                "default": 0,
-                "description": "Acquisition ID, used to identify the acquisition in case of multiple acquisitions.",
-                "minimum": 0,
-                "title": "Acquisition Id",
-                "type": "integer"
               },
               "advanced": {
                 "$ref": "#/$defs/AcquisitionOptions",
@@ -10096,6 +10076,19 @@
                 },
                 "description": "Advanced acquisition options.",
                 "title": "Advanced"
+              },
+              "image_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Optional custom name for the output OME-Zarr image. If not provided, the\nname will be derived from the acquisition directory or file name.",
+                "title": "Image Name"
               }
             },
             "required": [

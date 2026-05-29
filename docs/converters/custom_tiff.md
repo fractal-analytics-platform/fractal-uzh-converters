@@ -113,12 +113,10 @@ wavelength_id = "488"
 
 ### Task Parameters
 
-Both tasks use the standard base acquisition parameters. There are no converter-specific extra fields.
-
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `Path` | `str` | *required* | Path to the acquisition directory containing `tiles.csv`. |
-| `Plate Name` | `str` or `null` | `null` | Custom output name. Defaults to the directory name. |
+| `Plate Name` | `str` or `null` | `null` | Custom output plate name. Defaults to the directory name. |
 | `Acquisition Id` | `int` | `0` | Acquisition identifier for combining multiple acquisitions into one plate. |
 | `Advanced` | `AcquisitionOptions` | `{}` | Advanced options (condition table, channel/pixel-size overrides). |
 
@@ -191,11 +189,8 @@ Same format and fields as described in the HCS Mode section above.
 
 ### Task Parameters
 
-Both tasks use the standard base acquisition parameters. There are no converter-specific extra fields.
-
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `Path` | `str` | *required* | Path to the acquisition directory containing `tiles.csv`, or directly to a TIFF file. |
-| `Plate Name` | `str` or `null` | `null` | Custom output name. Defaults to the directory or file name. |
-| `Acquisition Id` | `int` | `0` | Acquisition identifier for combining multiple acquisitions into one plate. |
-| `Advanced` | `AcquisitionOptions` | `{}` | Advanced options (condition table, channel/pixel-size overrides). |
+| `Image Name` | `str` or `null` | `null` | Custom output OME-Zarr image name. Defaults to the directory or file name. |
+| `Advanced` | `AcquisitionOptions` | `{}` | Advanced options (channel/pixel-size overrides). |
