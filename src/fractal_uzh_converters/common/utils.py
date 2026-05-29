@@ -25,6 +25,32 @@ class BaseAcquisitionModel(BaseModel):
     Path to the acquisition directory. Should contain MeasurementData.mlf and
     MeasurementDetail.mrf files.
     """
+    advanced: AcquisitionOptions = Field(default_factory=AcquisitionOptions)
+    """
+    Advanced acquisition options.
+    """
+
+    def get_condition_table(self) -> polars.DataFrame | None:
+        """Get the path to the condition table if it exists."""
+        if self.advanced.condition_table_path is not None:
+            try:
+                return polars.read_csv(self.advanced.condition_table_path)
+            except Exception as e:
+                raise ValueError(
+                    "Failed to read condition table at "
+                    f"{self.advanced.condition_table_path}: {e}"
+                ) from e
+        return None
+
+
+class HCSBaseAcquisitionModel(BaseAcquisitionModel):
+    """Base model for HCS acquisitions."""
+
+    path: str
+    """
+    Path to the acquisition directory. Should contain MeasurementData.mlf and
+    MeasurementDetail.mrf files.
+    """
     plate_name: str | None = None
     """
     Optional custom name for the plate. If not provided, the name will be the
@@ -47,21 +73,36 @@ class BaseAcquisitionModel(BaseModel):
         name = self.path.rstrip("/").split("/")[-1]
         return name
 
-    def get_condition_table(self) -> polars.DataFrame | None:
-        """Get the path to the condition table if it exists."""
-        if self.advanced.condition_table_path is not None:
-            try:
-                return polars.read_csv(self.advanced.condition_table_path)
-            except Exception as e:
-                raise ValueError(
-                    "Failed to read condition table at "
-                    f"{self.advanced.condition_table_path}: {e}"
-                ) from e
-        return None
+
+class SingleBaseAcquisitionModel(BaseAcquisitionModel):
+    """Base model for Single acquisitions."""
+
+    path: str
+    """
+    Path to the acquisition directory. Should contain MeasurementData.mlf and
+    MeasurementDetail.mrf files.
+    """
+    image_name: str | None = None
+    """
+    Optional custom name for the image. If not provided, the name will be the
+    acquisition directory or file name.
+    """
+    advanced: AcquisitionOptions = Field(default_factory=AcquisitionOptions)
+    """
+    Advanced acquisition options.
+    """
+
+    @property
+    def normalized_image_name(self) -> str:
+        """Get the normalized image name."""
+        if self.image_name is not None:
+            return self.image_name
+        name = self.path.rstrip("/").split("/")[-1]
+        return name
 
 
 AcquisitionModelType = TypeVar(
-    "AcquisitionModelType", bound=BaseAcquisitionModel, contravariant=True
+    "AcquisitionModelType", bound=HCSBaseAcquisitionModel, contravariant=True
 )
 
 

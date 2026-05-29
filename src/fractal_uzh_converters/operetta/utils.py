@@ -24,7 +24,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from fractal_uzh_converters.common import (
     STANDARD_ROWS_NAMES,
-    BaseAcquisitionModel,
+    HCSBaseAcquisitionModel,
     get_attributes_from_condition_table,
 )
 
@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 ######################################################################
 
 
-class OperettaAcquisitionModel(BaseAcquisitionModel):
+class OperettaAcquisitionModel(HCSBaseAcquisitionModel):
     """Acquisition details for the Operetta microscope data."""
 
     path: str

@@ -8,7 +8,7 @@ from fractal_uzh_converters.common.single_image_compute_task import (
 )
 from fractal_uzh_converters.common.utils import (
     STANDARD_ROWS_NAMES,
-    BaseAcquisitionModel,
+    HCSBaseAcquisitionModel,
     get_attributes_from_condition_table,
     parse_acquisitions,
 )

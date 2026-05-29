@@ -25,7 +25,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from fractal_uzh_converters.common import (
     STANDARD_ROWS_NAMES,
-    BaseAcquisitionModel,
+    HCSBaseAcquisitionModel,
     get_attributes_from_condition_table,
 )
 from fractal_uzh_converters.imagexpress_hcs.color_utils import (
@@ -55,7 +55,7 @@ class MDAcquisitionOptions(AcquisitionOptions):
     """
 
 
-class MDImageXpressHCSaiAcquisitionModel(BaseAcquisitionModel):
+class MDImageXpressHCSaiAcquisitionModel(HCSBaseAcquisitionModel):
     """Acquisition details for the MD ImageXpress HCS.ai microscope data."""
 
     advanced: MDAcquisitionOptions = Field(default_factory=MDAcquisitionOptions)

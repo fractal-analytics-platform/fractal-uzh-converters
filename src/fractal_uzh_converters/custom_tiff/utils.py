@@ -19,7 +19,7 @@ from ome_zarr_converters_tools.core import (
     single_images_from_dataframe,
 )
 
-from fractal_uzh_converters.common import BaseAcquisitionModel
+from fractal_uzh_converters.common import HCSBaseAcquisitionModel
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 ######################################################################
 
 
-class HcsTiffAcquisitionModel(BaseAcquisitionModel):
+class HcsTiffAcquisitionModel(HCSBaseAcquisitionModel):
     """Acquisition model for custom HCS TIFF datasets.
 
     The acquisition directory (``path``) must contain a ``tiles.csv`` file
@@ -42,7 +42,7 @@ class HcsTiffAcquisitionModel(BaseAcquisitionModel):
     """
 
 
-class SingleTiffAcquisitionModel(BaseAcquisitionModel):
+class SingleTiffAcquisitionModel(HCSBaseAcquisitionModel):
     """Acquisition model for custom single-image TIFF datasets.
 
     The acquisition directory (``path``) must contain a ``tiles.csv`` file
