@@ -157,9 +157,7 @@ class TestExtractWellPositionId:
         assert pos == 1
 
     def test_embedded_in_filename(self):
-        (row, col), pos = _extract_well_position_id(
-            "scan_W013P003_ch1.tif", "96-well"
-        )
+        (row, col), pos = _extract_well_position_id("scan_W013P003_ch1.tif", "96-well")
         assert row == "B"
         assert col == 1
         assert pos == 3

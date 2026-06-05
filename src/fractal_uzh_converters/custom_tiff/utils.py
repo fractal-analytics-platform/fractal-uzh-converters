@@ -1,12 +1,12 @@
 """Utility functions for Custom TIFF data."""
 
 import logging
+import tomllib
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import pandas as pd
 import tifffile
-import tomllib
 from ome_zarr_converters_tools import (
     AcquisitionDetails,
     ChannelInfo,
