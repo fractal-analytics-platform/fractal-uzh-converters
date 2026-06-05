@@ -178,9 +178,11 @@ def get_attributes_from_condition_table(
     filtered = condition_table.filter(
         (polars.col(row_col_name) == row) & (polars.col(column_col_name) == column)
     )
+    skip_keys = {row_col_name, column_col_name}
     if "acquisition" in columns_lower:
         acquisition_col_name = columns[columns_lower.index("acquisition")]
         filtered = filtered.filter(polars.col(acquisition_col_name) == acquisition)
+        skip_keys.add(acquisition_col_name)
     if filtered.is_empty():
         logger.warning(
             f"No matching entry found in condition table "
@@ -190,7 +192,7 @@ def get_attributes_from_condition_table(
     filtered_dict = filtered.to_dict(as_series=False)
     attributes = {}
     for key, value in filtered_dict.items():
-        if key in ["row", "column", "acquisition"]:
+        if key in skip_keys:
             continue
         if all(isinstance(v, str | type(None)) for v in value):
             formatted_value = [v if v is None else v.strip() for v in value]
