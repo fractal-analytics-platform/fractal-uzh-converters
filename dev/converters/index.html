@@ -428,6 +428,28 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#hcs-plate-acquisitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HCS (plate) acquisitions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#single-image-acquisitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Single-image acquisitions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#acquisition-options-advanced" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -703,6 +725,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="custom_tiff/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom TIFF
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -812,6 +862,28 @@
   
     <nav class="md-nav" aria-label="Acquisition Parameters">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hcs-plate-acquisitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HCS (plate) acquisitions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#single-image-acquisitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Single-image acquisitions
+      
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#acquisition-options-advanced" class="md-nav__link">
@@ -1006,8 +1078,28 @@
 <td><code>Path</code></td>
 <td><code>str</code></td>
 <td><em>required</em></td>
-<td>Path to the raw acquisition directory.</td>
+<td>Path to the raw acquisition directory or file.</td>
 </tr>
+<tr>
+<td><code>Advanced</code></td>
+<td><code>AcquisitionOptions</code></td>
+<td><code>{}</code></td>
+<td>Advanced options including <code>Condition Table Path</code> and acquisition detail overrides.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="hcs-plate-acquisitions">HCS (plate) acquisitions</h3>
+<p>HCS converters add the following plate-specific fields:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
 <tr>
 <td><code>Plate Name</code></td>
 <td><code>str</code> or <code>null</code></td>
@@ -1020,16 +1112,30 @@
 <td><code>0</code></td>
 <td>Identifies the acquisition when combining multiple acquisitions into one plate.</td>
 </tr>
+</tbody>
+</table>
+<p>Some HCS converters add further fields (e.g., <code>Layout</code> for ScanR). See the individual converter pages for details.</p>
+<p>If multiple acquisitions need to be combined into a single plate, simply provide multiple acquisition objects with the same <code>Plate Name</code>, but different <code>Acquisition Id</code> values (e.g. in case of multiplexed experiments).</p>
+<h3 id="single-image-acquisitions">Single-image acquisitions</h3>
+<p>Single-image converters (e.g., Custom TIFF Single Image) add:</p>
+<table>
+<thead>
 <tr>
-<td><code>Advanced</code></td>
-<td><code>AcquisitionOptions</code></td>
-<td><code>{}</code></td>
-<td>Advanced options including <code>Condition Table Path</code> and acquisition detail overrides.</td>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Image Name</code></td>
+<td><code>str</code> or <code>null</code></td>
+<td><code>null</code></td>
+<td>Custom output OME-Zarr image name. If not set, the directory or file name is used.</td>
 </tr>
 </tbody>
 </table>
-<p>Some converters add extra fields (e.g., <code>Layout</code> for ScanR). See the individual converter pages for details.</p>
-<p>If multiple acquisitions need to be combined into a single plate, simply provide multiple acquisition objects with the same <code>Plate Name</code>, but different <code>Acquisition Id</code> values (e.g. in case of multiplexed experiments).</p>
 <h3 id="acquisition-options-advanced">Acquisition Options (Advanced)</h3>
 <p>The <code>Advanced</code> field on each acquisition allows per-acquisition overrides and filtering. Most users only need <code>Condition Table Path</code> here.</p>
 <table>
@@ -1348,6 +1454,7 @@ This mode can be used to incrementally add acquisitions to a plate without repro
 <li><a href="scanr/">Evident ScanR</a></li>
 <li><a href="cq3k/">Yokogawa CQ3K / CellVoyager</a></li>
 <li><a href="md_imagexpress/">Molecular Devices ImageXpress HCS.ai</a></li>
+<li><a href="custom_tiff/">Custom TIFF (HCS &amp; Single Image)</a></li>
 </ul>
 
 
