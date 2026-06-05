@@ -28,9 +28,6 @@ from fractal_uzh_converters.common import (
     HCSBaseAcquisitionModel,
     get_attributes_from_condition_table,
 )
-from fractal_uzh_converters.imagexpress_hcs.color_utils import (
-    wavelength_to_default_color,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -431,7 +428,6 @@ def _build_acquisition_details(
             ChannelInfo(
                 channel_label=wl.emission_filter.name,
                 wavelength_id=str(int(wl.emission_filter.wavelength)),
-                colors=wavelength_to_default_color(wl.emission_filter.wavelength),
             )
         )
     acq = AcquisitionDetails(
