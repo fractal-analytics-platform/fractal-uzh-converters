@@ -18,14 +18,29 @@ Every acquisition object shares these base fields:
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `Path` | `str` | *required* | Path to the raw acquisition directory. |
-| `Plate Name` | `str` or `null` | `null` | Custom plate name. If not set, the directory name is used. |
-| `Acquisition Id` | `int` | `0` | Identifies the acquisition when combining multiple acquisitions into one plate. |
+| `Path` | `str` | *required* | Path to the raw acquisition directory or file. |
 | `Advanced` | `AcquisitionOptions` | `{}` | Advanced options including `Condition Table Path` and acquisition detail overrides. |
 
-Some converters add extra fields (e.g., `Layout` for ScanR). See the individual converter pages for details.
+### HCS (plate) acquisitions
+
+HCS converters add the following plate-specific fields:
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `Plate Name` | `str` or `null` | `null` | Custom plate name. If not set, the directory name is used. |
+| `Acquisition Id` | `int` | `0` | Identifies the acquisition when combining multiple acquisitions into one plate. |
+
+Some HCS converters add further fields (e.g., `Layout` for ScanR). See the individual converter pages for details.
 
 If multiple acquisitions need to be combined into a single plate, simply provide multiple acquisition objects with the same `Plate Name`, but different `Acquisition Id` values (e.g. in case of multiplexed experiments).
+
+### Single-image acquisitions
+
+Single-image converters (e.g., Custom TIFF Single Image) add:
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `Image Name` | `str` or `null` | `null` | Custom output OME-Zarr image name. If not set, the directory or file name is used. |
 
 ### Acquisition Options (Advanced)
 
@@ -148,3 +163,4 @@ This mode can be used to incrementally add acquisitions to a plate without repro
 - [Evident ScanR](scanr.md)
 - [Yokogawa CQ3K / CellVoyager](cq3k.md)
 - [Molecular Devices ImageXpress HCS.ai](md_imagexpress.md)
+- [Custom TIFF (HCS & Single Image)](custom_tiff.md)

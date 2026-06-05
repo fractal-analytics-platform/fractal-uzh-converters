@@ -1,0 +1,5 @@
+file_path,row,column,fov_name,start_x,start_y,start_z,start_c,start_t,length_x,length_y,length_z,length_c,length_t,drug
+data/fov1_z0.tif,A,1,FOV_1,10.0,10.0,0,0,0,64,64,1,1,1,"DMSO"
+data/fov1_z1.tif,A,1,FOV_1,10.0,10.0,1,0,0,64,64,1,1,1,"DMSO"
+data/fov2_z0.tif,A,1,FOV_2,1000.0,1000.0,0,0,0,64,64,1,1,1,"DMSO"
+data/fov2_z1.tif,A,1,FOV_2,1000.0,1000.0,1,0,0,64,64,1,1,1,"DMSO"

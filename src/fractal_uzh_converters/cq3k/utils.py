@@ -23,7 +23,7 @@ from pydantic.alias_generators import to_pascal
 
 from fractal_uzh_converters.common import (
     STANDARD_ROWS_NAMES,
-    BaseAcquisitionModel,
+    HCSBaseAcquisitionModel,
     get_attributes_from_condition_table,
 )
 
@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 ######################################################################
 
 
-class CQ3KAcquisitionModel(BaseAcquisitionModel):
+class CQ3KAcquisitionModel(HCSBaseAcquisitionModel):
     """Acquisition details for the CQ3K microscope data."""
 
     pass

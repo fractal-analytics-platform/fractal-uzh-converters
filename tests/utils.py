@@ -4,11 +4,14 @@ from pathlib import Path
 
 import numpy as np
 import yaml
-from ngio import OmeZarrContainer, open_ome_zarr_plate
+from ngio import OmeZarrContainer, open_ome_zarr_container, open_ome_zarr_plate
 from ome_zarr_converters_tools import ConverterOptions, OverwriteMode
 from pydantic import BaseModel, Field, model_validator
 
-from fractal_uzh_converters.common import image_in_plate_compute_task
+from fractal_uzh_converters.common import (
+    image_in_plate_compute_task,
+    single_image_compute_task,
+)
 
 DATA_DIR = Path(__file__).parent / "data"
 
@@ -367,4 +370,171 @@ def run_converter_test(
     _post_compute_checks(
         multi_plate_assertions=assertions,
         zarr_dir=zarr_dir,
+    )
+
+
+######################################################################
+#
+# Single-image test utilities
+#
+######################################################################
+
+
+class MultiSingleImageAssertionModel(BaseModel):
+    images: dict[str, ImageAssertionModel]
+
+    @property
+    def expected_parallelization_list_length(self) -> int:
+        return len(self.images)
+
+
+def _load_single_image_snapshot(yaml_path: Path) -> MultiSingleImageAssertionModel:
+    with open(yaml_path) as f:
+        data = yaml.safe_load(f)
+    return MultiSingleImageAssertionModel(**data)
+
+
+def _single_image_after_init_checks(
+    *,
+    init_output: dict,
+    assertions: MultiSingleImageAssertionModel,
+):
+    n = len(init_output["parallelization_list"])
+    expected = assertions.expected_parallelization_list_length
+    assert n == expected, f"parallelization_list length {n} != expected {expected}"
+
+
+def _post_compute_checks_single_image(
+    *,
+    assertions: MultiSingleImageAssertionModel,
+    zarr_dir: Path,
+    image_list_updates: list[dict],
+):
+    for updates in image_list_updates:
+        assert "image_list_updates" in updates
+        upd = updates["image_list_updates"][0]
+        zarr_url = Path(upd["zarr_url"])
+        assert zarr_url.exists()
+        image_key = zarr_url.relative_to(zarr_dir).as_posix()
+        assert image_key in assertions.images, f"{image_key} not in snapshot images"
+
+        img_assert = assertions.images[image_key]
+        ome_zarr_image = open_ome_zarr_container(zarr_url)
+        image = ome_zarr_image.get_image()
+        assert list(image.axes) == list(img_assert.axes)
+        assert image.shape == img_assert.shape
+        assert np.allclose(image.pixel_size.tzyx, img_assert.pixelsize)
+        if img_assert.channel_labels:
+            assert ome_zarr_image.channel_labels == list(img_assert.channel_labels)
+        if img_assert.wavelength_ids:
+            assert ome_zarr_image.wavelength_ids == list(img_assert.wavelength_ids)
+        _check_roi_tables(ome_zarr_image=ome_zarr_image, image_assertions=img_assert)
+
+
+def _generate_single_image_snapshot(
+    *,
+    zarr_dir: Path,
+    image_list_updates: list[dict],
+    snapshot_path: Path,
+) -> None:
+    images_dict = {}
+    for updates in image_list_updates:
+        for upd in updates.get("image_list_updates", []):
+            zarr_url = Path(upd["zarr_url"])
+            image_key = zarr_url.relative_to(zarr_dir).as_posix()
+            ome_zarr_image = open_ome_zarr_container(zarr_url)
+            image = ome_zarr_image.get_image()
+            entry: dict = {
+                "axes": list(image.axes),
+                "shape": list(image.shape),
+                "pixelsize": list(image.pixel_size.tzyx),
+                "channel_labels": ome_zarr_image.channel_labels,
+                "wavelength_ids": ome_zarr_image.wavelength_ids,
+            }
+            if "types" in upd:
+                entry["types"] = upd["types"]
+            if "attributes" in upd:
+                entry["attributes"] = upd["attributes"]
+            table_names = ome_zarr_image.list_tables()
+            if table_names:
+                tables_dict = {}
+                for table_name in table_names:
+                    try:
+                        roi_table = ome_zarr_image.get_roi_table(table_name)
+                    except Exception:
+                        tables_dict[table_name] = None
+                        continue
+                    rois_dict = {}
+                    for roi in roi_table.rois():
+                        roi_pixel = roi.to_pixel(pixel_size=image.pixel_size)
+                        roi_array = image.get_roi_as_numpy(roi)
+                        fp = FingerprintModel.from_array(roi_array)
+                        y_origin = getattr(roi, "y_micrometer_original", None)
+                        x_origin = getattr(roi, "x_micrometer_original", None)
+                        rois_dict[roi.name] = {
+                            "slice_repr": str(roi_pixel.slices),
+                            "finger_print": fp.model_dump(),
+                            "yx_origin": (
+                                [y_origin, x_origin] if y_origin is not None else None
+                            ),
+                        }
+                    tables_dict[table_name] = {"rois": rois_dict}
+                entry["tables"] = tables_dict
+            images_dict[image_key] = entry
+
+    snapshot_data = {"images": images_dict}
+    MultiSingleImageAssertionModel(**snapshot_data)
+    snapshot_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(snapshot_path, "w") as f:
+        yaml.dump(snapshot_data, f, default_flow_style=False, sort_keys=False)
+
+
+def run_single_image_converter_test(
+    *,
+    tmp_path: Path,
+    init_task_fn: Callable,
+    init_task_kwargs: dict,
+    snapshot_path: Path,
+    update_snapshots: bool,
+    converter_options: ConverterOptions,
+):
+    """Run a single-image converter end-to-end and check against snapshot assertions."""
+    if update_snapshots:
+        zarr_dir = snapshot_path.parent.parent / "output"
+        zarr_dir.mkdir(parents=True, exist_ok=True)
+        init_task_kwargs = init_task_kwargs | {"overwrite": OverwriteMode.OVERWRITE}
+        print(f"Running test in update mode. Output Zarr dir: {zarr_dir}")
+    else:
+        zarr_dir = tmp_path / "output"
+        zarr_dir.mkdir(parents=True, exist_ok=True)
+
+    output = init_task_fn(
+        zarr_dir=str(zarr_dir), **init_task_kwargs, converter_options=converter_options
+    )
+
+    updates_list = []
+    for p in output["parallelization_list"]:
+        update = single_image_compute_task(**p)
+        updates_list.append(update)
+
+    if update_snapshots:
+        _generate_single_image_snapshot(
+            zarr_dir=zarr_dir,
+            image_list_updates=updates_list,
+            snapshot_path=snapshot_path,
+        )
+        return
+
+    if not snapshot_path.exists():
+        raise FileNotFoundError(
+            f"Snapshot file {snapshot_path} not found. "
+            "Run with update_snapshots=True to generate it."
+        )
+
+    assertions = _load_single_image_snapshot(snapshot_path)
+    _single_image_after_init_checks(init_output=output, assertions=assertions)
+    _post_compute_checks_single_image(
+        assertions=assertions,
+        zarr_dir=zarr_dir,
+        image_list_updates=updates_list,
     )

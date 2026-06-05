@@ -18,34 +18,16 @@ STANDARD_ROWS_NAMES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 
 class BaseAcquisitionModel(BaseModel):
-    """Base model for acquisitions."""
+    """Shared base model for HCS and single-image acquisitions."""
 
     path: str
     """
-    Path to the acquisition directory. Should contain MeasurementData.mlf and
-    MeasurementDetail.mrf files.
-    """
-    plate_name: str | None = None
-    """
-    Optional custom name for the plate. If not provided, the name will be the
-    acquisition directory name.
-    """
-    acquisition_id: int = Field(default=0, ge=0)
-    """
-    Acquisition ID, used to identify the acquisition in case of multiple acquisitions.
+    Path to the acquisition directory or file.
     """
     advanced: AcquisitionOptions = Field(default_factory=AcquisitionOptions)
     """
     Advanced acquisition options.
     """
-
-    @property
-    def normalized_plate_name(self) -> str:
-        """Get the normalized plate name."""
-        if self.plate_name is not None:
-            return self.plate_name
-        name = self.path.rstrip("/").split("/")[-1]
-        return name
 
     def get_condition_table(self) -> polars.DataFrame | None:
         """Get the path to the condition table if it exists."""
@@ -60,13 +42,65 @@ class BaseAcquisitionModel(BaseModel):
         return None
 
 
+class HCSBaseAcquisitionModel(BaseAcquisitionModel):
+    """Base model for HCS (plate) acquisitions.
+
+    Extends ``BaseAcquisitionModel`` with plate-specific fields: ``plate_name``
+    and ``acquisition_id``.
+    """
+
+    plate_name: str | None = None
+    """
+    Optional custom name for the plate. If not provided, the name will be the
+    acquisition directory name.
+    """
+    acquisition_id: int = Field(default=0, ge=0)
+    """
+    Acquisition ID, used to identify the acquisition in case of multiple acquisitions.
+    """
+
+    @property
+    def normalized_plate_name(self) -> str:
+        """Get the normalized plate name."""
+        if self.plate_name is not None:
+            return self.plate_name
+        name = self.path.rstrip("/").split("/")[-1]
+        return name
+
+
+class SingleBaseAcquisitionModel(BaseAcquisitionModel):
+    """Base model for single-image acquisitions.
+
+    Extends ``BaseAcquisitionModel`` with ``image_name`` for controlling the
+    output OME-Zarr image name.
+    """
+
+    image_name: str | None = None
+    """
+    Optional custom name for the output OME-Zarr image. If not provided, the
+    name will be derived from the acquisition directory or file name.
+    """
+
+    @property
+    def normalized_image_name(self) -> str:
+        """Get the normalized image name."""
+        if self.image_name is not None:
+            return self.image_name
+        name = self.path.rstrip("/").split("/")[-1]
+        return name
+
+
 AcquisitionModelType = TypeVar(
     "AcquisitionModelType", bound=BaseAcquisitionModel, contravariant=True
 )
 
 
 class ParserProtocol(Protocol[AcquisitionModelType]):
-    """Protocol for acquisition metadata parser."""
+    """Protocol for acquisition metadata parser.
+
+    Accepts any ``BaseAcquisitionModel``-derived type, including both HCS and
+    single-image acquisition models.
+    """
 
     def __call__(
         self,
@@ -144,9 +178,11 @@ def get_attributes_from_condition_table(
     filtered = condition_table.filter(
         (polars.col(row_col_name) == row) & (polars.col(column_col_name) == column)
     )
+    skip_keys = {row_col_name, column_col_name}
     if "acquisition" in columns_lower:
         acquisition_col_name = columns[columns_lower.index("acquisition")]
         filtered = filtered.filter(polars.col(acquisition_col_name) == acquisition)
+        skip_keys.add(acquisition_col_name)
     if filtered.is_empty():
         logger.warning(
             f"No matching entry found in condition table "
@@ -156,7 +192,7 @@ def get_attributes_from_condition_table(
     filtered_dict = filtered.to_dict(as_series=False)
     attributes = {}
     for key, value in filtered_dict.items():
-        if key in ["row", "column", "acquisition"]:
+        if key in skip_keys:
             continue
         if all(isinstance(v, str | type(None)) for v in value):
             formatted_value = [v if v is None else v.strip() for v in value]

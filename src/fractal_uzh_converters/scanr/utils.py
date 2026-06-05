@@ -24,7 +24,7 @@ from pydantic import field_validator
 
 from fractal_uzh_converters.common import (
     STANDARD_ROWS_NAMES,
-    BaseAcquisitionModel,
+    HCSBaseAcquisitionModel,
     get_attributes_from_condition_table,
 )
 
@@ -51,7 +51,7 @@ STANDARD_PLATES_LAYOUTS: dict[AVAILABLE_PLATE_LAYOUTS, dict[str, int]] = {
 logger = logging.getLogger(__name__)
 
 
-class ScanRAcquisitionModel(BaseAcquisitionModel):
+class ScanRAcquisitionModel(HCSBaseAcquisitionModel):
     """Acquisition details for the Evident ScanR microscope data."""
 
     path: str
