@@ -3,13 +3,13 @@
 import polars
 import pytest
 
-from fractal_uzh_converters.common.utils import (
+from fractal_uzh_converters.common._utils import (
     HCSBaseAcquisitionModel,
     SingleBaseAcquisitionModel,
     get_attributes_from_condition_table,
     parse_acquisitions,
 )
-from fractal_uzh_converters.scanr.utils import (
+from fractal_uzh_converters.scanr._utils import (
     _extract_well_position_id,
     _wellid_to_row_column,
 )

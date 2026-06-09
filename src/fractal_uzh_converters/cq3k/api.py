@@ -12,7 +12,7 @@ from fractal_uzh_converters.common.image_in_plate_compute_task import (
     image_in_plate_compute_task,
 )
 from fractal_uzh_converters.cq3k.convert_cq3k_init_task import convert_cq3k_init_task
-from fractal_uzh_converters.cq3k.utils import CQ3KAcquisitionModel
+from fractal_uzh_converters.cq3k._utils import CQ3KAcquisitionModel
 
 
 def convert_cq3k(

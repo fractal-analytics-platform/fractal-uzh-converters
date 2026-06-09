@@ -14,7 +14,7 @@ from fractal_uzh_converters.common.image_in_plate_compute_task import (
 from fractal_uzh_converters.operetta.convert_operetta_init_task import (
     convert_operetta_init_task,
 )
-from fractal_uzh_converters.operetta.utils import OperettaAcquisitionModel
+from fractal_uzh_converters.operetta._utils import OperettaAcquisitionModel
 
 
 def convert_operetta(

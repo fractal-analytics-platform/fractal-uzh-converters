@@ -10,7 +10,7 @@ from ome_zarr_converters_tools import (
 from pydantic import validate_call
 
 from fractal_uzh_converters.common import parse_acquisitions
-from fractal_uzh_converters.operetta.utils import (
+from fractal_uzh_converters.operetta._utils import (
     OperettaAcquisitionModel,
     parse_operetta_metadata,
 )

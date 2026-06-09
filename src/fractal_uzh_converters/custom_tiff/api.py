@@ -20,7 +20,7 @@ from fractal_uzh_converters.custom_tiff.convert_hcs_tiff_init_task import (
 from fractal_uzh_converters.custom_tiff.convert_single_tiff_init_task import (
     convert_single_tiff_init_task,
 )
-from fractal_uzh_converters.custom_tiff.utils import (
+from fractal_uzh_converters.custom_tiff._utils import (
     HcsTiffAcquisitionModel,
     SingleTiffAcquisitionModel,
 )

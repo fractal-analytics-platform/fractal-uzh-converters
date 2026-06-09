@@ -12,7 +12,7 @@ from fractal_uzh_converters.common.image_in_plate_compute_task import (
     image_in_plate_compute_task,
 )
 from fractal_uzh_converters.scanr.convert_scanr_init_task import convert_scanr_init_task
-from fractal_uzh_converters.scanr.utils import (
+from fractal_uzh_converters.scanr._utils import (
     ScanRAcquisitionModel,
 )
 

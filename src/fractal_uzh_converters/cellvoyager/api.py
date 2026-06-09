@@ -11,7 +11,7 @@ from ome_zarr_converters_tools.fractal import ImageListUpdateDict
 from fractal_uzh_converters.cellvoyager.convert_cellvoyager_init_task import (
     convert_cellvoyager_init_task,
 )
-from fractal_uzh_converters.cellvoyager.utils import CellVoyagerAcquisitionModel
+from fractal_uzh_converters.cellvoyager._utils import CellVoyagerAcquisitionModel
 from fractal_uzh_converters.common.image_in_plate_compute_task import (
     image_in_plate_compute_task,
 )

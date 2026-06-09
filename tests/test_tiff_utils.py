@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 import tifffile
 
-from fractal_uzh_converters.custom_tiff.utils import (
+from fractal_uzh_converters.custom_tiff._utils import (
     _apply_table_defaults,
     _convert_space_unit,
     _convert_time_unit,
