@@ -2,9 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from fractal_uzh_converters.cellvoyager.convert_cellvoyager_init_task import (
-    convert_cellvoyager_init_task,
-)
+from fractal_uzh_converters.cellvoyager import convert_cellvoyager
 
 from .utils import DATA_DIR, run_converter_test
 
@@ -38,8 +36,8 @@ def test_cellvoyager(
 ):
     run_converter_test(
         tmp_path=tmp_path,
-        init_task_fn=convert_cellvoyager_init_task,
-        init_task_kwargs=init_task_kwargs,
+        api_fn=convert_cellvoyager,
+        api_kwargs=init_task_kwargs,
         snapshot_path=SNAPSHOT_DIR / f"{snapshot_name}.yaml",
         update_snapshots=update_snapshots,
         converter_options=converter_options,

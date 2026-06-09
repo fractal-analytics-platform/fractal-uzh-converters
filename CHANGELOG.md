@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Features
+- Add Python API functions (`convert_cellvoyager`, `convert_cq3k`, `convert_operetta`, `convert_imagexpress_hcs`, `convert_hcs_tiff`, `convert_single_tiff`) for programmatic use outside Fractal, following the existing `convert_scanr` pattern.
+- Update test utilities to call the high-level API functions, providing end-to-end coverage of both the API layer and the underlying init/compute tasks.
+
 ## [0.6.0]
 
 ### Features

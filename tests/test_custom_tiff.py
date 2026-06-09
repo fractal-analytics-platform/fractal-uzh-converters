@@ -6,7 +6,8 @@ import pytest
 
 from fractal_uzh_converters.common import single_image_compute_task
 from fractal_uzh_converters.custom_tiff import (
-    convert_hcs_tiff_init_task,
+    convert_hcs_tiff,
+    convert_single_tiff,
     convert_single_tiff_init_task,
 )
 from tests.utils import DATA_DIR, run_converter_test, run_single_image_converter_test
@@ -37,8 +38,8 @@ def test_hcs_tiff(
 ):
     run_converter_test(
         tmp_path=tmp_path,
-        init_task_fn=convert_hcs_tiff_init_task,
-        init_task_kwargs=init_task_kwargs,
+        api_fn=convert_hcs_tiff,
+        api_kwargs=init_task_kwargs,
         snapshot_path=SNAPSHOT_DIR / f"{snapshot_name}.yaml",
         update_snapshots=update_snapshots,
         converter_options=converter_options,
@@ -64,8 +65,8 @@ def test_single_tiff(
 ):
     run_single_image_converter_test(
         tmp_path=tmp_path,
-        init_task_fn=convert_single_tiff_init_task,
-        init_task_kwargs=init_task_kwargs,
+        api_fn=convert_single_tiff,
+        api_kwargs=init_task_kwargs,
         snapshot_path=SNAPSHOT_DIR / f"{snapshot_name}.yaml",
         update_snapshots=update_snapshots,
         converter_options=converter_options,

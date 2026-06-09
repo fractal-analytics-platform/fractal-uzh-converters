@@ -46,14 +46,14 @@ authors = [{ name = "Lorenzo Cerrone", email = "lorenzo.cerrone@uzh.ch" }]
 requires-python = ">=3.11,<3.15"
 
 dependencies = [
-    "ome-zarr-converters-tools>=0.9.0,<0.10.0",
+    "ome-zarr-converters-tools>=0.10.0,<0.11.0",
     "fractal-task-tools>=0.5.0,<0.6.0",
     "ngio>=0.5.8,<0.6.0",
     "zarrs",
     "tqdm",
     "tifffile",
     "ome_types",
-    "lxml",                                     # hidden dep of ome_types
+    "lxml",                                      # hidden dep of ome_types
     "xmltodict",
     "imagecodecs",
 ]
