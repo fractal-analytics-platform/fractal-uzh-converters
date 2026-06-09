@@ -9,8 +9,7 @@
 ### Chores
 - Remove `custom_tiff/_setup.py` and its import: `ome-zarr-converters-tools>=0.10.0` now ships a built-in `setup_singleimage` handler for `SingleImage` collections, making the local copy redundant.
 - Bump to `ome-zarr-converters-tools>=0.10.0,<0.11.0`
-- Rename internal `utils.py` modules to `_utils.py` across all converter packages and `common/` to signal they are private implementation details.
-- Re-export each converter's public `AcquisitionModel` (and `MDAcquisitionOptions` for `imagexpress_hcs`) from the package `__init__.py` so users can import them alongside the API functions.
+- Rename internal modules to `_{module_name}.py` across all converter packages and `common/` to signal they are private implementation details.
 
 ## [0.6.0]
 
