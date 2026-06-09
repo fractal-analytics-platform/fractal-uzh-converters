@@ -46,3 +46,24 @@ The CQ3K init task uses the base acquisition parameters with no additional field
 | `Acquisition Id` | `int` | `0` | Acquisition identifier for multi-acquisition plates. |
 | `Advanced` | `AcquisitionOptions` | `{}` | Advanced options (condition table, overrides). |
 
+## Python API
+
+```python
+from fractal_uzh_converters import convert_cq3k, CQ3KAcquisitionModel
+
+acquisitions = [
+    CQ3KAcquisitionModel(
+        path="/path/to/cq3k/acquisition",
+        plate_name="my_plate",
+        acquisition_id=0,
+    )
+]
+
+convert_cq3k(
+    zarr_dir="/output/zarr",
+    acquisitions=acquisitions,
+)
+```
+
+See [How to Run the Converters](../how_to_run_the_converters.md) for all common parameters and execution details.
+

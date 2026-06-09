@@ -43,3 +43,24 @@ The Operetta init task uses the base acquisition parameters with no additional f
 ## Multiple Acquisitions (same plate)
 
 To combine multiple acquisitions (e.g., different timepoints or imaging rounds) into a single plate, use different `Acquisition Id` values while keeping the same `Plate Name`.
+
+## Python API
+
+```python
+from fractal_uzh_converters import convert_operetta, OperettaAcquisitionModel
+
+acquisitions = [
+    OperettaAcquisitionModel(
+        path="/path/to/operetta/acquisition",
+        plate_name="my_plate",
+        acquisition_id=0,
+    )
+]
+
+convert_operetta(
+    zarr_dir="/output/zarr",
+    acquisitions=acquisitions,
+)
+```
+
+See [How to Run the Converters](../how_to_run_the_converters.md) for all common parameters and execution details.
