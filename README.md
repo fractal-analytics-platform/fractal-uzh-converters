@@ -27,7 +27,7 @@ image data well-by-well (or image-by-image).
 pip install fractal-uzh-converters
 ```
 
-## Part of the OME-Zarr converters ecosystem
+## Part of the Fractal OME-Zarr converters ecosystem
 
 This converter is a thin, format-specific layer built on
 [`ome-zarr-converters-tools`](https://github.com/BioVisionCenter/ome-zarr-converters-tools),

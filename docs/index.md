@@ -32,7 +32,7 @@ You configure the init task with one or more **acquisitions** (paths to your raw
 !!! tip "Condition Tables"
     You can attach experimental metadata (drug treatments, concentrations, replicates, etc.) to wells using a **condition table** CSV file. See the [Condition Tables](condition_tables.md) guide for details.
 
-## Part of the OME-Zarr converters ecosystem
+## Part of the Fractal OME-Zarr converters ecosystem
 
 This converter is a thin, format-specific layer built on
 [`ome-zarr-converters-tools`](https://github.com/BioVisionCenter/ome-zarr-converters-tools),
