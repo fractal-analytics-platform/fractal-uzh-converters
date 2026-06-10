@@ -68,15 +68,14 @@ dev = [
     "devtools",
     "hatch",
     "pytest",
+    "pytest-cov",
     "requests",
     "jsonschema",
     "ruff",
     "ty",
     "pre-commit",
-    "pytest-cov",
-    "xmltodict",
 ]
-test = ["pytest", "pytest-cov", "devtools", "jsonschema"]
+test = ["pytest", "pytest-cov", "devtools", "jsonschema", "pyyaml", "requests"]
 docs = ["mkdocs-material", "mike"]
 
 # https://docs.astral.sh/ruff
@@ -128,7 +127,6 @@ filterwarnings = [
 ]
 
 addopts = [
-    "-vv",
     "--color=yes",
     "--cov",
     "--cov-report=term-missing",
@@ -138,9 +136,21 @@ addopts = [
 [tool.coverage.run]
 source = ["fractal_uzh_converters"]
 
+[tool.coverage.report]
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "@overload",
+    "except ImportError",
+    "\\.\\.\\.",
+    "raise NotImplementedError()",
+    "pass",
+]
+
 [tool.pixi.workspace]
 channels = ["conda-forge"]
-platforms = ["osx-arm64", "linux-64"]
+platforms = ["win-64", "osx-arm64", "linux-64"]
 
 [tool.pixi.pypi-dependencies]
 fractal-uzh-converters = { path = ".", editable = true }
@@ -157,5 +167,7 @@ docs = { features = ["docs"], solve-group = "default" }
 [tool.ty.environment]
 python = ".pixi/envs/dev"
 
-# Required Python version and dependencies
-[tool.pixi.tasks]
+[tool.pixi.feature.dev.tasks]
+ruff-fix-imports = { cmd = "ruff check --select I --fix" }
+ruff = { cmd = "ruff format", depends-on = ["ruff-fix-imports"] }
+test = { cmd = "pytest", depends-on = ["ruff"] }
