@@ -12,7 +12,7 @@
       
       
       
-        <link rel="next" href="converters/">
+        <link rel="next" href="how_to_run_the_converters/">
       
       
         
@@ -355,6 +355,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#part-of-the-ome-zarr-converters-ecosystem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Part of the OME-Zarr converters ecosystem
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#quick-links" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -379,6 +390,33 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="how_to_run_the_converters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How to Run the Converters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
     
     
     
@@ -393,10 +431,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
             
   
   
@@ -414,8 +452,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -742,6 +780,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#part-of-the-ome-zarr-converters-ecosystem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Part of the OME-Zarr converters ecosystem
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#quick-links" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -816,7 +865,7 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>fractal-uzh-converters
 </code></pre></div>
 <h2 id="how-it-works">How It Works</h2>
-<p>Each converter is implemented as a Fractal Compoud Task that consists of two steps:</p>
+<p>Each converter is implemented as a Fractal Compound Task that consists of two steps:</p>
 <ol>
 <li><strong>Init task</strong> — Parses the microscope metadata, creates the OME-Zarr plate structure, and generates a parallelization list.</li>
 <li><strong>Compute task</strong> — Reads the raw image tiles and writes them into the OME-Zarr dataset. This task runs in parallel across wells.</li>
@@ -826,6 +875,18 @@
 <p class="admonition-title">Condition Tables</p>
 <p>You can attach experimental metadata (drug treatments, concentrations, replicates, etc.) to wells using a <strong>condition table</strong> CSV file. See the <a href="condition_tables/">Condition Tables</a> guide for details.</p>
 </div>
+<h2 id="part-of-the-ome-zarr-converters-ecosystem">Part of the OME-Zarr converters ecosystem</h2>
+<p>This converter is a thin, format-specific layer built on
+<a href="https://github.com/BioVisionCenter/ome-zarr-converters-tools"><code>ome-zarr-converters-tools</code></a>,
+the shared engine that handles tiling, image registration, and OME-Zarr writing for
+the whole Fractal converter family. Because they all share that engine, every
+converter offers the same options, behavior, and development workflow.</p>
+<p>Sibling converters built on the same tooling:</p>
+<ul>
+<li><a href="https://fractal-analytics-platform.github.io/fractal-czi-converters/"><code>fractal-czi-converters</code></a> — Zeiss <code>.czi</code></li>
+<li><a href="https://fractal-analytics-platform.github.io/fractal-lif-converters/"><code>fractal-lif-converters</code></a> — Leica <code>.lif</code></li>
+<li><a href="https://fractal-analytics-platform.github.io/fractal-nd2-converters/"><code>fractal-nd2-converters</code></a> — Nikon <code>.nd2</code></li>
+</ul>
 <h2 id="quick-links">Quick Links</h2>
 <ul>
 <li><a href="converters/">Converters overview</a> — Common parameters and per-microscope guides</li>
@@ -864,13 +925,13 @@
         
         
           
-          <a href="converters/" class="md-footer__link md-footer__link--next" aria-label="Next: Overview">
+          <a href="how_to_run_the_converters/" class="md-footer__link md-footer__link--next" aria-label="Next: How to Run the Converters">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Overview
+                How to Run the Converters
               </div>
             </div>
             <div class="md-footer__button md-icon">
