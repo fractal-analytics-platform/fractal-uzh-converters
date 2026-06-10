@@ -69,3 +69,24 @@ In addition to the [common advanced options](index.md#acquisition-options-advanc
 ## Multiple Acquisitions (same plate)
 
 To combine multiple acquisitions into a single plate, use different `Acquisition Id` values while keeping the same `Plate Name`.
+
+## Python API
+
+```python
+from fractal_uzh_converters import convert_imagexpress_hcs, MDImageXpressHCSaiAcquisitionModel
+
+acquisitions = [
+    MDImageXpressHCSaiAcquisitionModel(
+        path="/path/to/imagexpress/acquisition",
+        plate_name="my_plate",
+        acquisition_id=0,
+    )
+]
+
+convert_imagexpress_hcs(
+    zarr_dir="/output/zarr",
+    acquisitions=acquisitions,
+)
+```
+
+See [How to Run the Converters](../how_to_run_the_converters.md) for all common parameters and execution details.

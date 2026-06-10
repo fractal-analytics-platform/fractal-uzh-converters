@@ -25,7 +25,7 @@ pixi run -e dev ruff format .
 pixi run -e docs mkdocs serve
 
 # Validate Fractal manifest
-pixi run -e dev python src/fractal_uzh_converters/dev/task_list.py
+pixi run -e dev python src/fractal_uzh_converters/dev/_task_list.py
 ```
 
 ## Key Dependencies

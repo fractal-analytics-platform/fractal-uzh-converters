@@ -8,11 +8,6 @@ from ngio import OmeZarrContainer, open_ome_zarr_container, open_ome_zarr_plate
 from ome_zarr_converters_tools import ConverterOptions, OverwriteMode
 from pydantic import BaseModel, Field, model_validator
 
-from fractal_uzh_converters.common import (
-    image_in_plate_compute_task,
-    single_image_compute_task,
-)
-
 DATA_DIR = Path(__file__).parent / "data"
 
 
@@ -115,13 +110,12 @@ def _load_snapshot(yaml_path: Path) -> MultiPlateAssertionModel:
 
 def _plate_after_init_checks(
     *,
-    init_output: dict,
+    updates_list: list,
     multi_plate_assertions: MultiPlateAssertionModel,
     zarr_dir: Path,
 ):
-    parallelization_list = len(init_output["parallelization_list"])
     expected = multi_plate_assertions.expected_parallelization_list_length
-    assert parallelization_list == expected
+    assert len(updates_list) == expected
     for plate_name, plate_assert in multi_plate_assertions.plates.items():
         plate_path = zarr_dir / plate_name
         plate = open_ome_zarr_plate(plate_path)
@@ -305,8 +299,8 @@ def _generate_snapshot(
 def run_converter_test(
     *,
     tmp_path: Path,
-    init_task_fn: Callable,
-    init_task_kwargs: dict,
+    api_fn: Callable,
+    api_kwargs: dict,
     snapshot_path: Path,
     update_snapshots: bool,
     converter_options: ConverterOptions,
@@ -315,32 +309,24 @@ def run_converter_test(
 
     Args:
         tmp_path: Pytest tmp_path for zarr output.
-        init_task_fn: The converter init task function.
-        init_task_kwargs: Kwargs for the init task (e.g. acquisitions).
+        api_fn: The high-level converter API function.
+        api_kwargs: Kwargs for the API function (e.g. acquisitions).
         snapshot_path: Path to the snapshot YAML file.
         update_snapshots: If True, regenerate the snapshot file.
     """
     if update_snapshots:
         zarr_dir = snapshot_path.parent.parent / "output"
         zarr_dir.mkdir(parents=True, exist_ok=True)
-        init_task_kwargs = init_task_kwargs | {"overwrite": OverwriteMode.OVERWRITE}
+        api_kwargs = api_kwargs | {"overwrite": OverwriteMode.OVERWRITE}
         print(f"Running test in update mode. Output Zarr dir: {zarr_dir}")
     else:
         zarr_dir = tmp_path / "output"
         zarr_dir.mkdir(parents=True, exist_ok=True)
 
-    # 1. Run init task
-    output = init_task_fn(
-        zarr_dir=str(zarr_dir), **init_task_kwargs, converter_options=converter_options
+    updates_list = api_fn(
+        zarr_dir=str(zarr_dir), **api_kwargs, converter_options=converter_options
     )
 
-    # 2. Run compute tasks
-    updates_list = []
-    for p in output["parallelization_list"]:
-        update = image_in_plate_compute_task(**p)
-        updates_list.append(update)
-
-    # 3. Generate or load snapshot
     if update_snapshots:
         _generate_snapshot(
             zarr_dir=zarr_dir,
@@ -355,10 +341,9 @@ def run_converter_test(
             "Run with update_snapshots=True to generate it."
         )
 
-    # 4. Load snapshot and run all checks
     assertions = _load_snapshot(snapshot_path)
     _plate_after_init_checks(
-        init_output=output,
+        updates_list=updates_list,
         multi_plate_assertions=assertions,
         zarr_dir=zarr_dir,
     )
@@ -396,12 +381,12 @@ def _load_single_image_snapshot(yaml_path: Path) -> MultiSingleImageAssertionMod
 
 def _single_image_after_init_checks(
     *,
-    init_output: dict,
+    updates_list: list,
     assertions: MultiSingleImageAssertionModel,
 ):
-    n = len(init_output["parallelization_list"])
+    n = len(updates_list)
     expected = assertions.expected_parallelization_list_length
-    assert n == expected, f"parallelization_list length {n} != expected {expected}"
+    assert n == expected, f"updates_list length {n} != expected {expected}"
 
 
 def _post_compute_checks_single_image(
@@ -492,8 +477,8 @@ def _generate_single_image_snapshot(
 def run_single_image_converter_test(
     *,
     tmp_path: Path,
-    init_task_fn: Callable,
-    init_task_kwargs: dict,
+    api_fn: Callable,
+    api_kwargs: dict,
     snapshot_path: Path,
     update_snapshots: bool,
     converter_options: ConverterOptions,
@@ -502,20 +487,15 @@ def run_single_image_converter_test(
     if update_snapshots:
         zarr_dir = snapshot_path.parent.parent / "output"
         zarr_dir.mkdir(parents=True, exist_ok=True)
-        init_task_kwargs = init_task_kwargs | {"overwrite": OverwriteMode.OVERWRITE}
+        api_kwargs = api_kwargs | {"overwrite": OverwriteMode.OVERWRITE}
         print(f"Running test in update mode. Output Zarr dir: {zarr_dir}")
     else:
         zarr_dir = tmp_path / "output"
         zarr_dir.mkdir(parents=True, exist_ok=True)
 
-    output = init_task_fn(
-        zarr_dir=str(zarr_dir), **init_task_kwargs, converter_options=converter_options
+    updates_list = api_fn(
+        zarr_dir=str(zarr_dir), **api_kwargs, converter_options=converter_options
     )
-
-    updates_list = []
-    for p in output["parallelization_list"]:
-        update = single_image_compute_task(**p)
-        updates_list.append(update)
 
     if update_snapshots:
         _generate_single_image_snapshot(
@@ -532,7 +512,7 @@ def run_single_image_converter_test(
         )
 
     assertions = _load_single_image_snapshot(snapshot_path)
-    _single_image_after_init_checks(init_output=output, assertions=assertions)
+    _single_image_after_init_checks(updates_list=updates_list, assertions=assertions)
     _post_compute_checks_single_image(
         assertions=assertions,
         zarr_dir=zarr_dir,

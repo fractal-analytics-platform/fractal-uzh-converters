@@ -54,6 +54,7 @@ markdown_extensions:
 
 nav:
   - Home: index.md
+  - How to Run the Converters: how_to_run_the_converters.md
   - Converters:
     - Overview: converters/index.md
     - Revvity Operetta/Opera Phenix: converters/operetta.md

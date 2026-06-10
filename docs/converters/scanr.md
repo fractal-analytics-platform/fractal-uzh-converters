@@ -54,3 +54,25 @@ The ScanR init task adds a `Layout` field to the base acquisition parameters:
 !!! warning "Plate layout"
     Make sure to set the correct `Layout` for your plate. The well ID mapping depends on it — using the wrong layout will assign images to incorrect wells.
 
+## Python API
+
+```python
+from fractal_uzh_converters import convert_scanr, ScanRAcquisitionModel
+
+acquisitions = [
+    ScanRAcquisitionModel(
+        path="/path/to/scanr/acquisition",
+        plate_name="my_plate",
+        acquisition_id=0,
+        layout="96-well",
+    )
+]
+
+convert_scanr(
+    zarr_dir="/output/zarr",
+    acquisitions=acquisitions,
+)
+```
+
+See [How to Run the Converters](../how_to_run_the_converters.md) for all common parameters and execution details.
+

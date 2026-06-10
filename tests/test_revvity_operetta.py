@@ -2,9 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from fractal_uzh_converters.operetta.convert_operetta_init_task import (
-    convert_operetta_init_task,
-)
+from fractal_uzh_converters.operetta import convert_operetta
 
 from .utils import DATA_DIR, run_converter_test
 
@@ -53,8 +51,8 @@ def test_operetta(
 ):
     run_converter_test(
         tmp_path=tmp_path,
-        init_task_fn=convert_operetta_init_task,
-        init_task_kwargs=init_task_kwargs,
+        api_fn=convert_operetta,
+        api_kwargs=init_task_kwargs,
         snapshot_path=SNAPSHOT_DIR / f"{snapshot_name}.yaml",
         update_snapshots=update_snapshots,
         converter_options=converter_options,

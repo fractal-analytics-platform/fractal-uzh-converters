@@ -9,7 +9,7 @@ from ome_zarr_converters_tools import (
 )
 from pydantic import validate_call
 
-from fractal_uzh_converters.cellvoyager.utils import (
+from fractal_uzh_converters.cellvoyager._utils import (
     CellVoyagerAcquisitionModel,
     parse_cellvoyager_metadata,
 )

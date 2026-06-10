@@ -40,3 +40,25 @@ The CellVoyager init task extends the base acquisition parameters with one addit
 
 !!! warning "Limited Testing"
     This converter has been tested on a limited set of acquisitions. It may not work correctly on all Yokogawa CellVoyager datasets.
+
+## Python API
+
+```python
+from fractal_uzh_converters import convert_cellvoyager, CellVoyagerAcquisitionModel
+
+acquisitions = [
+    CellVoyagerAcquisitionModel(
+        path="/path/to/cellvoyager/acquisition",
+        plate_name="my_plate",
+        acquisition_id=0,
+        image_extension=".tif",
+    )
+]
+
+convert_cellvoyager(
+    zarr_dir="/output/zarr",
+    acquisitions=acquisitions,
+)
+```
+
+See [How to Run the Converters](../how_to_run_the_converters.md) for all common parameters and execution details.

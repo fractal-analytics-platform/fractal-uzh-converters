@@ -12,7 +12,7 @@ from pydantic import validate_call
 from fractal_uzh_converters.common import (
     parse_acquisitions,
 )
-from fractal_uzh_converters.imagexpress_hcs.utils import (
+from fractal_uzh_converters.imagexpress_hcs._utils import (
     MDImageXpressHCSaiAcquisitionModel,
     parse_md_metadata,
 )

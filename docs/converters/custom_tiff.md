@@ -207,3 +207,44 @@ Same format and fields as described in the HCS Mode section above.
 | `Path` | `str` | *required* | Path to the acquisition directory containing `tiles.csv`, or directly to a TIFF file. |
 | `Image Name` | `str` or `null` | `null` | Custom output OME-Zarr image name. Defaults to the directory or file name. |
 | `Advanced` | `AcquisitionOptions` | `{}` | Advanced options (channel/pixel-size overrides). |
+
+## Python API
+
+=== "HCS Plate"
+
+    ```python
+    from fractal_uzh_converters import convert_hcs_tiff, HcsTiffAcquisitionModel
+
+    acquisitions = [
+        HcsTiffAcquisitionModel(
+            path="/path/to/hcs_acquisition",
+            plate_name="my_plate",
+            acquisition_id=0,
+        )
+    ]
+
+    convert_hcs_tiff(
+        zarr_dir="/output/zarr",
+        acquisitions=acquisitions,
+    )
+    ```
+
+=== "Single Image"
+
+    ```python
+    from fractal_uzh_converters import convert_single_tiff, SingleTiffAcquisitionModel
+
+    acquisitions = [
+        SingleTiffAcquisitionModel(
+            path="/path/to/image.tif",
+            image_name="my_image",
+        )
+    ]
+
+    convert_single_tiff(
+        zarr_dir="/output/zarr",
+        acquisitions=acquisitions,
+    )
+    ```
+
+See [How to Run the Converters](../how_to_run_the_converters.md) for all common parameters and execution details.
