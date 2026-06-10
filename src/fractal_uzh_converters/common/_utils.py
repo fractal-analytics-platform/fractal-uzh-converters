@@ -4,6 +4,7 @@ import logging
 from typing import Protocol, TypeVar
 
 import polars
+from fsspec.core import split_protocol
 from ome_zarr_converters_tools import (
     AcquisitionOptions,
     AttributeType,
@@ -15,6 +16,17 @@ from pydantic import BaseModel, Field
 logger = logging.getLogger("common_converters_compute_task")
 
 STANDARD_ROWS_NAMES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+
+def _path_basename(path: str) -> str:
+    """Last path component, robust to fwd/back slashes and URL protocols.
+
+    Uses ``fsspec`` rather than ``pathlib.Path`` so that remote URLs (e.g.
+    ``s3://bucket/plate``) are not mangled, while still handling Windows
+    backslash separators.
+    """
+    _, stripped = split_protocol(path)
+    return stripped.replace("\\", "/").rstrip("/").split("/")[-1]
 
 
 class BaseAcquisitionModel(BaseModel):
@@ -64,7 +76,7 @@ class HCSBaseAcquisitionModel(BaseAcquisitionModel):
         """Get the normalized plate name."""
         if self.plate_name is not None:
             return self.plate_name
-        name = self.path.rstrip("/").split("/")[-1]
+        name = _path_basename(self.path)
         return name
 
 
@@ -86,7 +98,7 @@ class SingleBaseAcquisitionModel(BaseAcquisitionModel):
         """Get the normalized image name."""
         if self.image_name is not None:
             return self.image_name
-        name = self.path.rstrip("/").split("/")[-1]
+        name = _path_basename(self.path)
         return name
 
 
