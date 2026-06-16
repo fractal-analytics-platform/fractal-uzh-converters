@@ -14,15 +14,15 @@ from fractal_uzh_converters.common.image_in_plate_compute_task import (
 from fractal_uzh_converters.common.single_image_compute_task import (
     single_image_compute_task,
 )
+from fractal_uzh_converters.custom_tiff._utils import (
+    HcsTiffAcquisitionModel,
+    SingleTiffAcquisitionModel,
+)
 from fractal_uzh_converters.custom_tiff.convert_hcs_tiff_init_task import (
     convert_hcs_tiff_init_task,
 )
 from fractal_uzh_converters.custom_tiff.convert_single_tiff_init_task import (
     convert_single_tiff_init_task,
-)
-from fractal_uzh_converters.custom_tiff._utils import (
-    HcsTiffAcquisitionModel,
-    SingleTiffAcquisitionModel,
 )
 
 
