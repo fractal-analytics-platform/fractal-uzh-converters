@@ -11,11 +11,11 @@ from ome_zarr_converters_tools.fractal import ImageListUpdateDict
 from fractal_uzh_converters.common.image_in_plate_compute_task import (
     image_in_plate_compute_task,
 )
-from fractal_uzh_converters.imagexpress_hcs.convert_imagexpress_hcs_init_task import (
-    convert_imagexpress_hcs_init_task,
-)
 from fractal_uzh_converters.imagexpress_hcs._utils import (
     MDImageXpressHCSaiAcquisitionModel,
+)
+from fractal_uzh_converters.imagexpress_hcs.convert_imagexpress_hcs_init_task import (
+    convert_imagexpress_hcs_init_task,
 )
 
 
