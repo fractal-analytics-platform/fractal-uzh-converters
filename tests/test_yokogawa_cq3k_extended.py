@@ -2,9 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from fractal_uzh_converters.cq3k.convert_cq3k_init_task import (
-    convert_cq3k_init_task,
-)
+from fractal_uzh_converters.cq3k import convert_cq3k
 
 from .utils import run_converter_test
 
@@ -47,8 +45,8 @@ def test_cq3k_extended(
 ):
     run_converter_test(
         tmp_path=tmp_path,
-        init_task_fn=convert_cq3k_init_task,
-        init_task_kwargs=init_task_kwargs,
+        api_fn=convert_cq3k,
+        api_kwargs=init_task_kwargs,
         snapshot_path=SNAPSHOT_DIR / f"{snapshot_name}.yaml",
         update_snapshots=update_snapshots,
         converter_options=converter_options,
