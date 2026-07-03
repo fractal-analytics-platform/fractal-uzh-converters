@@ -1,6 +1,16 @@
 # Changelog
 
-## [Unreleased]
+## [0.7.2]
+
+### Bug Fixes
+- Bug in extended testing using the wrong api
+
+## [0.7.1]
+
+### Bug Fixes
+- Remove passing explicit `logger_name` to the `run_fractal_task` wrapper.
+
+## [0.7.0]
 
 ### Features
 - Add Python API functions (`convert_cellvoyager`, `convert_cq3k`, `convert_operetta`, `convert_imagexpress_hcs`, `convert_hcs_tiff`, `convert_single_tiff`) for programmatic use outside Fractal, following the existing `convert_scanr` pattern.
