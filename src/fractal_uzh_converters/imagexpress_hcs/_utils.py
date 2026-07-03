@@ -3,7 +3,6 @@
 import json
 import logging
 import math
-from pathlib import Path
 
 import pandas as pd
 from ome_zarr_converters_tools import (
@@ -27,6 +26,10 @@ from fractal_uzh_converters.common import (
     STANDARD_ROWS_NAMES,
     HCSBaseAcquisitionModel,
     get_attributes_from_condition_table,
+)
+from fractal_uzh_converters.common.url_utils import (
+    url_path_glob,
+    url_path_parent,
 )
 
 logger = logging.getLogger(__name__)
@@ -72,7 +75,7 @@ class MDImageXpressHCSaiAcquisitionModel(HCSBaseAcquisitionModel):
         v = v.rstrip("/")
         if v.endswith(".mxprotocol"):
             # Strip the filename to get the directory
-            return str(Path(v).parent)
+            return url_path_parent(v)
         return v
 
 
@@ -519,9 +522,9 @@ def parse_md_metadata(
 
     # Discover available experiment directories
     available_dirs = {
-        "montage": list(Path(root_dir).glob("experiment_montage")),
-        "z_stack": list(Path(root_dir).glob("experiment_z_stack")),
-        "standard": list(Path(root_dir).glob("experiment")),
+        "montage": url_path_glob(base_url=root_dir, pattern="experiment_montage"),
+        "z_stack": url_path_glob(base_url=root_dir, pattern="experiment_z_stack"),
+        "standard": url_path_glob(base_url=root_dir, pattern="experiment"),
     }
 
     # Check if any experiment directories exist
@@ -565,7 +568,7 @@ def parse_md_metadata(
     condition_table = acquisition_model.get_condition_table()
 
     # Load experiment metadata from .jdce file
-    jdce_files = sorted(Path(experiment_dir).glob("*.jdce"))
+    jdce_files = sorted(url_path_glob(base_url=experiment_dir, pattern="*.jdce"))
     if len(jdce_files) == 0:
         raise FileNotFoundError(f"No .jdce file found in directory: {experiment_dir}")
     elif len(jdce_files) > 1:
@@ -576,7 +579,7 @@ def parse_md_metadata(
     experiment_meta = parse_jdce_metadata(str(jdce_files[0]))
 
     # Load image records from .csv file
-    csv_files = sorted(Path(experiment_dir).glob("*.csv"))
+    csv_files = sorted(url_path_glob(base_url=experiment_dir, pattern="*.csv"))
     if len(csv_files) == 0:
         raise FileNotFoundError(f"No .csv file found in directory: {experiment_dir}")
     elif len(csv_files) > 1:
