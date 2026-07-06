@@ -3,7 +3,6 @@
 import logging
 import tomllib
 import xml.etree.ElementTree as ET
-from pathlib import Path
 
 import pandas as pd
 import tifffile
@@ -12,6 +11,7 @@ from ome_zarr_converters_tools import (
     ChannelInfo,
     ConverterOptions,
     TiledImage,
+    filesystem_for_url,
     tiles_aggregation_pipeline,
 )
 from ome_zarr_converters_tools.core import (
@@ -22,6 +22,12 @@ from ome_zarr_converters_tools.core import (
 from fractal_uzh_converters.common import (
     HCSBaseAcquisitionModel,
     SingleBaseAcquisitionModel,
+)
+from fractal_uzh_converters.common.url_utils import (
+    is_url_path_absolute,
+    join_url_paths,
+    url_path_basename,
+    url_path_parent,
 )
 
 logger = logging.getLogger(__name__)
@@ -114,7 +120,7 @@ def _convert_time_unit(value: float, unit: str) -> float | None:
 _CANONICAL_AXES_ORDER = ["t", "c", "z", "y", "x"]
 
 
-def _validate_series_axes(axes: str, path: Path) -> None:
+def _validate_series_axes(axes: str, path: str) -> None:
     known = set(_CANONICAL_AXES_ORDER)
     unknown = [a for a in axes if a not in known]
     if unknown:
@@ -135,7 +141,7 @@ def _validate_series_axes(axes: str, path: Path) -> None:
         )
 
 
-def _parse_tiff_metadata(path: Path) -> dict:
+def _parse_tiff_metadata(path: str) -> dict:
     """Parse metadata from a TIFF file.
 
     Returns a partial dict with any subset of:
@@ -146,8 +152,9 @@ def _parse_tiff_metadata(path: Path) -> dict:
     of t, c, z, y, x.  All other I/O errors are logged as warnings.
     """
     result: dict = {}
+    fs = filesystem_for_url(path)
     try:
-        with tifffile.TiffFile(str(path)) as tif:
+        with fs.open(path) as f, tifffile.TiffFile(f) as tif:
             # Shape from first page — always tried first as a baseline
             try:
                 page_shape = tif.pages[0].shape
@@ -257,23 +264,29 @@ def _load_tiles_table(acq_path: str) -> pd.DataFrame:
 
     Relative ``file_path`` values are resolved against ``acq_path``.
     """
-    base = Path(acq_path)
-    fpath = base / "tiles.csv"
-    if not fpath.exists():
+    tiles_file_path = join_url_paths(acq_path, "tiles.csv")
+    fs = filesystem_for_url(acq_path)
+    if not fs.exists(tiles_file_path):
         raise FileNotFoundError(f"No tiles.csv found in {acq_path}")
-    df = pd.read_csv(fpath)
-    df["file_path"] = df["file_path"].apply(
-        lambda fp: fp if Path(fp.strip()).is_absolute() else str(base / fp.strip())
-    )
+
+    def path_to_absolute(path: str) -> str:
+        path = path.strip()
+        return path if is_url_path_absolute(path) else join_url_paths(acq_path, path)
+
+    with fs.open(tiles_file_path, "r") as f:
+        df = pd.read_csv(f)
+    df["file_path"] = df["file_path"].apply(path_to_absolute)
+
     return df
 
 
 def _load_toml_raw(acq_path: str) -> dict:
     """Load raw TOML dict from ``acquisition_details.toml`` if present."""
-    toml_path = Path(acq_path) / "acquisition_details.toml"
-    if not toml_path.exists():
+    toml_path = join_url_paths(acq_path, "acquisition_details.toml")
+    fs = filesystem_for_url(acq_path)
+    if not fs.exists(toml_path):
         return {}
-    with open(toml_path, "rb") as f:
+    with fs.open(toml_path, "rb") as f:
         return tomllib.load(f)
 
 
@@ -363,7 +376,7 @@ def parse_hcs_tiff_metadata(
     acq_path = acquisition_model.path
     tiles_table = _load_tiles_table(acq_path)
 
-    first_path = Path(tiles_table["file_path"].iloc[0])
+    first_path = tiles_table["file_path"].iloc[0]
     tiff_meta = _parse_tiff_metadata(first_path)
     tiles_table = _apply_table_defaults(tiles_table, tiff_meta)
 
@@ -395,19 +408,23 @@ def parse_single_tiff_metadata(
 ) -> list[TiledImage]:
     """Parse custom single-image TIFF metadata and return a list of TiledImages."""
     acq_path = acquisition_model.path
-    path = Path(acq_path)
+    fs = filesystem_for_url(acq_path)
 
-    if path.is_file():
-        tiff_meta = _parse_tiff_metadata(path)
+    if fs.isfile(acq_path):
+        tiff_meta = _parse_tiff_metadata(acq_path)
         if "length_x" not in tiff_meta or "length_y" not in tiff_meta:
             raise ValueError(
-                f"Could not determine image dimensions from {path}. "
+                f"Could not determine image dimensions from {acq_path}. "
                 "Ensure the file is a readable TIFF."
             )
+        # Extract filename stem and parent directory from path
+        filename = url_path_basename(acq_path)
+        fov_name = filename.rsplit(".", 1)[0] if "." in filename else filename
+
         tiles_table = pd.DataFrame(
             {
-                "file_path": [str(path.resolve())],
-                "fov_name": [path.stem],
+                "file_path": [acq_path],
+                "fov_name": [fov_name],
                 "start_x": [0.0],
                 "start_y": [0.0],
                 "length_x": [tiff_meta["length_x"]],
@@ -419,12 +436,14 @@ def parse_single_tiff_metadata(
                 ),
             }
         )
+
+        parent_dir = url_path_parent(acq_path)
         acquisition_details = _load_acquisition_details(
-            str(path.parent), tiff_defaults=tiff_meta
+            parent_dir, tiff_defaults=tiff_meta
         )
     else:
         tiles_table = _load_tiles_table(acq_path)
-        first_path = Path(tiles_table["file_path"].iloc[0])
+        first_path = tiles_table["file_path"].iloc[0]
         tiff_meta = _parse_tiff_metadata(first_path)
         tiles_table = _apply_table_defaults(tiles_table, tiff_meta)
         acquisition_details = _load_acquisition_details(
