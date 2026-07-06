@@ -269,9 +269,9 @@ def _load_tiles_table(acq_path: str) -> pd.DataFrame:
     if not fs.exists(tiles_file_path):
         raise FileNotFoundError(f"No tiles.csv found in {acq_path}")
 
-    def path_to_absolute(fp: str) -> str:
-        fp = fp.strip()
-        return fs if is_url_path_absolute(fp) else join_url_paths(acq_path, fp)
+    def path_to_absolute(path: str) -> str:
+        path = path.strip()
+        return path if is_url_path_absolute(path) else join_url_paths(acq_path, path)
 
     with fs.open(tiles_file_path, "r") as f:
         df = pd.read_csv(f)
