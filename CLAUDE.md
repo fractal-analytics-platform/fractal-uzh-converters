@@ -1,47 +1,34 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Fractal tasks to convert HCS plate data into OME-Zarr. Supports several microscope
+systems (Revvity Operetta, Evident ScanR, Yokogawa CQ3K/CellVoyager, Molecular
+Devices ImageXpress, custom TIFF). Conversion engine lives in
+`ome-zarr-converters-tools` (shared across the sibling converters).
 
-## Project Overview
+## Commands
 
-Fractal tasks to convert HCS (High-Content Screening) plate data from microscopes into OME-Zarr format. Supports three microscope systems: Revvity Operetta, Evident ScanR, and Yokogawa CQ3K/CellVoyager.
+All commands need a `pixi run -e dev` / `-e test` prefix (never bare python/pytest/ruff):
 
-## Environment & Commands
-
-Uses **pixi** for environment management. Available environments: `default`, `dev`, `test`, `docs`.
-
-```bash
-# Run tests
-pixi run -e test pytest tests
-pixi run -e test pytest tests/test_operetta_task.py       # single test file
-pixi run -e test pytest tests/test_operetta_task.py -k "test_name"  # single test
-
-# Lint and format
-pixi run -e dev ruff check .
-pixi run -e dev ruff check . --fix
-pixi run -e dev ruff format .
-
-# Docs
-pixi run -e docs mkdocs serve
-
-# Validate Fractal manifest
-pixi run -e dev python src/fractal_uzh_converters/dev/_task_list.py
-```
-
-## Key Dependencies
-
-- `ome-zarr-converters-tools` — Core conversion engine (see below)
-- `fractal-task-tools` — Fractal task execution framework
-- `ngio` — OME-Zarr I/O library (transitive dependency via converters-tools, not imported directly here)
-- For local development of dependencies, editable paths can be uncommented in `pyproject.toml` under `[tool.pixi.pypi-dependencies]`
+- `pixi run -e test pytest tests/` — test suite
+- `pixi run -e dev chores` — full gate (ruff format/fix → pytest → pre-commit)
+- `pixi run -e dev fractal-manifest check --package fractal_uzh_converters` — validate the Fractal manifest
 
 ## Testing
 
-Tests use **snapshot-based assertions** — reference YAML files in `tests/data/` store expected image fingerprints (mean, std, min, max, hash). Use `--update-snapshots` pytest flag to regenerate reference data.
+Snapshot-based via the shared `ome_zarr_converters_tools.testing` helper; reference
+JSON in `tests/data/*/snapshots/` (one dir per microscope). Regenerate with
+`--update-snapshots`. The `--update-snapshots`/`--extended` options, the `extended`
+marker, and the `update_snapshots` fixture come from
+`ome_zarr_converters_tools.testing.plugin`, loaded via `pytest_plugins` in
+`tests/conftest.py` (deliberately not a pytest11 entry point upstream, so coverage
+can measure it). `--extended` tests need the git-ignored `tests/data-extended/`.
 
 ## Code Style
 
-- Ruff with 88-char line length, Google-style docstrings
-- Pydantic models with `@validate_call` on task functions
-- Python 3.10+ type hint syntax (`list[T]`, `str | None`)
-- Pre-commit hooks: `validate-pyproject`, `ruff`, `ruff-format`
+- Ruff: line length 88, target py311; Google-style docstrings; type-checking via `ty`
+- Spell-check via `typos` (false positives go in `_typos.toml`)
+- Pydantic v2 models; `@validate_call` on task functions
+
+## Changelog
+
+Always update `CHANGELOG.md` (Features / Fix / API Breaking Changes / Chores / Documentation).

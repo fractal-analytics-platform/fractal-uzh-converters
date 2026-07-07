@@ -46,7 +46,7 @@ authors = [{ name = "Lorenzo Cerrone", email = "lorenzo.cerrone@uzh.ch" }]
 requires-python = ">=3.11,<3.15"
 
 dependencies = [
-    "ome-zarr-converters-tools>=0.10.0,<0.11.0",
+    "ome-zarr-converters-tools>=0.10.4,<0.11.0",
     "fractal-task-tools>=0.5.0,<0.6.0",
     "ngio>=0.5.8,<0.6.0",
     "fsspec",
@@ -76,7 +76,7 @@ dev = [
     "ty",
     "pre-commit",
 ]
-test = ["pytest", "pytest-cov", "devtools", "jsonschema", "pyyaml", "requests"]
+test = ["pytest", "pytest-cov", "devtools", "jsonschema", "requests"]
 docs = ["mkdocs-material", "mike"]
 
 # https://docs.astral.sh/ruff
@@ -172,3 +172,4 @@ python = ".pixi/envs/dev"
 ruff-fix-imports = { cmd = "ruff check --select I --fix" }
 ruff = { cmd = "ruff format", depends-on = ["ruff-fix-imports"] }
 test = { cmd = "pytest", depends-on = ["ruff"] }
+chores = { cmd = "pre-commit run --all-files", depends-on = ["test"] }

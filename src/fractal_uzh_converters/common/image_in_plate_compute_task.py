@@ -37,7 +37,7 @@ def image_in_plate_compute_task(
     )
     zarr_output = img_list_update["image_list_updates"][0]["zarr_url"]
     run_time = time.time() - timer
-    logger.info(f"Succesfully converted: {zarr_output}, in {run_time:.2f}[s]")
+    logger.info(f"Successfully converted: {zarr_output}, in {run_time:.2f}[s]")
     return img_list_update
 
 

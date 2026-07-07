@@ -1,6 +1,21 @@
 # Changelog
 
-## [Unreleased]
+## [v0.7.2]
+
+### Fix
+- Bug in extended testing using the wrong api
+- Fix typo in the conversion log message (`Successfully`).
+
+### Chores
+- Load the shared snapshot-testing plugin via `pytest_plugins` in `tests/conftest.py` instead of `-p` in `pytest` `addopts`, matching the sibling converters.
+- Align repository tooling with `ome-zarr-converters-tools`: adopt its `.pre-commit-config.yaml` (`validate-pyproject` v0.25, `crate-ci/typos`, `astral-sh/ruff-pre-commit` v0.15.17, `nbstripout`) with a per-repo `_typos.toml`, add a `chores` pixi task, bump GitHub Actions pins (`checkout` v7, `codecov-action` v7, `action-gh-release` v3, `setup-python` v6), and trim `CLAUDE.md`.
+
+## [0.7.1]
+
+### Fix
+- Remove passing explicit `logger_name` to the `run_fractal_task` wrapper.
+
+## [0.7.0]
 
 ### Features
 - Add Python API functions (`convert_cellvoyager`, `convert_cq3k`, `convert_operetta`, `convert_imagexpress_hcs`, `convert_hcs_tiff`, `convert_single_tiff`) for programmatic use outside Fractal, following the existing `convert_scanr` pattern.
@@ -20,7 +35,7 @@
 ### Features
 - Add `custom_tiff` converter: two new tasks for converting plain TIFF data (HCS plate and single-image) to OME-Zarr.
 
-### Bug Fixes
+### Fix
 - Fix `get_attributes_from_condition_table` to dynamically exclude the acquisition column from results.
 
 ### Chores

@@ -1,0 +1,114 @@
+{
+  "plates": {
+    "hcs_2w1p1c1z1t_mip_Maximum.zarr": {
+      "wells": [
+        "C/05",
+        "F/09"
+      ],
+      "images": {
+        "C/05/0": {
+          "axes": [
+            "c",
+            "z",
+            "y",
+            "x"
+          ],
+          "shape": [
+            1,
+            1,
+            2000,
+            2000
+          ],
+          "pixelsize": [
+            1.0,
+            1.0,
+            0.3242218675179569,
+            0.3242218675179569
+          ],
+          "channel_labels": [
+            "channel_0"
+          ],
+          "wavelength_ids": [
+            "channel_0"
+          ],
+          "types": {
+            "is_3D": false
+          },
+          "attributes": {
+            "plate": "hcs_2w1p1c1z1t_mip_Maximum.zarr",
+            "well": "C05",
+            "acquisition": 0
+          },
+          "tables": {
+            "well_ROI_table": {
+              "rois": {
+                "image": {
+                  "slice_repr": "[x: 0.0->2000.0, y: 0.0->2000.0, z: 0.0->1.0]",
+                  "finger_print": {
+                    "mean": 69.41409,
+                    "std": 112.881276,
+                    "min": 0.0,
+                    "max": 1413.0,
+                    "hash": "275af7dbb7f4475ca47c5dae1a0a510199300e36229c2383fd4cf9b60677a547"
+                  },
+                  "yx_origin": null
+                }
+              }
+            }
+          }
+        },
+        "F/09/0": {
+          "axes": [
+            "c",
+            "z",
+            "y",
+            "x"
+          ],
+          "shape": [
+            1,
+            1,
+            2000,
+            2000
+          ],
+          "pixelsize": [
+            1.0,
+            1.0,
+            0.3242218675179569,
+            0.3242218675179569
+          ],
+          "channel_labels": [
+            "channel_0"
+          ],
+          "wavelength_ids": [
+            "channel_0"
+          ],
+          "types": {
+            "is_3D": false
+          },
+          "attributes": {
+            "plate": "hcs_2w1p1c1z1t_mip_Maximum.zarr",
+            "well": "F09",
+            "acquisition": 0
+          },
+          "tables": {
+            "well_ROI_table": {
+              "rois": {
+                "image": {
+                  "slice_repr": "[x: 0.0->2000.0, y: 0.0->2000.0, z: 0.0->1.0]",
+                  "finger_print": {
+                    "mean": 5.887787,
+                    "std": 3.598876,
+                    "min": 0.0,
+                    "max": 92.0,
+                    "hash": "cbd26afc53f8f0523b3450ba704a1128c9f8f5cd742f8f480a99a7b24739a0aa"
+                  },
+                  "yx_origin": null
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

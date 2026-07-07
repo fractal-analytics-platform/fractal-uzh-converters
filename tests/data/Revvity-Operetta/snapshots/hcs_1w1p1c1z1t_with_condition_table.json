@@ -1,0 +1,67 @@
+{
+  "plates": {
+    "hcs_1w1p1c1z1t.zarr": {
+      "wells": [
+        "C/11"
+      ],
+      "images": {
+        "C/11/0": {
+          "axes": [
+            "c",
+            "z",
+            "y",
+            "x"
+          ],
+          "shape": [
+            1,
+            1,
+            2160,
+            2160
+          ],
+          "pixelsize": [
+            1.0,
+            1.0,
+            0.5979760809567617,
+            0.5979760809567617
+          ],
+          "channel_labels": [
+            "Fluorescein (FITC)"
+          ],
+          "wavelength_ids": [
+            "525"
+          ],
+          "types": {
+            "is_3D": false
+          },
+          "attributes": {
+            "drug": "drugA & drugB",
+            "concentration": "0.2 & None",
+            "replicate": "1 & 2",
+            "bool_col": "True & False",
+            "plate": "hcs_1w1p1c1z1t.zarr",
+            "well": "C11",
+            "acquisition": 0
+          },
+          "tables": {
+            "condition_table": null,
+            "well_ROI_table": {
+              "rois": {
+                "image": {
+                  "slice_repr": "[x: 0.0->2160.0, y: 0.0->2160.0, z: 0.0->1.0]",
+                  "finger_print": {
+                    "mean": 625.972027,
+                    "std": 701.351119,
+                    "min": 0.0,
+                    "max": 44239.0,
+                    "hash": "e46dbe494948247754027b354e95dcfd9db0041cabc0a0d25d9db203f5e7406f"
+                  },
+                  "yx_origin": null
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

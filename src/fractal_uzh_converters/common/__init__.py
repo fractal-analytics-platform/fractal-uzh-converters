@@ -16,6 +16,7 @@ from fractal_uzh_converters.common.single_image_compute_task import (
 )
 
 __all__ = [
+    "STANDARD_ROWS_NAMES",
     "BaseAcquisitionModel",
     "HCSBaseAcquisitionModel",
     "SingleBaseAcquisitionModel",
