@@ -132,12 +132,6 @@ addopts = [
     "--cov",
     "--cov-report=term-missing",
     "--cov-report=xml",
-    # Load the shared ome-zarr-converters-tools pytest plugin explicitly
-    # (--update-snapshots/--extended options, `extended` marker, `update_snapshots`
-    # fixture). It is deliberately NOT a pytest11 entry point upstream so the upstream
-    # suite can measure coverage of the plugin module; consumers opt in via -p.
-    "-p",
-    "ome_zarr_converters_tools.testing.plugin",
 ]
 
 [tool.coverage.run]
@@ -178,3 +172,4 @@ python = ".pixi/envs/dev"
 ruff-fix-imports = { cmd = "ruff check --select I --fix" }
 ruff = { cmd = "ruff format", depends-on = ["ruff-fix-imports"] }
 test = { cmd = "pytest", depends-on = ["ruff"] }
+chores = { cmd = "pre-commit run --all-files", depends-on = ["test"] }
