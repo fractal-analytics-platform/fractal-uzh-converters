@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import pytest
+from ome_zarr_converters_tools.testing import run_converter_test
 
 from fractal_uzh_converters.common import single_image_compute_task
 from fractal_uzh_converters.custom_tiff import (
@@ -10,7 +11,8 @@ from fractal_uzh_converters.custom_tiff import (
     convert_single_tiff,
     convert_single_tiff_init_task,
 )
-from tests.utils import DATA_DIR, run_converter_test, run_single_image_converter_test
+
+from .utils import DATA_DIR
 
 RAW_DIR = DATA_DIR / "CustomTiff" / "raw"
 SNAPSHOT_DIR = DATA_DIR / "CustomTiff" / "snapshots"
@@ -40,7 +42,7 @@ def test_hcs_tiff(
         tmp_path=tmp_path,
         api_fn=convert_hcs_tiff,
         api_kwargs=init_task_kwargs,
-        snapshot_path=SNAPSHOT_DIR / f"{snapshot_name}.yaml",
+        snapshot_path=SNAPSHOT_DIR / f"{snapshot_name}.json",
         update_snapshots=update_snapshots,
         converter_options=converter_options,
     )
@@ -63,13 +65,14 @@ def test_single_tiff(
     update_snapshots: bool,
     converter_options,
 ):
-    run_single_image_converter_test(
+    run_converter_test(
         tmp_path=tmp_path,
         api_fn=convert_single_tiff,
         api_kwargs=init_task_kwargs,
-        snapshot_path=SNAPSHOT_DIR / f"{snapshot_name}.yaml",
+        snapshot_path=SNAPSHOT_DIR / f"{snapshot_name}.json",
         update_snapshots=update_snapshots,
         converter_options=converter_options,
+        output_type="single_image",
     )
 
 

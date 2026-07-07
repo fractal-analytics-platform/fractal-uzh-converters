@@ -1,12 +1,9 @@
 from pathlib import Path
 
 import pytest
+from ome_zarr_converters_tools.testing import run_converter_test
 
-from fractal_uzh_converters.imagexpress_hcs.convert_imagexpress_hcs_init_task import (
-    convert_imagexpress_hcs_init_task,
-)
-
-from .utils import run_converter_test
+from fractal_uzh_converters.imagexpress_hcs import convert_imagexpress_hcs
 
 EXTENDED_DATA_DIR = Path(__file__).parent / "data-extended"
 SNAPSHOT_DIR = EXTENDED_DATA_DIR / "MolecularDevices-ImageXpressHCSai" / "snapshots"
@@ -64,9 +61,9 @@ def test_imagexpress_hcs_extended(
 ):
     run_converter_test(
         tmp_path=tmp_path,
-        init_task_fn=convert_imagexpress_hcs_init_task,
-        init_task_kwargs=init_task_kwargs,
-        snapshot_path=SNAPSHOT_DIR / f"{snapshot_name}.yaml",
+        api_fn=convert_imagexpress_hcs,
+        api_kwargs=init_task_kwargs,
+        snapshot_path=SNAPSHOT_DIR / f"{snapshot_name}.json",
         update_snapshots=update_snapshots,
         converter_options=converter_options,
     )

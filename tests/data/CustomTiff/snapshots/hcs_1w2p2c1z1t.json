@@ -1,0 +1,98 @@
+{
+  "plates": {
+    "hcs_1w2p2c1z1t.zarr": {
+      "wells": [
+        "A/01"
+      ],
+      "images": {
+        "A/01/0": {
+          "axes": [
+            "t",
+            "c",
+            "z",
+            "y",
+            "x"
+          ],
+          "shape": [
+            1,
+            1,
+            2,
+            128,
+            128
+          ],
+          "pixelsize": [
+            1.0,
+            5.0,
+            0.65,
+            0.65
+          ],
+          "channel_labels": [
+            "DAPI"
+          ],
+          "wavelength_ids": [
+            "405"
+          ],
+          "types": {
+            "is_3D": true
+          },
+          "attributes": {
+            "drug": "DMSO",
+            "plate": "hcs_1w2p2c1z1t.zarr",
+            "well": "A01",
+            "acquisition": 0
+          },
+          "tables": {
+            "FOV_ROI_table": {
+              "rois": {
+                "FOV_1": {
+                  "slice_repr": "[x: 0.0->64.0, y: 0.0->64.0, z: 0.0->2.0, t: 0.0->1.0]",
+                  "finger_print": {
+                    "mean": 32671.42041,
+                    "std": 18871.818546,
+                    "min": 9.0,
+                    "max": 65497.0,
+                    "hash": "4676cdb9f8075d16bb9083c12023611803d4e921a2ad264663b29d17bf1aee26"
+                  },
+                  "yx_origin": [
+                    10.0,
+                    10.0
+                  ]
+                },
+                "FOV_2": {
+                  "slice_repr": "[x: 64.0->128.0, y: 64.0->128.0, z: 0.0->2.0, t: 0.0->1.0]",
+                  "finger_print": {
+                    "mean": 32306.498657,
+                    "std": 18793.152312,
+                    "min": 28.0,
+                    "max": 65523.0,
+                    "hash": "20b75bbcb9e0780906af3ad2d7f853aa2b8bd832bf72b2f6c4b4aaa3df7e80a6"
+                  },
+                  "yx_origin": [
+                    1000.0,
+                    1000.0
+                  ]
+                }
+              }
+            },
+            "condition_table": null,
+            "well_ROI_table": {
+              "rois": {
+                "image": {
+                  "slice_repr": "[x: 0.0->128.0, y: 0.0->128.0, z: 0.0->2.0, t: 0.0->1.0]",
+                  "finger_print": {
+                    "mean": 16244.479767,
+                    "std": 21005.518231,
+                    "min": 0.0,
+                    "max": 65523.0,
+                    "hash": "e31c9f497b79a0cfca81942daa0e117ebcfe703b5fff91629fb4726e75c46d07"
+                  },
+                  "yx_origin": null
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

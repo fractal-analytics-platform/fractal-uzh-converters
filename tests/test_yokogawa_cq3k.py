@@ -1,10 +1,11 @@
 from pathlib import Path
 
 import pytest
+from ome_zarr_converters_tools.testing import run_converter_test
 
 from fractal_uzh_converters.cq3k import convert_cq3k
 
-from .utils import DATA_DIR, run_converter_test
+from .utils import DATA_DIR
 
 SNAPSHOT_DIR = DATA_DIR / "Yokogawa-CQ3K" / "snapshots"
 RAW_DIR = DATA_DIR / "Yokogawa-CQ3K" / "raw"
@@ -37,7 +38,7 @@ def test_cq3k(
         tmp_path=tmp_path,
         api_fn=convert_cq3k,
         api_kwargs=init_task_kwargs,
-        snapshot_path=SNAPSHOT_DIR / f"{snapshot_name}.yaml",
+        snapshot_path=SNAPSHOT_DIR / f"{snapshot_name}.json",
         update_snapshots=update_snapshots,
         converter_options=converter_options,
     )

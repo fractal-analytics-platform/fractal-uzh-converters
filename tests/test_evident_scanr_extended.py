@@ -1,12 +1,9 @@
 from pathlib import Path
 
 import pytest
+from ome_zarr_converters_tools.testing import run_converter_test
 
-from fractal_uzh_converters.scanr.convert_scanr_init_task import (
-    convert_scanr_init_task,
-)
-
-from .utils import run_converter_test
+from fractal_uzh_converters.scanr import convert_scanr
 
 EXTENDED_DATA_DIR = Path(__file__).parent / "data-extended"
 SNAPSHOT_DIR = EXTENDED_DATA_DIR / "Evident-scanR" / "snapshots"
@@ -45,9 +42,9 @@ def test_scanr_extended(
 ):
     run_converter_test(
         tmp_path=tmp_path,
-        init_task_fn=convert_scanr_init_task,
-        init_task_kwargs=init_task_kwargs,
-        snapshot_path=SNAPSHOT_DIR / f"{snapshot_name}.yaml",
+        api_fn=convert_scanr,
+        api_kwargs=init_task_kwargs,
+        snapshot_path=SNAPSHOT_DIR / f"{snapshot_name}.json",
         update_snapshots=update_snapshots,
         converter_options=converter_options,
     )

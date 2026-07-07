@@ -37,7 +37,7 @@ pixi run -e dev python src/fractal_uzh_converters/dev/_task_list.py
 
 ## Testing
 
-Tests use **snapshot-based assertions** — reference YAML files in `tests/data/` store expected image fingerprints (mean, std, min, max, hash). Use `--update-snapshots` pytest flag to regenerate reference data.
+Tests use **snapshot-based assertions** via the shared `ome_zarr_converters_tools.testing.run_converter_test` helper — reference JSON files in `tests/data/` store expected image fingerprints (mean, std, min, max, hash). Use the `--update-snapshots` pytest flag to regenerate reference data. The `--update-snapshots`/`--extended` options, the `extended` marker, and the `update_snapshots` fixture come from the shared pytest plugin `ome_zarr_converters_tools.testing.plugin`. That plugin is deliberately not registered as a `pytest11` entry point upstream (an auto-loaded entry point is imported before coverage starts, so the upstream suite could never measure it), so consumers load it explicitly — here via `-p ome_zarr_converters_tools.testing.plugin` in `addopts`. Extended tests need the git-ignored `tests/data-extended/` datasets and only run with `--extended`.
 
 ## Code Style
 

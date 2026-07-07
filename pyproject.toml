@@ -46,7 +46,7 @@ authors = [{ name = "Lorenzo Cerrone", email = "lorenzo.cerrone@uzh.ch" }]
 requires-python = ">=3.11,<3.15"
 
 dependencies = [
-    "ome-zarr-converters-tools>=0.10.0,<0.11.0",
+    "ome-zarr-converters-tools>=0.10.4,<0.11.0",
     "fractal-task-tools>=0.5.0,<0.6.0",
     "ngio>=0.5.8,<0.6.0",
     "fsspec",
@@ -76,7 +76,7 @@ dev = [
     "ty",
     "pre-commit",
 ]
-test = ["pytest", "pytest-cov", "devtools", "jsonschema", "pyyaml", "requests"]
+test = ["pytest", "pytest-cov", "devtools", "jsonschema", "requests"]
 docs = ["mkdocs-material", "mike"]
 
 # https://docs.astral.sh/ruff
@@ -132,6 +132,12 @@ addopts = [
     "--cov",
     "--cov-report=term-missing",
     "--cov-report=xml",
+    # Load the shared ome-zarr-converters-tools pytest plugin explicitly
+    # (--update-snapshots/--extended options, `extended` marker, `update_snapshots`
+    # fixture). It is deliberately NOT a pytest11 entry point upstream so the upstream
+    # suite can measure coverage of the plugin module; consumers opt in via -p.
+    "-p",
+    "ome_zarr_converters_tools.testing.plugin",
 ]
 
 [tool.coverage.run]
