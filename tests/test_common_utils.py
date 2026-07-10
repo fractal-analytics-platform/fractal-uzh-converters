@@ -211,8 +211,7 @@ class TestNormalizedImageName:
 
 
 def _make_converter_options():
-    from ome_zarr_converters_tools import ConverterOptions, OmeZarrOptions
-    from ome_zarr_converters_tools.models._converter_options import BackendType
+    from ome_zarr_converters_tools import BackendType, ConverterOptions, OmeZarrOptions
 
     return ConverterOptions(
         omezarr_options=OmeZarrOptions(

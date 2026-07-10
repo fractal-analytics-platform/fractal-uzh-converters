@@ -432,18 +432,18 @@ def _build_acquisition_details(
         )
     acq = AcquisitionDetails(
         channels=channels,
-        pixelsize=experiment_meta.pixel_size_x,
+        xy_pixel_size=experiment_meta.pixel_size_x,
         z_spacing=experiment_meta.z_step_um,
         t_spacing=1.0,
         axes=default_axes_builder(is_time_series=experiment_meta.is_time_series),
-        start_x_coo="world",
-        start_y_coo="world",
-        start_z_coo="pixel",
-        start_t_coo="pixel",
-        length_x_coo="pixel",
-        length_y_coo="pixel",
-        length_z_coo="pixel",
-        length_t_coo="pixel",
+        start_x_space="world",
+        start_y_space="world",
+        start_z_space="pixel",
+        start_t_space="pixel",
+        length_x_space="pixel",
+        length_y_space="pixel",
+        length_z_space="pixel",
+        length_t_space="pixel",
     )
     return acquisition_model.advanced.update_acquisition_details(
         acquisition_details=acq

@@ -1,6 +1,5 @@
 import pytest
-from ome_zarr_converters_tools import ConverterOptions, OmeZarrOptions
-from ome_zarr_converters_tools.models._converter_options import BackendType
+from ome_zarr_converters_tools import BackendType, ConverterOptions, OmeZarrOptions
 
 # Load the shared snapshot-testing plugin: the --update-snapshots / --extended
 # options, the `extended` marker and its skip behaviour, and the

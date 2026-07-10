@@ -244,19 +244,19 @@ def build_acquisition_details(
         for (ch_name, w_id) in zip(channel_names, wavelength_ids, strict=True)
     ]
     acquisition_detail = AcquisitionDetails(
-        pixelsize=pixelsize_x,
+        xy_pixel_size=pixelsize_x,
         z_spacing=z_spacing,
         t_spacing=t_spacing,
         channels=channels,
         axes=axes,
-        start_x_coo="world",
-        length_x_coo="pixel",
-        start_y_coo="world",
-        length_y_coo="pixel",
-        start_z_coo="pixel",
-        length_z_coo="pixel",
-        start_t_coo="pixel",
-        length_t_coo="pixel",
+        start_x_space="world",
+        length_x_space="pixel",
+        start_y_space="world",
+        length_y_space="pixel",
+        start_z_space="pixel",
+        length_z_space="pixel",
+        start_t_space="pixel",
+        length_t_space="pixel",
         data_type=data_type,
     )
     # Update with advanced options

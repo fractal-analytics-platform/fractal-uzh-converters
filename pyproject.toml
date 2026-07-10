@@ -46,7 +46,7 @@ authors = [{ name = "Lorenzo Cerrone", email = "lorenzo.cerrone@uzh.ch" }]
 requires-python = ">=3.11,<3.15"
 
 dependencies = [
-    "ome-zarr-converters-tools>=0.10.4,<0.11.0",
+    "ome-zarr-converters-tools[s3]>=1.0.1,<2.0.0",
     "fractal-task-tools>=0.5.0,<0.6.0",
     "ngio>=0.5.8,<0.6.0",
     "fsspec",
@@ -155,7 +155,8 @@ platforms = ["win-64", "osx-arm64", "linux-64"]
 
 [tool.pixi.pypi-dependencies]
 fractal-uzh-converters = { path = ".", editable = true }
-# For local development, you can use the following line instead of the one above
+# Local editable dep: v1 is not on PyPI yet. Drop this once v1 is released and
+# rely on the [s3]>=1.0.0,<2.0.0 pin in [project.dependencies].
 # ome-zarr-converters-tools = { path = "../ome-zarr-converters-tools", editable = true }
 # ngio = { path = "../ngio", editable = true }
 

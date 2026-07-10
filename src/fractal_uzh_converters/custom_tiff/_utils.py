@@ -139,7 +139,7 @@ def _parse_tiff_metadata(path: Path) -> dict:
     """Parse metadata from a TIFF file.
 
     Returns a partial dict with any subset of:
-      pixelsize, z_spacing, t_spacing (floats, µm or s),
+      xy_pixel_size, z_spacing, t_spacing (floats, µm or s),
       length_x, length_y, length_z, length_t, length_c (ints, pixels).
 
     Raises ValueError if the TIFF series axes are not a canonical subsequence
@@ -192,7 +192,7 @@ def _parse_tiff_metadata(path: Path) -> dict:
                             if psx is not None:
                                 val = _convert_space_unit(float(psx), psx_unit)
                                 if val is not None and val > 0:
-                                    result["pixelsize"] = val
+                                    result["xy_pixel_size"] = val
 
                             psz = pixels.get("PhysicalSizeZ")
                             psz_unit = pixels.get("PhysicalSizeZUnit", "µm")
@@ -229,7 +229,7 @@ def _parse_tiff_metadata(path: Path) -> dict:
                             x = units / num_pixels
                             val = _convert_space_unit(x, unit)
                             if val is not None and val > 0:
-                                result["pixelsize"] = val
+                                result["xy_pixel_size"] = val
                 except Exception as exc:
                     logger.warning(
                         f"Could not parse ImageJ metadata from {path}: {exc}"
@@ -249,7 +249,9 @@ def _parse_tiff_metadata(path: Path) -> dict:
 #
 ######################################################################
 
-_ACQUISITION_DETAILS_SPACING_KEYS = frozenset({"pixelsize", "z_spacing", "t_spacing"})
+_ACQUISITION_DETAILS_SPACING_KEYS = frozenset(
+    {"xy_pixel_size", "z_spacing", "t_spacing"}
+)
 
 
 def _load_tiles_table(acq_path: str) -> pd.DataFrame:
@@ -309,7 +311,7 @@ def _load_acquisition_details(
     """Load acquisition details, merging TIFF defaults with TOML values.
 
     Priority (lowest to highest): TIFF metadata → TOML → user input (applied later).
-    Only spacing keys (pixelsize, z_spacing, t_spacing) are taken from tiff_defaults.
+    Only spacing keys (xy_pixel_size, z_spacing, t_spacing) taken from tiff_defaults.
     """
     spacing_defaults = {
         k: v
