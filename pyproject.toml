@@ -48,7 +48,7 @@ requires-python = ">=3.11,<3.15"
 dependencies = [
     "ome-zarr-converters-tools>=0.10.0,<0.11.0",
     "fractal-task-tools>=0.5.0,<0.6.0",
-    "ngio>=0.5.8,<0.6.0",
+    # "ngio>=0.5.8,<0.6.0",
     "fsspec",
     "zarrs",
     "tqdm",
@@ -158,6 +158,7 @@ fractal-uzh-converters = { path = ".", editable = true }
 # For local development, you can use the following line instead of the one above
 # ome-zarr-converters-tools = { path = "../ome-zarr-converters-tools", editable = true }
 # ngio = { path = "../ngio", editable = true }
+ngio = { git = "https://github.com/BioVisionCenter/ngio.git", branch="feat/configurable-retry" }
 
 [tool.pixi.environments]
 default = { solve-group = "default" }
