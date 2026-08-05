@@ -212,9 +212,16 @@ def _get_z_spacing(images: list[ImageMeasurementRecord]) -> float:
 
 
 def _is_time_series(images: list[ImageMeasurementRecord]) -> bool:
-    """Check if the images represent a time series."""
-    time_points = {img.time_point for img in images}
-    return len(time_points) > 1
+    """Check whether at least one well holds more than one time point.
+
+    `TimePoint` is a per-timeline counter, so distinct values across a plate do
+    not make it a time series; only more than one within a single output image
+    does. Evaluated plate-wide because `add_tile` requires uniform axes.
+    """
+    per_well: dict[tuple[int, int], set[int]] = {}
+    for img in images:
+        per_well.setdefault((img.row, img.column), set()).add(img.time_point)
+    return any(len(time_points) > 1 for time_points in per_well.values())
 
 
 def build_acquisition_details(
@@ -222,7 +229,13 @@ def build_acquisition_details(
     detail: MeasurementDetail,
     acquisition_model: CQ3KAcquisitionModel,
 ) -> AcquisitionDetails:
-    """Build AcquisitionDetails from CQ3K metadata."""
+    """Build AcquisitionDetails from CQ3K metadata.
+
+    Call this once per plate (i.e. per `z_image_processing` group) with all of
+    that plate's image records, never per field of view: `TiledImage.add_tile`
+    rejects tiles whose AcquisitionDetails differ, and several fields of view
+    merge into a single output image.
+    """
     if isinstance(detail.measurement_channel, list):
         first_channel = detail.measurement_channel[0]
     else:
@@ -268,6 +281,7 @@ def _build_tiles(
     data_dir: str,
     detail: MeasurementDetail,
     acquisition_model: CQ3KAcquisitionModel,
+    acquisition_details: AcquisitionDetails,
     row: str,
     column: int,
     fov_idx: int,
@@ -282,12 +296,6 @@ def _build_tiles(
 
     len_x = first_channel.horizontal_pixels
     len_y = first_channel.vertical_pixels
-
-    acquisition_details = build_acquisition_details(
-        images=images,
-        detail=detail,
-        acquisition_model=acquisition_model,
-    )
 
     # Get plate name, handling z_type suffix if needed
     plate_name = acquisition_model.normalized_plate_name
@@ -321,7 +329,7 @@ def _build_tiles(
             length_y=len_y,
             start_z=img.z_index - 1,  # Convert to 0-indexed
             length_z=1,
-            start_c=img.ch,
+            start_c=img.ch - 1,  # Convert to 0-indexed
             length_c=1,
             start_t=img.time_point - 1,  # Convert to 0-indexed
             length_t=1,
@@ -367,6 +375,8 @@ def parse_cq3k_metadata(
     plates_groups: dict[
         tuple[str | None, str, int, int], list[ImageMeasurementRecord]
     ] = {}
+    # ... and by z_type alone, since each z_type is written as its own plate
+    plates_records: dict[str | None, list[ImageMeasurementRecord]] = {}
 
     for record in data.measurement_record:
         if not isinstance(record, ImageMeasurementRecord):
@@ -383,6 +393,21 @@ def parse_cq3k_metadata(
             plates_groups[key] = []
         plates_groups[key].append(record)
 
+        if z_type not in plates_records:
+            plates_records[z_type] = []
+        plates_records[z_type].append(record)
+
+    # One AcquisitionDetails per plate: fields of view merge into a single output
+    # image, and `TiledImage.add_tile` rejects tiles whose details disagree.
+    plates_details = {
+        z_type: build_acquisition_details(
+            images=records,
+            detail=detail,
+            acquisition_model=acquisition_model,
+        )
+        for z_type, records in plates_records.items()
+    }
+
     # Build tiles for each group
     all_tiles = []
     for (z_type, row, column, fov_idx), images in plates_groups.items():
@@ -397,6 +422,7 @@ def parse_cq3k_metadata(
             data_dir=acquisition_dir,
             detail=detail,
             acquisition_model=acquisition_model,
+            acquisition_details=plates_details[z_type],
             row=row,
             column=column,
             fov_idx=fov_idx,

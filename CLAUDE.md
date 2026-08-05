@@ -32,3 +32,16 @@ can measure it). `--extended` tests need the git-ignored `tests/data-extended/`.
 ## Changelog
 
 Always update `CHANGELOG.md` (Features / Fix / API Breaking Changes / Chores / Documentation).
+
+**Keep entries synthetic — one line per change, two at most.** State what changed and,
+where it is not obvious, why. Leave out reproduction details, file inventories, error
+messages, per-dataset breakdowns and migration walkthroughs: those belong in the code
+comment, the test, the README or the PR description, not here. A reader scanning the
+changelog wants to know whether a change affects them, not how it was implemented.
+
+## Git
+
+**Do not commit or push. Ask first, every time.** Leave finished work in the working
+tree and say what is ready to be committed; the author decides when and how to stage it.
+This applies even when the task is clearly PR-shaped, when a plan or roadmap step names
+a branch, and when the work is verified and green. Creating a branch is fine.
