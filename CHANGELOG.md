@@ -10,6 +10,12 @@ Migration to `ome-zarr-converters-tools` v1.
   (and any other `*_coo` → `*_space`). Existing user `acquisition_details.toml` files must
   be updated. See `docs/converters/custom_tiff.md`.
 
+### Fix
+- Yokogawa (CQ3K, CellVoyager): channel indices are now 0-based, so an
+  `advanced.channels` override maps its first entry to `Ch1` instead of failing (#27).
+- Yokogawa (CQ3K, CellVoyager): build one `AcquisitionDetails` per plate instead of one
+  per field of view, so fields merged into a single image cannot disagree on it.
+
 ### Chores
 - Replace the Yokogawa CQ3K test data — both the in-repo fixture and the extended
   datasets — with BSSE-CQ3000 acquisitions; the previous data was not redistributable.
