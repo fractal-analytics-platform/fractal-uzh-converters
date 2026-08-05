@@ -92,25 +92,29 @@ data/fov2_z1.tif,A,1,FOV_2,1000.0,1000.0,1,0,0,64,64,1,1,1,DMSO
 
 This file is entirely optional. When present it provides global metadata that applies to all tiles in the acquisition. Any field can be overridden per-acquisition via the `Advanced` parameter (see [Acquisition Options](index.md#acquisition-options-advanced)).
 
-Spacing values (`pixelsize`, `z_spacing`, `t_spacing`) are automatically read from OME-TIFF or ImageJ TIFF metadata when the TIFF files contain them. Explicit values in this file take priority over auto-detected ones.
+Spacing values (`xy_pixel_size`, `z_spacing`, `t_spacing`) are automatically read from OME-TIFF or ImageJ TIFF metadata when the TIFF files contain them. Explicit values in this file take priority over auto-detected ones.
+
+> **Migration note (ome-zarr-converters-tools v1):** the keys `pixelsize`,
+> `start_z_coo` and `start_t_coo` were renamed to `xy_pixel_size`, `start_z_space`
+> and `start_t_space`. Update any existing `acquisition_details.toml` files accordingly.
 
 | Field | Type | Description |
 |---|---|---|
-| `pixelsize` | `float` | Physical pixel size in micrometers (XY). Auto-detected from OME `PhysicalSizeX` if absent. |
+| `xy_pixel_size` | `float` | Physical pixel size in micrometers (XY). Auto-detected from OME `PhysicalSizeX` if absent. |
 | `z_spacing` | `float` | Distance between Z planes in micrometers. Auto-detected from OME `PhysicalSizeZ` or ImageJ `spacing` if absent. |
 | `t_spacing` | `float` | Time interval between frames in seconds. Auto-detected from OME `TimeIncrement` if absent. |
-| `start_z_coo` | `str` | Coordinate system for `start_z` values in `tiles.csv`. Use `"pixel"` to treat them as integer Z indices; omit (or set to `"micrometer"`) to treat them as physical positions in µm. |
-| `start_t_coo` | `str` | Coordinate system for `start_t` values. Same values as `start_z_coo`. |
+| `start_z_space` | `str` | Coordinate system for `start_z` values in `tiles.csv`. Use `"pixel"` to treat them as integer Z indices; omit (or set to `"world"`) to treat them as physical positions in µm. |
+| `start_t_space` | `str` | Coordinate system for `start_t` values. Same values as `start_z_space`. |
 | `axes` | `str` | Override the axes string (e.g., `"czyx"`, `"tczyx"`). |
 | `[[channels]]` | array | List of channel definitions. Each entry has `channel_label` (display name) and optionally `wavelength_id` (e.g., `"405"`). |
 
 Example:
 
 ```toml
-pixelsize = 0.65
+xy_pixel_size = 0.65
 z_spacing = 5.0
-start_z_coo = "pixel"
-start_t_coo = "pixel"
+start_z_space = "pixel"
+start_t_space = "pixel"
 
 [[channels]]
 channel_label = "DAPI"

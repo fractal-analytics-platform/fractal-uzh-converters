@@ -242,19 +242,19 @@ def build_acquisition_details(
     axes = default_axes_builder(is_time_series=is_time_series)
 
     acquisition_detail = AcquisitionDetails(
-        pixelsize=pixelsize_x,
+        xy_pixel_size=pixelsize_x,
         z_spacing=z_spacing,
         t_spacing=1,
         channels=None,
         axes=axes,
-        start_x_coo="world",
-        length_x_coo="pixel",
-        start_y_coo="world",
-        length_y_coo="pixel",
-        start_z_coo="pixel",
-        length_z_coo="pixel",
-        start_t_coo="pixel",
-        length_t_coo="pixel",
+        start_x_space="world",
+        length_x_space="pixel",
+        start_y_space="world",
+        length_y_space="pixel",
+        start_z_space="pixel",
+        length_z_space="pixel",
+        start_t_space="pixel",
+        length_t_space="pixel",
     )
     # Update with advanced options
     acquisition_detail = acquisition_model.advanced.update_acquisition_details(

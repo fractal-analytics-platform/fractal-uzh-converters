@@ -185,7 +185,7 @@ class TestParseTiffMetadata:
             TimeIncrementUnit="s",
         )
         meta = _parse_tiff_metadata(path)
-        assert meta["pixelsize"] == pytest.approx(0.65)
+        assert meta["xy_pixel_size"] == pytest.approx(0.65)
         assert meta["z_spacing"] == pytest.approx(5.0)
         assert meta["t_spacing"] == pytest.approx(2.5)
 
@@ -199,7 +199,7 @@ class TestParseTiffMetadata:
             PhysicalSizeXUnit="nm",
         )
         meta = _parse_tiff_metadata(path)
-        assert meta["pixelsize"] == pytest.approx(0.5)
+        assert meta["xy_pixel_size"] == pytest.approx(0.5)
 
     def test_imagej_spacing(self, tmp_path):
         path = tmp_path / "imagej.tif"
@@ -213,7 +213,7 @@ class TestParseTiffMetadata:
         )
         meta = _parse_tiff_metadata(path)
         assert meta["z_spacing"] == pytest.approx(5.0)
-        assert meta["pixelsize"] == pytest.approx(0.65, rel=1e-4)
+        assert meta["xy_pixel_size"] == pytest.approx(0.65, rel=1e-4)
 
     def test_missing_file_returns_empty(self, tmp_path):
         meta = _parse_tiff_metadata(tmp_path / "nonexistent.tif")

@@ -1,6 +1,6 @@
-start_z_coo = "pixel"
-start_t_coo = "pixel"
-pixelsize = 0.65
+start_z_space = "pixel"
+start_t_space = "pixel"
+xy_pixel_size = 0.65
 z_spacing = 5.0
 
 [[channels]]

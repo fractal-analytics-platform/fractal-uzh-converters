@@ -1,5 +1,26 @@
 # Changelog
 
+## [Unreleased]
+
+Migration to `ome-zarr-converters-tools` v1.
+
+### API Breaking Changes
+- **CustomTiff `acquisition_details.toml` keys renamed** (follows the v1 field renames):
+  `pixelsize` → `xy_pixel_size`, `start_z_coo`/`start_t_coo` → `start_z_space`/`start_t_space`
+  (and any other `*_coo` → `*_space`). Existing user `acquisition_details.toml` files must
+  be updated. See `docs/converters/custom_tiff.md`.
+
+### Chores
+- Bump `ome-zarr-converters-tools` to `[s3]>=1.0.0,<2.0.0`. The `[s3]` extra is now
+  required: v1 makes `s3fs` optional, so it is pinned here to keep `s3://` inputs working
+  (it was previously pulled in transitively).
+- Adopt the v1 `AcquisitionDetails` renames in all builders: `pixelsize=` → `xy_pixel_size=`
+  and `start_*_coo=`/`length_*_coo=` → `*_space=` (values unchanged). Import `BackendType`
+  from the package root instead of the private `models._converter_options`.
+- Regenerate `__FRACTAL_MANIFEST__.json` against the v1 `AcquisitionOptions` schema (new
+  built-in filters, `grouping`/tiling split, `remove_*` stage corrections, scheduler
+  `mode`).
+
 ## [v0.7.2]
 
 ### Fix
