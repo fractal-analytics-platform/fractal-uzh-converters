@@ -70,7 +70,6 @@ class MeasurementRecordBase(Base):
     time: str
     column: int
     row: int
-    field_index: int
     time_point: int
     timeline_index: int
     x: float
@@ -82,6 +81,7 @@ class ImageMeasurementRecord(MeasurementRecordBase):
     """Image measurement record."""
 
     type: Literal["IMG"]
+    field_index: int
     z_index: int
     action_index: int
     action: str
@@ -377,6 +377,7 @@ def parse_cellvoyager_metadata(
 
     for record in records:
         if not isinstance(record, ImageMeasurementRecord):
+            logger.warning(f"Skipping the Error record: {record}")
             continue
 
         row = STANDARD_ROWS_NAMES[record.row - 1]
