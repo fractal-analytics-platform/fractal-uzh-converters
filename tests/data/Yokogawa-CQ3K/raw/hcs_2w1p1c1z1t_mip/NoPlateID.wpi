@@ -1,0 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<bts:WellPlate bts:Version="1.0" bts:Name="NoPlateID" bts:ProductID="10" bts:Usage="SamplePlate" bts:DensityUnit="uM" bts:Columns="12" bts:Rows="8" xmlns:bts="http://www.yokogawa.co.jp/BTS/BTSSchema/1.0">
+  <bts:Description></bts:Description>
+</bts:WellPlate>

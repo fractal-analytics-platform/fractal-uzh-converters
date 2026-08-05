@@ -10,17 +10,21 @@ SNAPSHOT_DIR = EXTENDED_DATA_DIR / "Yokogawa-CQ3K" / "snapshots"
 RAW_DIR = EXTENDED_DATA_DIR / "Yokogawa-CQ3K" / "raw"
 
 _DATASETS = [
-    "hcs_1w2p1c1z1t_TS_FP_SF_Centered",
-    "hcs_1w2p1c1z1t_TS_FP_SF_Grid",
-    "hcs_1w2p1c1z1t_TS_SP_Centered",
-    "hcs_1w2p1c1z1t_TS_SP_Grid",
-    "hcs_2w1p1c1z1t_Channel_MIP_Only",
-    "hcs_2w1p1c1z1t_Channel_MIP_SUM",
-    "hcs_2w1p1c3z1t_Channel_MIP_Slice",
-    "hcs_2w1p1c3z1t_Channel_MIP_Slice_2bin",
-    "hcs_2w1p1c3z1t_Channel_MIP_SUM_Slice",
-    "hcs_3w1p1c1z1t_Channel_MIP",
-    "hcs_3w2p8c1z1t_Channel",
+    "20251201T133446_Channel_Well_test",
+    "20251201T134617_Channel_WellTestC5F9_MIP_SUM",
+    "20251201T134728_Channel_WellTestC5F9_MIP_SUM_Slice",
+    "20251201T134840_Channel_WellTestC5F9_MIP_Only",
+    "20251201T134956_Channel_WellTestC5F9_MIP_Slice",
+    "20251201T135103_Channel_WellTestC5F9_MIP_Slice_2bin",
+    "20251201T135346_Channel_WellTestC5H12M19_MIP",
+    "20251201T140917_BVC_TS_Test_FP",
+    # "20251201T140949_BVC_TS_Test_SP_grid" cannot be converted today: its
+    # MeasurementData.mlf holds a single record, which xmltodict returns as a bare
+    # dict while `MeasurementData.measurement_record` is typed `list[...] | None`.
+    # Re-enable once the type is widened and normalised (see cellvoyager/_utils.py,
+    # which already does this).
+    "20251201T141350_BVC_TS_Test_SP_centered",
+    "20260617T083657_2026-06-17_mNgn3_dox_fractal_test",
 ]
 
 

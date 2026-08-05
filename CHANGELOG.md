@@ -11,6 +11,10 @@ Migration to `ome-zarr-converters-tools` v1.
   be updated. See `docs/converters/custom_tiff.md`.
 
 ### Chores
+- Replace the Yokogawa CQ3K test data — both the in-repo fixture and the extended
+  datasets — with BSSE-CQ3000 acquisitions; the previous data was not redistributable.
+  The new fixture also ships `.mes`, `.wpi` and `.wpp`.
+- Add an extended test suite for the Yokogawa CellVoyager converter.
 - Bump `ome-zarr-converters-tools` to `[s3]>=1.0.0,<2.0.0`. The `[s3]` extra is now
   required: v1 makes `s3fs` optional, so it is pinned here to keep `s3://` inputs working
   (it was previously pulled in transitively).
@@ -20,6 +24,10 @@ Migration to `ome-zarr-converters-tools` v1.
 - Regenerate `__FRACTAL_MANIFEST__.json` against the v1 `AcquisitionOptions` schema (new
   built-in filters, `grouping`/tiling split, `remove_*` stage corrections, scheduler
   `mode`).
+
+### Documentation
+- Fix `tests/data_intake_instructions.md` and `tests/cleanup_test_data.sh`: snapshots are
+  JSON, not YAML, and the extended-test template was outdated.
 
 ## [v0.7.2]
 
