@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -29,7 +29,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -1146,7 +1146,12 @@ at startup.</p>
 </code></pre></div>
 <h3 id="acquisition_detailstoml">acquisition_details.toml</h3>
 <p>This file is entirely optional. When present it provides global metadata that applies to all tiles in the acquisition. Any field can be overridden per-acquisition via the <code>Advanced</code> parameter (see <a href="../#acquisition-options-advanced">Acquisition Options</a>).</p>
-<p>Spacing values (<code>pixelsize</code>, <code>z_spacing</code>, <code>t_spacing</code>) are automatically read from OME-TIFF or ImageJ TIFF metadata when the TIFF files contain them. Explicit values in this file take priority over auto-detected ones.</p>
+<p>Spacing values (<code>xy_pixel_size</code>, <code>z_spacing</code>, <code>t_spacing</code>) are automatically read from OME-TIFF or ImageJ TIFF metadata when the TIFF files contain them. Explicit values in this file take priority over auto-detected ones.</p>
+<blockquote>
+<p><strong>Migration note (ome-zarr-converters-tools v1):</strong> the keys <code>pixelsize</code>,
+<code>start_z_coo</code> and <code>start_t_coo</code> were renamed to <code>xy_pixel_size</code>, <code>start_z_space</code>
+and <code>start_t_space</code>. Update any existing <code>acquisition_details.toml</code> files accordingly.</p>
+</blockquote>
 <table>
 <thead>
 <tr>
@@ -1157,7 +1162,7 @@ at startup.</p>
 </thead>
 <tbody>
 <tr>
-<td><code>pixelsize</code></td>
+<td><code>xy_pixel_size</code></td>
 <td><code>float</code></td>
 <td>Physical pixel size in micrometers (XY). Auto-detected from OME <code>PhysicalSizeX</code> if absent.</td>
 </tr>
@@ -1172,14 +1177,14 @@ at startup.</p>
 <td>Time interval between frames in seconds. Auto-detected from OME <code>TimeIncrement</code> if absent.</td>
 </tr>
 <tr>
-<td><code>start_z_coo</code></td>
+<td><code>start_z_space</code></td>
 <td><code>str</code></td>
-<td>Coordinate system for <code>start_z</code> values in <code>tiles.csv</code>. Use <code>"pixel"</code> to treat them as integer Z indices; omit (or set to <code>"micrometer"</code>) to treat them as physical positions in µm.</td>
+<td>Coordinate system for <code>start_z</code> values in <code>tiles.csv</code>. Use <code>"pixel"</code> to treat them as integer Z indices; omit (or set to <code>"world"</code>) to treat them as physical positions in µm.</td>
 </tr>
 <tr>
-<td><code>start_t_coo</code></td>
+<td><code>start_t_space</code></td>
 <td><code>str</code></td>
-<td>Coordinate system for <code>start_t</code> values. Same values as <code>start_z_coo</code>.</td>
+<td>Coordinate system for <code>start_t</code> values. Same values as <code>start_z_space</code>.</td>
 </tr>
 <tr>
 <td><code>axes</code></td>
@@ -1194,10 +1199,10 @@ at startup.</p>
 </tbody>
 </table>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">pixelsize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.65</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">xy_pixel_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.65</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">z_spacing</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">5.0</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">start_z_coo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;pixel&quot;</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">start_t_coo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;pixel&quot;</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">start_z_space</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;pixel&quot;</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">start_t_space</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;pixel&quot;</span>
 <a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
 <a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="k">[[channels]]</span>
 <a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="n">channel_label</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;DAPI&quot;</span>
@@ -1536,7 +1541,7 @@ at startup.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.tooltips", "content.tabs.link", "content.code.annotate", "content.code.copy", "navigation.instant", "navigation.instant.progress", "navigation.sections", "navigation.footer", "toc.follow", "search.suggest"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
