@@ -14,7 +14,6 @@ several fields of view merge into a single output image.
 from pathlib import Path
 
 import pytest
-from ome_zarr_converters_tools.testing import build_snapshot
 
 from fractal_uzh_converters.cellvoyager import _utils as cellvoyager_utils
 from fractal_uzh_converters.cellvoyager import convert_cellvoyager
@@ -29,9 +28,7 @@ from fractal_uzh_converters.cq3k._utils import (
     parse_cq3k_metadata,
 )
 
-from .utils import DATA_DIR
-
-EXTENDED_DATA_DIR = Path(__file__).parent / "data-extended"
+from .utils import DATA_DIR, EXTENDED_DATA_DIR, channel_metadata
 
 CQ3K_RAW_DIR = DATA_DIR / "Yokogawa-CQ3K" / "raw"
 CELLVOYAGER_RAW_DIR = DATA_DIR / "Yokogawa-CellVoyager" / "raw"
@@ -41,20 +38,6 @@ CELLVOYAGER_EXTENDED_RAW_DIR = EXTENDED_DATA_DIR / "Yokogawa-CellVoyager" / "raw
 # Both in-repo fixtures acquire a single channel (Ch1), so a one-entry override
 # is full length and maps to `start_c == 0`.
 _SINGLE_CHANNEL_OVERRIDE = [{"channel_label": "DAPI", "wavelength_id": "A01_C01"}]
-
-
-def _channel_metadata(zarr_dir: Path, image_list_updates: list[dict]):
-    """Return `{image_path: (channel_labels, wavelength_ids)}` for a plate run."""
-    snapshot = build_snapshot(
-        zarr_dir=zarr_dir,
-        image_list_updates=image_list_updates,
-        output_type="plate",
-    )
-    return {
-        image_path: (image.channel_labels, image.wavelength_ids)
-        for plate in snapshot.plates.values()
-        for image_path, image in plate.images.items()
-    }
 
 
 def _count_acquisition_details_calls(monkeypatch, module) -> list:
@@ -87,7 +70,7 @@ def test_cq3k_channel_override(tmp_path: Path, converter_options):
         converter_options=converter_options,
     )
 
-    channels = _channel_metadata(zarr_dir, image_list_updates)
+    channels = channel_metadata(zarr_dir, image_list_updates)
     assert channels
     for labels, wavelength_ids in channels.values():
         assert labels == ["DAPI"]
@@ -112,7 +95,7 @@ def test_cellvoyager_channel_override(tmp_path: Path, converter_options):
         converter_options=converter_options,
     )
 
-    channels = _channel_metadata(zarr_dir, image_list_updates)
+    channels = channel_metadata(zarr_dir, image_list_updates)
     assert channels
     for labels, wavelength_ids in channels.values():
         assert labels == ["DAPI"]

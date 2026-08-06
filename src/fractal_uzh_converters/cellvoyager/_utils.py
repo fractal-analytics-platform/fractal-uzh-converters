@@ -8,6 +8,7 @@ import xmltodict
 from ome_zarr_converters_tools import (
     AcquisitionDetails,
     AttributeType,
+    ChannelInfo,
     ConverterOptions,
     DefaultImageLoader,
     ImageInPlate,
@@ -24,7 +25,11 @@ from pydantic.alias_generators import to_pascal
 from fractal_uzh_converters.common import (
     STANDARD_ROWS_NAMES,
     HCSBaseAcquisitionModel,
+    apply_channel_overrides,
     get_attributes_from_condition_table,
+    max_acquired_channel,
+    read_mes_channels,
+    resolve_channels,
 )
 
 logger = logging.getLogger(__name__)
@@ -224,6 +229,16 @@ def _is_time_series(images: list[ImageMeasurementRecord]) -> bool:
     return any(len(time_points) > 1 for time_points in per_well.values())
 
 
+def _measurement_channels(detail: MeasurementDetail) -> list[MeasurementChannel]:
+    """The `.mrf` channel entries, normalised to a list.
+
+    `xmltodict` collapses a lone `<bts:MeasurementChannel>` to a bare dict.
+    """
+    if isinstance(detail.measurement_channel, list):
+        return detail.measurement_channel
+    return [detail.measurement_channel]
+
+
 def _replace_extension(filename: str, new_extension: str) -> str:
     """Replace the .tif extension in the metadata with the actual extension."""
     if filename.endswith(".tif"):
@@ -235,17 +250,24 @@ def build_acquisition_details(
     images: list[ImageMeasurementRecord],
     detail: MeasurementDetail,
     acquisition_model: CellVoyagerAcquisitionModel,
+    channels: list[ChannelInfo],
+    max_acquired_ch: int,
 ) -> AcquisitionDetails:
     """Build AcquisitionDetails from CellVoyager metadata.
 
     Call this once per acquisition with all of its image records, never per
     field of view: `TiledImage.add_tile` rejects tiles whose AcquisitionDetails
     differ, and several fields of view merge into a single output image.
+
+    Args:
+        images: All image records of the acquisition.
+        detail: The parsed `.mrf`.
+        acquisition_model: The acquisition input model.
+        channels: One entry per instrument channel slot, from `resolve_channels`.
+        max_acquired_ch: Highest `bts:Ch` the acquisition actually acquired, used
+            to reject an `advanced.channels` override that is too short.
     """
-    if isinstance(detail.measurement_channel, list):
-        first_channel = detail.measurement_channel[0]
-    else:
-        first_channel = detail.measurement_channel
+    first_channel = _measurement_channels(detail)[0]
 
     pixelsize_x = first_channel.horizontal_pixel_dimension
     pixelsize_y = first_channel.vertical_pixel_dimension
@@ -264,7 +286,7 @@ def build_acquisition_details(
         xy_pixel_size=pixelsize_x,
         z_spacing=z_spacing,
         t_spacing=1,
-        channels=None,
+        channels=channels,
         axes=axes,
         start_x_space="world",
         length_x_space="pixel",
@@ -277,6 +299,15 @@ def build_acquisition_details(
     )
     acquisition_detail = acquisition_model.advanced.update_acquisition_details(
         acquisition_details=acquisition_detail
+    )
+    # `update_acquisition_details` replaces `channels` wholesale with the user's
+    # list, dropping the `.mes` colours and any slot the list is too short to
+    # cover. Merge it back onto the resolved channels instead, so the list stays
+    # indexed by `bts:Ch - 1`.
+    acquisition_detail.channels = apply_channel_overrides(
+        resolved=channels,
+        overrides=acquisition_model.advanced.channels,
+        max_acquired_ch=max_acquired_ch,
     )
     return acquisition_detail
 
@@ -293,10 +324,7 @@ def _build_tiles(
     attributes: dict[str, AttributeType],
 ) -> list[Tile]:
     """Build individual Tile objects for each image record."""
-    if isinstance(detail.measurement_channel, list):
-        first_channel = detail.measurement_channel[0]
-    else:
-        first_channel = detail.measurement_channel
+    first_channel = _measurement_channels(detail)[0]
 
     len_x = first_channel.horizontal_pixels
     len_y = first_channel.vertical_pixels
@@ -399,6 +427,21 @@ def parse_cellvoyager_metadata(
         groups[key].append(record)
         image_records.append(record)
 
+    # Channel metadata comes from the `.mes` protocol file, whose basename is
+    # recorded in the `.mrf`. The resolved list spans the full instrument channel
+    # range so that element `i` is `bts:Ch i + 1`, matching `start_c = ch - 1`;
+    # slots this acquisition never used are pruned per image at compute time.
+    mes_channels = read_mes_channels(
+        acquisition_dir=acquisition_dir,
+        mes_file_name=detail.measurement_setting_file_name,
+    )
+    acquired = [(img.action_index, img.ch) for img in image_records]
+    channels = resolve_channels(
+        mes_channels=mes_channels,
+        acquired=acquired,
+        mrf_channel_count=len(_measurement_channels(detail)),
+    )
+
     # One AcquisitionDetails for the whole acquisition (a single plate): fields
     # of view merge into a single output image, and `TiledImage.add_tile`
     # rejects tiles whose details disagree.
@@ -406,6 +449,8 @@ def parse_cellvoyager_metadata(
         images=image_records,
         detail=detail,
         acquisition_model=acquisition_model,
+        channels=channels,
+        max_acquired_ch=max_acquired_channel(acquired),
     )
 
     # Build tiles for each group
