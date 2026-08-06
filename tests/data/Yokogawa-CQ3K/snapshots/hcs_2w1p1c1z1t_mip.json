@@ -1,7 +1,7 @@
 {
   "versions": {
     "python": "3.14.6",
-    "ome-zarr-converters-tools": "1.0.1",
+    "ome-zarr-converters-tools": "1.0.2",
     "ngio": "0.5.12",
     "zarr": "3.2.1",
     "numpy": "2.5.0",
@@ -37,10 +37,10 @@
             0.3228369921525777
           ],
           "channel_labels": [
-            "channel_0"
+            "Ch1_ConfocalFluorescence_405nm/100mW_BP447/60"
           ],
           "wavelength_ids": [
-            "channel_0"
+            "A01_C01"
           ],
           "types": {
             "is_3D": false
@@ -88,10 +88,10 @@
             0.3228369921525777
           ],
           "channel_labels": [
-            "channel_0"
+            "Ch1_ConfocalFluorescence_405nm/100mW_BP447/60"
           ],
           "wavelength_ids": [
-            "channel_0"
+            "A01_C01"
           ],
           "types": {
             "is_3D": false

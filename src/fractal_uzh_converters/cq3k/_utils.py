@@ -8,6 +8,7 @@ import xmltodict
 from ome_zarr_converters_tools import (
     AcquisitionDetails,
     AttributeType,
+    ChannelInfo,
     ConverterOptions,
     DefaultImageLoader,
     ImageInPlate,
@@ -24,7 +25,11 @@ from pydantic.alias_generators import to_pascal
 from fractal_uzh_converters.common import (
     STANDARD_ROWS_NAMES,
     HCSBaseAcquisitionModel,
+    apply_channel_overrides,
     get_attributes_from_condition_table,
+    max_acquired_channel,
+    read_mes_channels,
+    resolve_channels,
 )
 
 logger = logging.getLogger(__name__)
@@ -200,6 +205,16 @@ def _load_models(path: str) -> tuple[MeasurementData, MeasurementDetail]:
 ######################################################################
 
 
+def _measurement_channels(detail: MeasurementDetail) -> list[MeasurementChannel]:
+    """The `.mrf` channel entries, normalised to a list.
+
+    `xmltodict` collapses a lone `<bts:MeasurementChannel>` to a bare dict.
+    """
+    if isinstance(detail.measurement_channel, list):
+        return detail.measurement_channel
+    return [detail.measurement_channel]
+
+
 def _get_z_spacing(images: list[ImageMeasurementRecord]) -> float:
     """Calculate z spacing from image records."""
     z_positions = sorted({img.z for img in images})
@@ -228,6 +243,8 @@ def build_acquisition_details(
     images: list[ImageMeasurementRecord],
     detail: MeasurementDetail,
     acquisition_model: CQ3KAcquisitionModel,
+    channels: list[ChannelInfo],
+    max_acquired_ch: int,
 ) -> AcquisitionDetails:
     """Build AcquisitionDetails from CQ3K metadata.
 
@@ -235,11 +252,19 @@ def build_acquisition_details(
     that plate's image records, never per field of view: `TiledImage.add_tile`
     rejects tiles whose AcquisitionDetails differ, and several fields of view
     merge into a single output image.
+
+    Args:
+        images: The image records of this plate.
+        detail: The parsed `.mrf`.
+        acquisition_model: The acquisition input model.
+        channels: One entry per instrument channel slot, from `resolve_channels`.
+            Resolved once for the whole acquisition and shared by every plate, so
+            that a channel keeps the same label across the raw and the projection
+            plates.
+        max_acquired_ch: Highest `bts:Ch` the acquisition actually acquired, used
+            to reject an `advanced.channels` override that is too short.
     """
-    if isinstance(detail.measurement_channel, list):
-        first_channel = detail.measurement_channel[0]
-    else:
-        first_channel = detail.measurement_channel
+    first_channel = _measurement_channels(detail)[0]
 
     pixelsize_x = first_channel.horizontal_pixel_dimension
     pixelsize_y = first_channel.vertical_pixel_dimension
@@ -258,7 +283,7 @@ def build_acquisition_details(
         xy_pixel_size=pixelsize_x,
         z_spacing=z_spacing,
         t_spacing=1,
-        channels=None,
+        channels=channels,
         axes=axes,
         start_x_space="world",
         length_x_space="pixel",
@@ -272,6 +297,15 @@ def build_acquisition_details(
     # Update with advanced options
     acquisition_detail = acquisition_model.advanced.update_acquisition_details(
         acquisition_details=acquisition_detail
+    )
+    # `update_acquisition_details` replaces `channels` wholesale with the user's
+    # list, dropping the `.mes` colours and any slot the list is too short to
+    # cover. Merge it back onto the resolved channels instead, so the list stays
+    # indexed by `bts:Ch - 1`.
+    acquisition_detail.channels = apply_channel_overrides(
+        resolved=channels,
+        overrides=acquisition_model.advanced.channels,
+        max_acquired_ch=max_acquired_ch,
     )
     return acquisition_detail
 
@@ -289,10 +323,7 @@ def _build_tiles(
     attributes: dict[str, AttributeType],
 ) -> list[Tile]:
     """Build individual Tile objects for each image record."""
-    if isinstance(detail.measurement_channel, list):
-        first_channel = detail.measurement_channel[0]
-    else:
-        first_channel = detail.measurement_channel
+    first_channel = _measurement_channels(detail)[0]
 
     len_x = first_channel.horizontal_pixels
     len_y = first_channel.vertical_pixels
@@ -377,11 +408,14 @@ def parse_cq3k_metadata(
     ] = {}
     # ... and by z_type alone, since each z_type is written as its own plate
     plates_records: dict[str | None, list[ImageMeasurementRecord]] = {}
+    # ... and flat, for the acquisition-wide channel resolution below
+    image_records: list[ImageMeasurementRecord] = []
 
     for record in data.measurement_record:
         if not isinstance(record, ImageMeasurementRecord):
             continue
 
+        image_records.append(record)
         z_type = record.z_image_processing
         row = STANDARD_ROWS_NAMES[record.row - 1]
         column = record.column
@@ -397,6 +431,27 @@ def parse_cq3k_metadata(
             plates_records[z_type] = []
         plates_records[z_type].append(record)
 
+    # Channel metadata comes from the `.mes` protocol file, whose basename is
+    # recorded in the `.mrf`. Resolved once for the whole acquisition, not per
+    # plate: the projection plates share one `.mes`, and a channel must keep the
+    # same label across the raw and the projection plates. The resolved list
+    # spans the full instrument channel range so that element `i` is
+    # `bts:Ch i + 1`, matching `start_c = ch - 1`; slots this acquisition never
+    # used are pruned per image at compute time.
+    mes_channels = read_mes_channels(
+        acquisition_dir=acquisition_dir,
+        mes_file_name=detail.measurement_setting_file_name,
+    )
+    acquired = [(img.action_index, img.ch) for img in image_records]
+    channels = resolve_channels(
+        mes_channels=mes_channels,
+        acquired=acquired,
+        mrf_channel_count=len(_measurement_channels(detail)),
+    )
+    # Acquisition-wide as well, so that a too-short `advanced.channels` list
+    # fails identically on every plate of the acquisition.
+    max_acquired_ch = max_acquired_channel(acquired)
+
     # One AcquisitionDetails per plate: fields of view merge into a single output
     # image, and `TiledImage.add_tile` rejects tiles whose details disagree.
     plates_details = {
@@ -404,6 +459,8 @@ def parse_cq3k_metadata(
             images=records,
             detail=detail,
             acquisition_model=acquisition_model,
+            channels=channels,
+            max_acquired_ch=max_acquired_ch,
         )
         for z_type, records in plates_records.items()
     }

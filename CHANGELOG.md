@@ -4,7 +4,15 @@
 
 Migration to `ome-zarr-converters-tools` v1.
 
+### Features
+- Yokogawa (CQ3K, CellVoyager): channel labels, wavelength ids (`A{action}_C{channel}`) and
+  colours are now read from the acquisition's `.mes` protocol file (#27).
+
 ### API Breaking Changes
+- **Yokogawa default channel labels are no longer `channel_N`** but the `.mes` channel
+  target, falling back to the wavelength id when no `.mes` is available. With
+  `reindex_channels` disabled, instrument channels the acquisition did not use are now
+  written as empty planes.
 - **CustomTiff `acquisition_details.toml` keys renamed** (follows the v1 field renames):
   `pixelsize` → `xy_pixel_size`, `start_z_coo`/`start_t_coo` → `start_z_space`/`start_t_space`
   (and any other `*_coo` → `*_space`). Existing user `acquisition_details.toml` files must
@@ -17,8 +25,6 @@ Migration to `ome-zarr-converters-tools` v1.
   per field of view, so fields merged into a single image cannot disagree on it.
 
 ### Chores
-- Add a shared Yokogawa `.mes` reader and channel resolver (`common/_yokogawa.py`),
-  not yet wired into the converters.
 - Bump `ome-zarr-converters-tools` to `>=1.0.2` for its channel-metadata compaction fix,
   and drop the `ngff_version=` argument it deprecates from every init task.
 - Replace the Yokogawa CQ3K test data — both the in-repo fixture and the extended
