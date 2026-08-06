@@ -15,7 +15,7 @@ asserting an end-to-end result.
 from pathlib import Path
 
 import pytest
-from ome_zarr_converters_tools import ChannelInfo, ChannelInfoUI
+from ome_zarr_converters_tools import ChannelInfo, ChannelInfoUI, join_url_paths
 
 from fractal_uzh_converters.common._yokogawa import (
     MesChannel,
@@ -176,9 +176,10 @@ class TestReadMesChannels:
         assert "no channel list" in caplog.text
 
     def test_malformed_xml_raises(self, tmp_path: Path):
+        """A broken `.mes` is a real error, unlike an absent one."""
         path = tmp_path / "broken.mes"
         path.write_text("<bts:MeasurementSetting>", encoding="utf-8")
-        with pytest.raises(Exception, match="."):
+        with pytest.raises(ExpatError, match="no element found"):
             parse_mes(str(path))
 
     def test_missing_version_attribute_is_accepted(self, tmp_path: Path):
@@ -420,7 +421,9 @@ class TestResolveChannels:
         """Reads go through `filesystem_for_url`, so `s3://` inputs keep working.
 
         The library only resolves local and `s3://` URLs, so this asserts the
-        call rather than exercising a second backend.
+        call rather than exercising a second backend. The expected URL comes from
+        `join_url_paths`, which normalises to forward slashes — on Windows that
+        differs from `str(tmp_path / name)`.
         """
         from fractal_uzh_converters.common import _yokogawa
 
@@ -433,17 +436,17 @@ class TestResolveChannels:
 
         monkeypatch.setattr(_yokogawa, "filesystem_for_url", _spy)
 
-        url = _write_mes(
-            tmp_path,
-            _channel_list(
-                '<bts:Channel bts:Ch="1" bts:Target="405" bts:Color="#FF002FFF" />'
-            ),
-        )
-        channels = read_mes_channels(
-            acquisition_dir=str(tmp_path), mes_file_name=Path(url).name
-        )
+        name = Path(
+            _write_mes(
+                tmp_path,
+                _channel_list(
+                    '<bts:Channel bts:Ch="1" bts:Target="405" bts:Color="#FF002FFF" />'
+                ),
+            )
+        ).name
+        channels = read_mes_channels(acquisition_dir=str(tmp_path), mes_file_name=name)
 
-        assert urls == [url]
+        assert urls == [join_url_paths(str(tmp_path), name)]
         assert channels == [MesChannel(ch=1, target="405", color="#FF002FFF")]
 
 
