@@ -56,7 +56,6 @@ def convert_operetta_init_task(
         converter_options=converter_options,
         collection_type="ImageInPlate",
         overwrite_mode=overwrite,
-        ngff_version=converter_options.omezarr_options.ngff_version,
     )
     logger.info(
         f"Prepared parallelization list with {len(parallelization_list)} items."
