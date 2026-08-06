@@ -13,6 +13,7 @@ asserting an end-to-end result.
 """
 
 from pathlib import Path
+from xml.parsers.expat import ExpatError
 
 import pytest
 from ome_zarr_converters_tools import ChannelInfo, ChannelInfoUI, join_url_paths
@@ -175,11 +176,21 @@ class TestReadMesChannels:
             )
         assert "no channel list" in caplog.text
 
-    def test_malformed_xml_raises(self, tmp_path: Path):
+    def test_truncated_xml_raises(self, tmp_path: Path):
         """A broken `.mes` is a real error, unlike an absent one."""
         path = tmp_path / "broken.mes"
-        path.write_text("<bts:MeasurementSetting>", encoding="utf-8")
+        path.write_text(
+            '<bts:MeasurementSetting xmlns:bts="'
+            'http://www.yokogawa.co.jp/BTS/BTSSchema/1.0">',
+            encoding="utf-8",
+        )
         with pytest.raises(ExpatError, match="no element found"):
+            parse_mes(str(path))
+
+    def test_undeclared_namespace_raises(self, tmp_path: Path):
+        path = tmp_path / "broken.mes"
+        path.write_text("<bts:MeasurementSetting />", encoding="utf-8")
+        with pytest.raises(ExpatError, match="unbound prefix"):
             parse_mes(str(path))
 
     def test_missing_version_attribute_is_accepted(self, tmp_path: Path):
