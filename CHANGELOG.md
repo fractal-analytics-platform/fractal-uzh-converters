@@ -17,6 +17,10 @@ Migration to `ome-zarr-converters-tools` v1.
   per field of view, so fields merged into a single image cannot disagree on it.
 
 ### Chores
+- Add a shared Yokogawa `.mes` reader and channel resolver (`common/_yokogawa.py`),
+  not yet wired into the converters.
+- Bump `ome-zarr-converters-tools` to `>=1.0.2` for its channel-metadata compaction fix,
+  and drop the `ngff_version=` argument it deprecates from every init task.
 - Replace the Yokogawa CQ3K test data — both the in-repo fixture and the extended
   datasets — with BSSE-CQ3000 acquisitions; the previous data was not redistributable.
   The new fixture also ships `.mes`, `.wpi` and `.wpp`.
