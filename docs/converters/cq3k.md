@@ -6,8 +6,9 @@ The CQ3K converter expects an acquisition directory containing the measurement m
 
 ```
 my_acquisition/
-├── MeasurementData.mlf      # Image measurement records (required)
-├── MeasurementDetail.mrf    # Acquisition details and channel info (required)
+├── MeasurementData.mlf         # Image measurement records (required)
+├── MeasurementDetail.mrf       # Acquisition details and channel info (required)
+├── MeasurementProtocol.mes     # Acquisition protocol (optional, see Channels)
 └── <subdirectories>/
     ├── image_001.tif
     ├── image_002.tif
@@ -19,21 +20,94 @@ The TIFF file paths are referenced inside `MeasurementData.mlf` and can be in su
 
 ## Metadata
 
-The converter parses two XML files:
+The converter parses up to three XML files:
 
 - **`MeasurementData.mlf`** — Contains one record per acquired image tile, including well position (row, column), field index, channel, Z-index, timepoint, stage coordinates (X, Y, Z), and the relative path to the TIFF file.
 - **`MeasurementDetail.mrf`** — Contains acquisition-level metadata: pixel dimensions, number of channels, rows/columns/fields/Z-planes/timepoints, and channel details (pixel size, bit depth).
+- **the `.mes` protocol file** — Contains the channel definitions. Its filename varies per acquisition and is read out of the `.mrf`, so it is not always called `MeasurementProtocol.mes`. Optional; see [Channels](#channels).
 
 ## Z-Image Processing
 
-Some CQ3K acquisitions produce multiple image types per Z-stack (e.g., `focus`, `maximum_projection`). The converter groups these into separate plates automatically, using the `z_image_processing` value as a suffix on the plate name.
+A CQ3K acquisition can write projections alongside — or instead of — the raw Z slices. Each projection algorithm carries its own channel numbers, so the converter writes one plate per algorithm, suffixing the plate name:
 
-For example, an acquisition named `MyPlate` with two Z-processing types will produce:
+| `ZImageProcessing` | Plate suffix |
+|---|---|
+| *(absent — raw Z slices)* | *(none)* |
+| `Maximum` | `_MIP` |
+| `Minimum` | `_MinIP` |
+| `Sum` | `_SIP` |
 
-- `MyPlate_focus.zarr`
-- `MyPlate_maximum_projection.zarr`
+Any other value is used verbatim as the suffix, with a warning.
 
-If no Z-image processing is present, a single plate is created without any suffix.
+The suffixed plates coexist with the unsuffixed one. An acquisition named `MyPlate` that stores raw slices plus a maximum and a minimum projection produces:
+
+- `MyPlate.zarr` — the raw Z slices
+- `MyPlate_MIP.zarr`
+- `MyPlate_MinIP.zarr`
+
+The split follows the acquisition, not the channel set: an acquisition that max-projects its fluorescence channels and min-projects a brightfield channel yields a `_MIP` plate and a `_MinIP` plate, each holding only its own channels.
+
+Channel labels do **not** carry the algorithm — it is already in the plate name — so a channel keeps the same label across the raw and the projection plates.
+
+### Converting only some of them
+
+`Advanced` → `Z Processing` selects which of these plates are written. Leave it unset — the default — to convert every kind the acquisition contains. Otherwise it is one switch per kind:
+
+| Switch | Default | Selects |
+|---|---|---|
+| `Z slices` | on | the unsuffixed raw-stack plate |
+| `MIP` | off | `_MIP` |
+| `MinIP` | off | `_MinIP` |
+| `SIP` | off | `_SIP` |
+
+Note that `Z slices` is the only one on by default, so enabling a projection *adds* to the raw stack rather than replacing it:
+
+```python
+advanced={"z_processing": {"mip": True}}                     # Z slices + MIP
+advanced={"z_processing": {"z_slices": False, "mip": True}}  # MIP only
+advanced={"z_processing": {}}                                # Z slices only
+```
+
+| Selection | Result |
+|---|---|
+| unset | Every kind the acquisition contains. |
+| nothing enabled | An error — enable something, or leave the option unset. |
+| all enabled kinds present | Exactly those. |
+| some enabled kinds absent | The ones that matched, plus a warning naming the rest. One selection stays usable across a batch of mixed acquisitions. |
+| no enabled kind present | An error naming what the acquisition actually contains. |
+
+A `ZImageProcessing` value outside the four above cannot be named here. To single one out, use a `Path Regex Filter` on the plate name instead:
+
+```python
+advanced={"filters": [
+    {"name": "Path Regex Filter", "mode": "Exclude", "regex": r"_Median\.zarr"}
+]}
+```
+
+## Channels
+
+Channel labels, display colours and wavelength ids come from the acquisition's `.mes` protocol file, whose filename is recorded in the `.mrf`. The label is the channel's `Target` (e.g. `405`, `DAPI`), and the wavelength id is `A{action}_C{channel}` — for example `A01_C04`. When no `.mes` is available the label falls back to the wavelength id.
+
+To override them, fill in `Advanced` → `Channels`. **The list is ordered by the instrument's channel number**: element 0 is `Ch1`, element 1 is `Ch2`, and so on across the full channel range the protocol declares — it is *not* a dense list of the channels you can see in the output.
+
+That distinction matters whenever an acquisition uses a subset of the instrument's channels:
+
+> A 5-channel instrument, where one well acquires only `Ch1` and another only `Ch4`. The override still needs **four** entries, and it is elements 0 and 3 that end up on the two wells. A 2-entry list — one per channel actually visible — is rejected.
+
+The list must have at least as many entries as the highest channel number the acquisition uses. If it is too short the conversion fails with an error naming the number required, so running once and reading the error is the quickest way to find it. Beyond that:
+
+- Extra entries are discarded.
+- Entries past the end of your list keep their `.mes` metadata.
+- Leaving `Wavelength ID` empty keeps the computed `A{action}_C{channel}`.
+- Leaving the colour on `Auto` keeps the colour from the `.mes`.
+
+### With projection plates
+
+One list covers the **whole acquisition**, every plate included, and it is numbered in the acquisition-wide channel space — not per plate. Because each [projection algorithm](#z-image-processing) carries its own channel numbers, the entries are split across plates rather than repeated in each.
+
+> An acquisition that min-projects `Ch1` and max-projects `Ch2`–`Ch5` needs one 5-entry list. Element 0 surfaces in `MyPlate_MinIP.zarr`; elements 1–4 surface in `MyPlate_MIP.zarr`.
+
+So do not write a separate list per plate, and do not size the list by the channels visible in one plate. Selecting a single plate with `Z Processing` does relax the requirement to that plate's own channels.
 
 ## Task Parameters
 
@@ -44,7 +118,7 @@ The CQ3K init task uses the base acquisition parameters with no additional field
 | `Path` | `str` | *required* | Path to the CQ3K acquisition directory. |
 | `Plate Name` | `str` or `null` | `null` | Custom plate name. Defaults to the directory name. |
 | `Acquisition Id` | `int` | `0` | Acquisition identifier for multi-acquisition plates. |
-| `Advanced` | `AcquisitionOptions` | `{}` | Advanced options (condition table, overrides). |
+| `Advanced` | `CQ3KAcquisitionOptions` | `{}` | Advanced options (condition table, [channel overrides](#channels), [`Z Processing`](#converting-only-some-of-them), filters). |
 
 ## Python API
 

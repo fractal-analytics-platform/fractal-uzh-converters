@@ -49,7 +49,7 @@ The `Advanced` field on each acquisition allows per-acquisition overrides and fi
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `Condition Table Path` | `str` or `null` | `null` | Absolute path to a [condition table](../condition_tables.md) CSV file. |
-| `Channels` | `list[ChannelInfo]` or `null` | `null` | Override channel names and colors. |
+| `Channels` | `list[ChannelInfoUI]` or `null` | `null` | Override channel names, wavelength ids and colors. The list is positional, and how it is indexed depends on the converter — see the [CQ3K](cq3k.md#channels) and [CellVoyager](cellvoyager.md#channels) pages, where it is indexed by the instrument channel number rather than by the channels present in the output. |
 | `Pixel Size Information` | `PixelSizeModel` or `null` | `null` | Override pixel size (`Pixelsize`, `Z Spacing`, `T Spacing` in micrometers). |
 | `Axes` | `str` or `null` | `null` | Override axes string (e.g., `"czyx"`). |
 | `Data Type` | `str` or `null` | `null` | Override data type: `uint8`, `uint16`, or `uint32`. |

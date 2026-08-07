@@ -2321,7 +2321,7 @@
         "CellVoyager",
         "Plate converter"
       ],
-      "docs_info": "### Purpose\n\n- Convert images acquired with a Yokogawa CellVoyager microscope to an OME-Zarr Plate.\n\n### Outputs\n\n- An OME-Zarr Plate.\n\n### Limitations\n\n- This task has been tested on a limited set of acquisitions. It may not work on all Yokogawa CellVoyager acquisitions.\n- Unlike the CQ3K converter, this task does not support Z-image processing types (e.g., `focus`, `maximum_projection`).\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\nmy_acquisition/\n\u251c\u2500\u2500 MeasurementData.mlf      # Image measurement records (required)\n\u251c\u2500\u2500 MeasurementDetail.mrf    # Acquisition details and channel info (required)\n\u251c\u2500\u2500 image_001.png\n\u2514\u2500\u2500 ...\n```\n\nThe image file paths are referenced inside `MeasurementData.mlf` (with `.tif` extension) and can be in subdirectories relative to the acquisition directory. The actual files may use `.png` or `.tif` extension \u2014 select the matching extension via the `image_extension` parameter.\n",
+      "docs_info": "### Purpose\n\n- Convert images acquired with a Yokogawa CellVoyager microscope to an OME-Zarr Plate.\n\n### Outputs\n\n- An OME-Zarr Plate.\n\n### Channels\n\n- Channel labels, colors and wavelength ids (`A{action}_C{channel}`) are read from the acquisition's `.mes` protocol file, whose name is recorded in the `.mrf`. Without a `.mes`, the label is the wavelength id.\n- To override them, `Advanced` \u2192 `Channels` is ordered by the **instrument channel number**: element 0 is `Ch1`, element 1 is `Ch2`, over the full range the protocol declares \u2014 not one entry per channel visible in the output. It must be at least as long as the highest channel the acquisition uses; the error names that number if it is too short.\n\n### Limitations\n\n- This task has been tested on a limited set of acquisitions. It may not work on all Yokogawa CellVoyager acquisitions.\n- Unlike the CQ3K converter, this task does not support Z-image processing types.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\nmy_acquisition/\n\u251c\u2500\u2500 MeasurementData.mlf      # Image measurement records (required)\n\u251c\u2500\u2500 MeasurementDetail.mrf    # Acquisition details and channel info (required)\n\u251c\u2500\u2500 protocol.mes             # Acquisition protocol (optional, sets channel names)\n\u251c\u2500\u2500 image_001.png\n\u2514\u2500\u2500 ...\n```\n\nThe image file paths are referenced inside `MeasurementData.mlf` (with `.tif` extension) and can be in subdirectories relative to the acquisition directory. The actual files may use `.png` or `.tif` extension \u2014 select the matching extension via the `image_extension` parameter.\n",
       "type": "converter_compound",
       "executable_non_parallel": "cellvoyager/convert_cellvoyager_init_task.py",
       "executable_parallel": "common/image_in_plate_compute_task.py",
@@ -4630,7 +4630,7 @@
         "CQ3K",
         "Plate converter"
       ],
-      "docs_info": "### Purpose\n\n- Convert images acquired with a Yokogawa CQ3K / CellVoyager microscope to an OME-Zarr Plate.\n\n### Outputs\n\n- An OME-Zarr Plate.\n- If the acquisition contains multiple Z-image processing types (e.g., `focus`, `maximum_projection`), a separate plate is created for each type.\n\n### Limitations\n\n- This task has been tested on a limited set of acquisitions. It may not work on all Yokogawa CQ3K acquisitions.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\nmy_acquisition/\n\u251c\u2500\u2500 MeasurementData.mlf      # Image measurement records (required)\n\u251c\u2500\u2500 MeasurementDetail.mrf    # Acquisition details and channel info (required)\n\u2514\u2500\u2500 <subdirectories>/\n    \u251c\u2500\u2500 image_001.tif\n    \u2514\u2500\u2500 ...\n```\n\nThe TIFF file paths are referenced inside `MeasurementData.mlf` and can be in subdirectories relative to the acquisition directory.\n",
+      "docs_info": "### Purpose\n\n- Convert images acquired with a Yokogawa CQ3K / CellVoyager microscope to an OME-Zarr Plate.\n\n### Outputs\n\n- An OME-Zarr Plate.\n- One plate per Z-image processing type. Projections are suffixed `_MIP` (`Maximum`), `_MinIP` (`Minimum`) or `_SIP` (`Sum`), and coexist with the unsuffixed plate holding the raw Z slices. Channel labels are the same across all of them.\n- `Advanced` \u2192 `Z Processing` is one switch per output. Leave it unset to convert all of them; otherwise only `Z slices` is on by default, so enabling a projection adds to the raw stack rather than replacing it. An enabled kind the acquisition does not contain is a warning; enabling nothing, or nothing that the acquisition contains, is an error.\n\n### Channels\n\n- Channel labels, colors and wavelength ids (`A{action}_C{channel}`) are read from the acquisition's `.mes` protocol file, whose name is recorded in the `.mrf`. Without a `.mes`, the label is the wavelength id.\n- To override them, `Advanced` \u2192 `Channels` is ordered by the **instrument channel number**: element 0 is `Ch1`, element 1 is `Ch2`, over the full range the protocol declares \u2014 not one entry per channel visible in the output. It must be at least as long as the highest channel the acquisition uses; the error names that number if it is too short.\n- One list covers the whole acquisition, projection plates included: each projection algorithm carries its own channel numbers, so the entries are split across plates rather than repeated in each.\n\n### Limitations\n\n- This task has been tested on a limited set of acquisitions. It may not work on all Yokogawa CQ3K acquisitions.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\nmy_acquisition/\n\u251c\u2500\u2500 MeasurementData.mlf         # Image measurement records (required)\n\u251c\u2500\u2500 MeasurementDetail.mrf       # Acquisition details and channel info (required)\n\u251c\u2500\u2500 MeasurementProtocol.mes     # Acquisition protocol (optional, sets channel names)\n\u2514\u2500\u2500 <subdirectories>/\n    \u251c\u2500\u2500 image_001.tif\n    \u2514\u2500\u2500 ...\n```\n\nThe TIFF file paths are referenced inside `MeasurementData.mlf` and can be in subdirectories relative to the acquisition directory.\n",
       "type": "converter_compound",
       "executable_non_parallel": "cq3k/convert_cq3k_init_task.py",
       "executable_parallel": "common/image_in_plate_compute_task.py",
@@ -4678,132 +4678,6 @@
               "acquisitions"
             ],
             "title": "Acquisition Filter",
-            "type": "object"
-          },
-          "AcquisitionOptions": {
-            "additionalProperties": false,
-            "description": "Per-acquisition settings: channels, pixel sizes, axes, and filters.",
-            "properties": {
-              "channels": {
-                "anyOf": [
-                  {
-                    "items": {
-                      "$ref": "#/$defs/ChannelInfoUI"
-                    },
-                    "type": "array"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "description": "Names, wavelengths, and display colors of the channels. If left\nempty, the channel information parsed from the raw metadata is used.",
-                "title": "Channels"
-              },
-              "pixel_info": {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/PixelSizeModel"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "description": "Override the pixel size and the Z/time spacing of the images. If left\nempty, the values parsed from the raw metadata are used.",
-                "title": "Pixel Size Information"
-              },
-              "condition_table_path": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "description": "Optional path to a condition table CSV file to store in the plate\nmetadata.",
-                "title": "Condition Table Path"
-              },
-              "axes": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "description": "Axes of the image data, e.g. `czyx`. If left empty, the axes parsed\nfrom the raw metadata are used.",
-                "title": "Axes"
-              },
-              "data_type": {
-                "$ref": "#/$defs/DataTypeEnum",
-                "default": "autodetect",
-                "description": "Pixel data type of the output image. `autodetect` infers it from the\ninput images.",
-                "title": "Data Type"
-              },
-              "stage_orientation": {
-                "$ref": "#/$defs/StageOrientation",
-                "default": {
-                  "flip_x": false,
-                  "flip_y": false,
-                  "swap_xy": false
-                },
-                "description": "Corrections for the orientation of the microscope stage relative to\nthe image axes.",
-                "title": "Stage Orientation"
-              },
-              "filters": {
-                "default": [],
-                "description": "Filters selecting which tiles of the acquisition are converted.",
-                "items": {
-                  "discriminator": {
-                    "mapping": {
-                      "Acquisition Filter": "#/$defs/AcquisitionFilter",
-                      "Attribute Filter": "#/$defs/AttributeFilter",
-                      "Channel Filter": "#/$defs/ChannelFilter",
-                      "FOV Name Filter": "#/$defs/FovNameFilter",
-                      "Path Regex Filter": "#/$defs/RegexFilter",
-                      "Time Range Filter": "#/$defs/TRangeFilter",
-                      "Well Filter": "#/$defs/WellFilter",
-                      "Z Range Filter": "#/$defs/ZRangeFilter"
-                    },
-                    "propertyName": "name"
-                  },
-                  "oneOf": [
-                    {
-                      "$ref": "#/$defs/RegexFilter"
-                    },
-                    {
-                      "$ref": "#/$defs/WellFilter"
-                    },
-                    {
-                      "$ref": "#/$defs/FovNameFilter"
-                    },
-                    {
-                      "$ref": "#/$defs/AcquisitionFilter"
-                    },
-                    {
-                      "$ref": "#/$defs/AttributeFilter"
-                    },
-                    {
-                      "$ref": "#/$defs/ChannelFilter"
-                    },
-                    {
-                      "$ref": "#/$defs/ZRangeFilter"
-                    },
-                    {
-                      "$ref": "#/$defs/TRangeFilter"
-                    }
-                  ]
-                },
-                "title": "Filters",
-                "type": "array"
-              }
-            },
-            "title": "AcquisitionOptions",
             "type": "object"
           },
           "AttributeFilter": {
@@ -4941,7 +4815,7 @@
                 "type": "string"
               },
               "advanced": {
-                "$ref": "#/$defs/AcquisitionOptions",
+                "$ref": "#/$defs/CQ3KAcquisitionOptions",
                 "default": {
                   "channels": null,
                   "pixel_info": null,
@@ -4953,7 +4827,8 @@
                     "flip_y": false,
                     "swap_xy": false
                   },
-                  "filters": []
+                  "filters": [],
+                  "z_processing": null
                 },
                 "description": "Advanced acquisition options.",
                 "title": "Advanced"
@@ -4983,6 +4858,145 @@
               "path"
             ],
             "title": "CQ3KAcquisitionModel",
+            "type": "object"
+          },
+          "CQ3KAcquisitionOptions": {
+            "additionalProperties": false,
+            "description": "Acquisition options for the CQ3K converter.",
+            "properties": {
+              "channels": {
+                "anyOf": [
+                  {
+                    "items": {
+                      "$ref": "#/$defs/ChannelInfoUI"
+                    },
+                    "type": "array"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Names, wavelengths, and display colors of the channels. If left\nempty, the channel information parsed from the raw metadata is used.",
+                "title": "Channels"
+              },
+              "pixel_info": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/PixelSizeModel"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Override the pixel size and the Z/time spacing of the images. If left\nempty, the values parsed from the raw metadata are used.",
+                "title": "Pixel Size Information"
+              },
+              "condition_table_path": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Optional path to a condition table CSV file to store in the plate\nmetadata.",
+                "title": "Condition Table Path"
+              },
+              "axes": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Axes of the image data, e.g. `czyx`. If left empty, the axes parsed\nfrom the raw metadata are used.",
+                "title": "Axes"
+              },
+              "data_type": {
+                "$ref": "#/$defs/DataTypeEnum",
+                "default": "autodetect",
+                "description": "Pixel data type of the output image. `autodetect` infers it from the\ninput images.",
+                "title": "Data Type"
+              },
+              "stage_orientation": {
+                "$ref": "#/$defs/StageOrientation",
+                "default": {
+                  "flip_x": false,
+                  "flip_y": false,
+                  "swap_xy": false
+                },
+                "description": "Corrections for the orientation of the microscope stage relative to\nthe image axes.",
+                "title": "Stage Orientation"
+              },
+              "filters": {
+                "default": [],
+                "description": "Filters selecting which tiles of the acquisition are converted.",
+                "items": {
+                  "discriminator": {
+                    "mapping": {
+                      "Acquisition Filter": "#/$defs/AcquisitionFilter",
+                      "Attribute Filter": "#/$defs/AttributeFilter",
+                      "Channel Filter": "#/$defs/ChannelFilter",
+                      "FOV Name Filter": "#/$defs/FovNameFilter",
+                      "Path Regex Filter": "#/$defs/RegexFilter",
+                      "Time Range Filter": "#/$defs/TRangeFilter",
+                      "Well Filter": "#/$defs/WellFilter",
+                      "Z Range Filter": "#/$defs/ZRangeFilter"
+                    },
+                    "propertyName": "name"
+                  },
+                  "oneOf": [
+                    {
+                      "$ref": "#/$defs/RegexFilter"
+                    },
+                    {
+                      "$ref": "#/$defs/WellFilter"
+                    },
+                    {
+                      "$ref": "#/$defs/FovNameFilter"
+                    },
+                    {
+                      "$ref": "#/$defs/AcquisitionFilter"
+                    },
+                    {
+                      "$ref": "#/$defs/AttributeFilter"
+                    },
+                    {
+                      "$ref": "#/$defs/ChannelFilter"
+                    },
+                    {
+                      "$ref": "#/$defs/ZRangeFilter"
+                    },
+                    {
+                      "$ref": "#/$defs/TRangeFilter"
+                    }
+                  ]
+                },
+                "title": "Filters",
+                "type": "array"
+              },
+              "z_processing": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/ZProcessingSelection"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Which Z-image processing outputs to convert, each written as its own plate.\nLeave unset to convert every one the acquisition contains.",
+                "title": "Z Processing"
+              }
+            },
+            "title": "CQ3KAcquisitionOptions",
             "type": "object"
           },
           "ChannelFilter": {
@@ -6041,6 +6055,38 @@
             ],
             "title": "WriterMode",
             "type": "string"
+          },
+          "ZProcessingSelection": {
+            "additionalProperties": false,
+            "description": "Which Z-image processing outputs to convert.",
+            "properties": {
+              "z_slices": {
+                "default": true,
+                "description": "Convert the raw Z stack.",
+                "title": "Z slices",
+                "type": "boolean"
+              },
+              "mip": {
+                "default": false,
+                "description": "Convert the maximum intensity projection.",
+                "title": "MIP",
+                "type": "boolean"
+              },
+              "min_ip": {
+                "default": false,
+                "description": "Convert the minimum intensity projection.",
+                "title": "MinIP",
+                "type": "boolean"
+              },
+              "sip": {
+                "default": false,
+                "description": "Convert the sum intensity projection.",
+                "title": "SIP",
+                "type": "boolean"
+              }
+            },
+            "title": "ZProcessingSelection",
+            "type": "object"
           },
           "ZRangeFilter": {
             "additionalProperties": false,
