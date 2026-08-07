@@ -7,6 +7,8 @@ Migration to `ome-zarr-converters-tools` v1.
 ### Features
 - Yokogawa (CQ3K, CellVoyager): channel labels, wavelength ids (`A{action}_C{channel}`) and
   colours are now read from the acquisition's `.mes` protocol file (#27).
+- CQ3K: new `advanced.z_processing` option selecting which Z-image processing outputs to
+  convert, so a projection or the raw Z stack can be skipped without a path regex filter.
 - Yokogawa (CQ3K, CellVoyager): the acquisition's `.mlf`, `.mrf`, `.mes`, `.wpi` and `.wpp`
   are copied verbatim into `<plate>.zarr/metadata/`, so the vendor metadata the converters
   do not model travels with the converted plate (#46).
@@ -16,6 +18,9 @@ Migration to `ome-zarr-converters-tools` v1.
   target, falling back to the wavelength id when no `.mes` is available. With
   `reindex_channels` disabled, instrument channels the acquisition did not use are now
   written as empty planes.
+- **CQ3K projection plates are now suffixed `_MIP`/`_MinIP`/`_SIP`** instead of the raw
+  `bts:ZImageProcessing` values `_Maximum`/`_Minimum`/`_Sum`; an unrecognised value is
+  still used verbatim (#45).
 - **CustomTiff `acquisition_details.toml` keys renamed** (follows the v1 field renames):
   `pixelsize` → `xy_pixel_size`, `start_z_coo`/`start_t_coo` → `start_z_space`/`start_t_space`
   (and any other `*_coo` → `*_space`). Existing user `acquisition_details.toml` files must
@@ -45,6 +50,9 @@ Migration to `ome-zarr-converters-tools` v1.
   `mode`).
 
 ### Documentation
+- Document Yokogawa channel handling: where the labels come from, and that an
+  `advanced.channels` override is indexed by instrument channel number rather than by the
+  channels present in the output.
 - Fix `tests/data_intake_instructions.md` and `tests/cleanup_test_data.sh`: snapshots are
   JSON, not YAML, and the extended-test template was outdated.
 

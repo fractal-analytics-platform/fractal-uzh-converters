@@ -1,0 +1,333 @@
+"""CQ3K projection plates: one plate per `bts:ZImageProcessing` algorithm.
+
+The suffix used to be the raw Yokogawa string (`_Maximum`, `_Minimum`, `_Sum`);
+it is now the conventional imaging abbreviation (`_MIP`, `_MinIP`, `_SIP`), with
+anything unrecognised passed through verbatim (issue #45).
+
+Renaming the plates rewrites every CQ3K snapshot, so the cases that matter are
+asserted here explicitly rather than left to the snapshot diff. Where only the
+plate *names* are under test the assertions run off `parse_cq3k_metadata`, which
+reads the `.mlf`/`.mrf` and no image data — the mNgn3 acquisition is 985 MB.
+"""
+
+from pathlib import Path
+
+import pytest
+
+from fractal_uzh_converters.cq3k import convert_cq3k
+from fractal_uzh_converters.cq3k._utils import (
+    CQ3KAcquisitionModel,
+    _plate_name,
+    _z_processing_token,
+    parse_cq3k_metadata,
+)
+
+from .utils import DATA_DIR, EXTENDED_DATA_DIR, plate_channel_metadata
+
+CQ3K_RAW_DIR = DATA_DIR / "Yokogawa-CQ3K" / "raw"
+CQ3K_EXTENDED_RAW_DIR = EXTENDED_DATA_DIR / "Yokogawa-CQ3K" / "raw"
+
+
+def _parse(name: str, converter_options, root=None, **advanced):
+    """Parse an acquisition without converting it. `root` defaults to the extended store."""
+    return parse_cq3k_metadata(
+        acquisition_model=CQ3KAcquisitionModel(
+            path=str((root or CQ3K_EXTENDED_RAW_DIR) / name),
+            acquisition_id=0,
+            advanced=advanced,
+        ),
+        converter_options=converter_options,
+    )
+
+
+def _plate_names(name: str, converter_options, **advanced) -> set[str]:
+    """Plate paths an extended acquisition would write, without converting it."""
+    tiled_images = _parse(name, converter_options, **advanced)
+    return {tiled_image.collection.plate_path() for tiled_image in tiled_images}
+
+
+def _acquired_channels(name: str, converter_options) -> dict[str, set[int]]:
+    """`{plate_path: {0-based channel index}}` over an acquisition's tile regions."""
+    tiled_images = _parse(name, converter_options)
+    per_plate: dict[str, set[int]] = {}
+    for tiled_image in tiled_images:
+        plate = tiled_image.collection.plate_path()
+        for region in tiled_image.regions:
+            per_plate.setdefault(plate, set()).add(region.roi.get("c").start)
+    return per_plate
+
+
+######################################################################
+#
+# The suffix mapping itself
+#
+######################################################################
+
+
+@pytest.mark.parametrize(
+    ("z_type", "token", "expected"),
+    [
+        (None, "Z slices", "plate"),
+        ("Maximum", "MIP", "plate_MIP"),
+        ("Minimum", "MinIP", "plate_MinIP"),
+        ("Sum", "SIP", "plate_SIP"),
+    ],
+)
+def test_known_algorithms_map_to_their_abbreviation(z_type, token, expected):
+    """The token is both the `z_processing` value and the plate name suffix."""
+    assert _z_processing_token(z_type) == token
+    assert _plate_name("plate", token) == expected
+
+
+def test_an_unknown_algorithm_is_used_verbatim_with_a_warning(caplog):
+    """A firmware update adding an algorithm must not break the conversion.
+
+    No acquisition in either test store carries a value outside the three known
+    ones, so this is the only coverage the fallback gets.
+    """
+    assert _z_processing_token("Median") == "Median"
+    assert _plate_name("plate", "Median") == "plate_Median"
+    assert "Median" in caplog.text
+
+
+######################################################################
+#
+# In-repo fixture
+#
+######################################################################
+
+
+def test_cq3k_fixture_writes_a_mip_plate(tmp_path: Path, converter_options):
+    """The fixture is projection-only: one plate, suffixed."""
+    zarr_dir = tmp_path / "output"
+    zarr_dir.mkdir()
+
+    image_list_updates = convert_cq3k(
+        zarr_dir=str(zarr_dir),
+        acquisitions=[
+            {
+                "path": str(CQ3K_RAW_DIR / "hcs_2w1p1c1z1t_mip"),
+                "acquisition_id": 0,
+            }
+        ],
+        converter_options=converter_options,
+    )
+
+    plates = plate_channel_metadata(zarr_dir, image_list_updates)
+    assert set(plates) == {"hcs_2w1p1c1z1t_mip_MIP.zarr"}
+
+
+######################################################################
+#
+# Extended datasets: one acquisition, several plates
+#
+######################################################################
+
+_MNGN3 = "20260617T083657_2026-06-17_mNgn3_dox_fractal_test"
+_CHANNEL_WELL_TEST = "20251201T133446_Channel_Well_test"
+
+
+@pytest.mark.extended
+def test_slices_and_both_projection_kinds_split_into_three_plates(converter_options):
+    """mNgn3 acquires Ch1+Ch2 as slices, Ch3 min-projected and Ch4 max-projected.
+
+    Each algorithm carries its own `bts:Ch` numbers — the root cause of #45 —
+    so the per-plate channel sets are disjoint.
+    """
+    assert _acquired_channels(_MNGN3, converter_options) == {
+        f"{_MNGN3}.zarr": {0, 1},
+        f"{_MNGN3}_MinIP.zarr": {2},
+        f"{_MNGN3}_MIP.zarr": {3},
+    }
+
+
+@pytest.mark.extended
+def test_min_projected_brightfield_lands_in_its_own_plate(
+    tmp_path: Path, converter_options
+):
+    """The canonical #45 case: one acquisition, two plates.
+
+    Four max-projected fluorescence channels go to `_MIP`, the min-projected
+    brightfield to `_MinIP`. This one is converted rather than only parsed,
+    because the per-image channel pruning happens at compute time.
+    """
+    zarr_dir = tmp_path / "output"
+    zarr_dir.mkdir()
+
+    image_list_updates = convert_cq3k(
+        zarr_dir=str(zarr_dir),
+        acquisitions=[
+            {
+                "path": str(CQ3K_EXTENDED_RAW_DIR / _CHANNEL_WELL_TEST),
+                "acquisition_id": 0,
+            }
+        ],
+        converter_options=converter_options,
+    )
+
+    plates = plate_channel_metadata(zarr_dir, image_list_updates)
+    assert set(plates) == {
+        f"{_CHANNEL_WELL_TEST}_MIP.zarr",
+        f"{_CHANNEL_WELL_TEST}_MinIP.zarr",
+    }
+    assert plates[f"{_CHANNEL_WELL_TEST}_MIP.zarr"]
+    for labels, _ in plates[f"{_CHANNEL_WELL_TEST}_MIP.zarr"].values():
+        assert len(labels) == 4
+    assert plates[f"{_CHANNEL_WELL_TEST}_MinIP.zarr"]
+    for labels, _ in plates[f"{_CHANNEL_WELL_TEST}_MinIP.zarr"].values():
+        assert len(labels) == 1
+
+    # The algorithm belongs in the plate name only: labels come from the `.mes`
+    # and must stay comparable across the plates of an acquisition.
+    for plate in plates.values():
+        for labels, _ in plate.values():
+            assert not any(
+                suffix in label
+                for label in labels
+                for suffix in ("MIP", "MinIP", "SIP", "Maximum", "Minimum")
+            )
+
+
+@pytest.mark.extended
+def test_sum_projections_are_suffixed_sip(converter_options):
+    """`Sum` is the third algorithm, alongside a raw-slice plate."""
+    name = "20251201T134728_Channel_WellTestC5F9_MIP_SUM_Slice"
+
+    assert _plate_names(name, converter_options) == {
+        f"{name}.zarr",
+        f"{name}_MIP.zarr",
+        f"{name}_SIP.zarr",
+    }
+
+
+######################################################################
+#
+# `advanced.z_processing` selects which of those plates are written
+#
+######################################################################
+
+
+@pytest.mark.extended
+@pytest.mark.parametrize(
+    ("selection", "expected"),
+    [
+        # Unset is the default and converts everything.
+        (None, {"", "_MIP", "_MinIP"}),
+        # `z_slices` is the only field defaulting to True, so `{}` is slices-only
+        # and `{"mip": True}` adds the MIP rather than replacing the slices.
+        ({}, {""}),
+        ({"mip": True}, {"", "_MIP"}),
+        ({"z_slices": False, "mip": True}, {"_MIP"}),
+        ({"z_slices": False, "mip": True, "min_ip": True}, {"_MIP", "_MinIP"}),
+    ],
+)
+def test_selection_picks_the_plate_subset(selection, expected, converter_options):
+    """mNgn3 is the only acquisition holding slices *and* two projection kinds."""
+    advanced = {} if selection is None else {"z_processing": selection}
+
+    assert _plate_names(_MNGN3, converter_options, **advanced) == {
+        f"{_MNGN3}{suffix}.zarr" for suffix in expected
+    }
+
+
+@pytest.mark.extended
+def test_a_selected_kind_the_acquisition_lacks_only_warns(converter_options, caplog):
+    """One selection has to stay usable across a batch of mixed acquisitions."""
+    plates = _plate_names(
+        _MNGN3,
+        converter_options,
+        z_processing={"z_slices": False, "mip": True, "sip": True},
+    )
+
+    assert plates == {f"{_MNGN3}_MIP.zarr"}
+    assert "SIP" in caplog.text
+
+
+def test_enabling_nothing_raises(converter_options):
+    """Unticking everything is a mistake worth naming, not an empty conversion.
+
+    Distinct from the no-match error below: the fix is to enable something, not to
+    pick a kind the acquisition actually has.
+    """
+    with pytest.raises(ValueError, match="enables nothing"):
+        _parse(
+            "hcs_2w1p1c1z1t_mip",
+            converter_options,
+            root=CQ3K_RAW_DIR,
+            z_processing={"z_slices": False},
+        )
+
+
+def test_a_selection_matching_nothing_raises(converter_options):
+    """The in-repo fixture is projection-only, so `Z slices` matches none of it.
+
+    Without this the failure would surface later, from the library, as "No tiles
+    provided to build TiledImage" — which never names the option responsible.
+    """
+    with pytest.raises(ValueError, match="z_processing"):
+        _parse(
+            "hcs_2w1p1c1z1t_mip",
+            converter_options,
+            root=CQ3K_RAW_DIR,
+            z_processing={},
+        )
+
+
+def test_the_error_names_what_the_acquisition_contains(converter_options):
+    """A user cannot fix the option without knowing what is actually there."""
+    with pytest.raises(ValueError, match="MIP"):
+        _parse(
+            "hcs_2w1p1c1z1t_mip",
+            converter_options,
+            root=CQ3K_RAW_DIR,
+            z_processing={"z_slices": False, "min_ip": True},
+        )
+
+
+@pytest.mark.extended
+def test_selection_relaxes_the_required_channel_override_length(converter_options):
+    """Channel resolution follows the selection, not the whole acquisition.
+
+    `Channel_Well_test` min-projects Ch1 and max-projects Ch2-Ch5, so a full
+    acquisition needs a 5-entry `advanced.channels`. Selecting only the MinIP
+    plate leaves Ch1 as the highest acquired channel, and one entry is enough.
+    """
+    one_entry = [{"channel_label": "brightfield"}]
+
+    tiled_images = _parse(
+        _CHANNEL_WELL_TEST,
+        converter_options,
+        z_processing={"z_slices": False, "min_ip": True},
+        channels=one_entry,
+    )
+    assert tiled_images
+    for tiled_image in tiled_images:
+        assert tiled_image.channels[0].channel_label == "brightfield"
+
+    with pytest.raises(ValueError, match="at least 5 entries"):
+        _parse(_CHANNEL_WELL_TEST, converter_options, channels=one_entry)
+
+
+@pytest.mark.extended
+def test_a_selection_converts_only_the_selected_plate(
+    tmp_path: Path, converter_options
+):
+    """End to end: the unselected plates never reach the store."""
+    zarr_dir = tmp_path / "output"
+    zarr_dir.mkdir()
+
+    image_list_updates = convert_cq3k(
+        zarr_dir=str(zarr_dir),
+        acquisitions=[
+            {
+                "path": str(CQ3K_EXTENDED_RAW_DIR / _CHANNEL_WELL_TEST),
+                "acquisition_id": 0,
+                "advanced": {"z_processing": {"z_slices": False, "min_ip": True}},
+            }
+        ],
+        converter_options=converter_options,
+    )
+
+    plates = plate_channel_metadata(zarr_dir, image_list_updates)
+    assert set(plates) == {f"{_CHANNEL_WELL_TEST}_MinIP.zarr"}
+    assert not (zarr_dir / f"{_CHANNEL_WELL_TEST}_MIP.zarr").exists()

@@ -11,7 +11,7 @@
     "pydantic": "2.12.5"
   },
   "plates": {
-    "hcs_2w1p1c1z1t_mip_Maximum.zarr": {
+    "hcs_2w1p1c1z1t_mip_MIP.zarr": {
       "wells": [
         "C/05",
         "F/09"
@@ -46,7 +46,7 @@
             "is_3D": false
           },
           "attributes": {
-            "plate": "hcs_2w1p1c1z1t_mip_Maximum.zarr",
+            "plate": "hcs_2w1p1c1z1t_mip_MIP.zarr",
             "well": "C05",
             "acquisition": 0
           },
@@ -97,7 +97,7 @@
             "is_3D": false
           },
           "attributes": {
-            "plate": "hcs_2w1p1c1z1t_mip_Maximum.zarr",
+            "plate": "hcs_2w1p1c1z1t_mip_MIP.zarr",
             "well": "F09",
             "acquisition": 0
           },

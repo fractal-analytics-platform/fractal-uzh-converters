@@ -7,6 +7,7 @@ import numpy as np
 import xmltodict
 from ome_zarr_converters_tools import (
     AcquisitionDetails,
+    AcquisitionOptions,
     AttributeType,
     ChannelInfo,
     ConverterOptions,
@@ -14,6 +15,7 @@ from ome_zarr_converters_tools import (
     ImageInPlate,
     Tile,
     TiledImage,
+    UserFacingModel,
     default_axes_builder,
     filesystem_for_url,
     join_url_paths,
@@ -42,10 +44,38 @@ logger = logging.getLogger(__name__)
 ######################################################################
 
 
+class ZProcessingSelection(UserFacingModel):
+    """Which Z-image processing outputs to convert."""
+
+    z_slices: bool = Field(default=True, title="Z slices")
+    """Convert the raw Z stack."""
+    mip: bool = Field(default=False, title="MIP")
+    """Convert the maximum intensity projection."""
+    min_ip: bool = Field(default=False, title="MinIP")
+    """Convert the minimum intensity projection."""
+    sip: bool = Field(default=False, title="SIP")
+    """Convert the sum intensity projection."""
+
+
+class CQ3KAcquisitionOptions(AcquisitionOptions):
+    """Acquisition options for the CQ3K converter."""
+
+    z_processing: ZProcessingSelection | None = Field(
+        default=None, title="Z Processing"
+    )
+    """
+    Which Z-image processing outputs to convert, each written as its own plate.
+    Leave unset to convert every one the acquisition contains.
+    """
+
+
 class CQ3KAcquisitionModel(HCSBaseAcquisitionModel):
     """Acquisition details for the CQ3K microscope data."""
 
-    pass
+    advanced: CQ3KAcquisitionOptions = Field(default_factory=CQ3KAcquisitionOptions)
+    """
+    Advanced acquisition options.
+    """
 
 
 ######################################################################
@@ -239,6 +269,126 @@ def _is_time_series(images: list[ImageMeasurementRecord]) -> bool:
     return any(len(time_points) > 1 for time_points in per_well.values())
 
 
+#: `bts:ZImageProcessing` values, mapped to the conventional imaging abbreviations.
+#: Anything else is used verbatim, with a warning.
+_Z_PROCESSING_SUFFIXES = {"Maximum": "MIP", "Minimum": "MinIP", "Sum": "SIP"}
+
+#: The token of the raw-slice plate, which carries no name suffix.
+_Z_SLICES = "Z slices"
+
+#: `ZProcessingSelection` field -> the token it selects. Also the set of tokens a
+#: selection is able to name at all.
+_Z_PROCESSING_TOKENS = {
+    "z_slices": _Z_SLICES,
+    "mip": "MIP",
+    "min_ip": "MinIP",
+    "sip": "SIP",
+}
+
+
+def _z_processing_token(z_type: str | None) -> str:
+    """The selection token for one `bts:ZImageProcessing` value.
+
+    Doubles as the plate name suffix. Resolve it once per distinct `z_type`: an
+    unrecognised value warns here, and `_build_tiles` runs per field of view.
+    """
+    if z_type is None:
+        return _Z_SLICES
+    token = _Z_PROCESSING_SUFFIXES.get(z_type)
+    if token is None:
+        logger.warning(
+            f"Unknown z image processing type '{z_type}'. Using it verbatim as the "
+            "plate name suffix."
+        )
+        token = z_type
+    return token
+
+
+def _select_z_processing(
+    *,
+    plates_tokens: dict[str | None, str],
+    selection: ZProcessingSelection | None,
+    acquisition_dir: str,
+) -> set[str | None]:
+    """The `z_image_processing` groups to convert, given the user's selection.
+
+    No selection keeps everything. Otherwise a selected kind the acquisition does not
+    contain is a warning rather than an error, so that one selection can be applied to
+    a batch of acquisitions; but a selection matching *nothing* raises, since the
+    alternative is an empty output whose cause only surfaces much later, from the
+    library, without naming the option responsible.
+
+    Args:
+        plates_tokens: `{z_image_processing: token}` for this acquisition.
+        selection: The user's `advanced.z_processing`, or `None` for all of them.
+        acquisition_dir: Named in the errors, since a batch fails one acquisition at
+            a time.
+
+    Returns:
+        The `z_image_processing` values to keep.
+
+    Raises:
+        ValueError: If nothing is enabled, or if the selection matches none of the
+            parsed plates. The two have different fixes, so they are reported apart.
+    """
+    if selection is None:
+        return set(plates_tokens)
+
+    selected = {
+        token
+        for field, token in _Z_PROCESSING_TOKENS.items()
+        if getattr(selection, field)
+    }
+    if not selected:
+        raise ValueError(
+            "`advanced.z_processing` enables nothing, so there is nothing to convert "
+            f"in {acquisition_dir}. Enable at least one output, or leave the option "
+            "unset to convert everything the acquisition contains."
+        )
+
+    available = set(plates_tokens.values())
+    kept = {z_type for z_type, token in plates_tokens.items() if token in selected}
+    if not kept:
+        raise ValueError(
+            f"`advanced.z_processing` enables {sorted(selected)} but "
+            f"{acquisition_dir} contains only {sorted(available)}. Clear the option "
+            "to convert everything the acquisition contains."
+        )
+
+    missing = sorted(selected - available)
+    if missing:
+        logger.warning(
+            f"`advanced.z_processing` enables {missing}, which {acquisition_dir} "
+            "does not contain. Converting the rest of the selection."
+        )
+
+    # An unrecognised `bts:ZImageProcessing` value keeps its raw string as the token,
+    # so no field of `ZProcessingSelection` can name it.
+    unnameable = sorted(
+        token
+        for z_type, token in plates_tokens.items()
+        if z_type not in kept and token not in _Z_PROCESSING_TOKENS.values()
+    )
+    if unnameable:
+        logger.warning(
+            f"Skipping the unrecognised z image processing type(s) {unnameable}, "
+            "which `advanced.z_processing` cannot name. Use a `Path Regex Filter` on "
+            "the plate name to select them."
+        )
+    return kept
+
+
+def _plate_name(base_name: str, token: str) -> str:
+    """Plate name for one `z_image_processing` group.
+
+    Each projection algorithm is written as its own plate; the raw-slice plate
+    carries no suffix and can coexist with them.
+    """
+    if token == _Z_SLICES:
+        return base_name
+    return f"{base_name}_{token}"
+
+
 def build_acquisition_details(
     images: list[ImageMeasurementRecord],
     detail: MeasurementDetail,
@@ -319,7 +469,7 @@ def _build_tiles(
     row: str,
     column: int,
     fov_idx: int,
-    z_type: str | None,
+    plate_name: str,
     attributes: dict[str, AttributeType],
 ) -> list[Tile]:
     """Build individual Tile objects for each image record."""
@@ -327,11 +477,6 @@ def _build_tiles(
 
     len_x = first_channel.horizontal_pixels
     len_y = first_channel.vertical_pixels
-
-    # Get plate name, handling z_type suffix if needed
-    plate_name = acquisition_model.normalized_plate_name
-    if z_type is not None:
-        plate_name = f"{plate_name}_{z_type}"
 
     image_in_plate = ImageInPlate(
         plate_name=plate_name,
@@ -408,14 +553,11 @@ def parse_cq3k_metadata(
     ] = {}
     # ... and by z_type alone, since each z_type is written as its own plate
     plates_records: dict[str | None, list[ImageMeasurementRecord]] = {}
-    # ... and flat, for the acquisition-wide channel resolution below
-    image_records: list[ImageMeasurementRecord] = []
 
     for record in data.measurement_record:
         if not isinstance(record, ImageMeasurementRecord):
             continue
 
-        image_records.append(record)
         z_type = record.z_image_processing
         row = STANDARD_ROWS_NAMES[record.row - 1]
         column = record.column
@@ -430,6 +572,28 @@ def parse_cq3k_metadata(
         if z_type not in plates_records:
             plates_records[z_type] = []
         plates_records[z_type].append(record)
+
+    # Resolved once per distinct `z_type` rather than per (well, field of view)
+    # group, so an unknown algorithm warns once per acquisition. The token is both
+    # the `advanced.z_processing` value and the plate name suffix.
+    plates_tokens = {z_type: _z_processing_token(z_type) for z_type in plates_records}
+    kept = _select_z_processing(
+        plates_tokens=plates_tokens,
+        selection=acquisition_model.advanced.z_processing,
+        acquisition_dir=acquisition_dir,
+    )
+    plates_records = {
+        z_type: records for z_type, records in plates_records.items() if z_type in kept
+    }
+    plates_groups = {
+        key: records for key, records in plates_groups.items() if key[0] in kept
+    }
+    # Flat, for the acquisition-wide channel resolution below. Built from the kept
+    # records only, so that selecting a single plate also relaxes the required
+    # `advanced.channels` length to that plate's highest `bts:Ch`.
+    image_records = [
+        record for records in plates_records.values() for record in records
+    ]
 
     # Channel metadata comes from the `.mes` protocol file, whose basename is
     # recorded in the `.mrf`. Resolved once for the whole acquisition, not per
@@ -465,6 +629,12 @@ def parse_cq3k_metadata(
         for z_type, records in plates_records.items()
     }
 
+    plates_names = {
+        z_type: _plate_name(acquisition_model.normalized_plate_name, token)
+        for z_type, token in plates_tokens.items()
+        if z_type in kept
+    }
+
     # Build tiles for each group
     all_tiles = []
     for (z_type, row, column, fov_idx), images in plates_groups.items():
@@ -483,7 +653,7 @@ def parse_cq3k_metadata(
             row=row,
             column=column,
             fov_idx=fov_idx,
-            z_type=z_type,
+            plate_name=plates_names[z_type],
             attributes=attributes,
         )
         all_tiles.extend(_tiles)
