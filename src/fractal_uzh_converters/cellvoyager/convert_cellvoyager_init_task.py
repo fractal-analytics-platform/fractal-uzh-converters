@@ -13,7 +13,11 @@ from fractal_uzh_converters.cellvoyager._utils import (
     CellVoyagerAcquisitionModel,
     parse_cellvoyager_metadata,
 )
-from fractal_uzh_converters.common import parse_acquisitions
+from fractal_uzh_converters.common import (
+    copy_source_metadata,
+    parse_acquisitions_grouped,
+    plate_urls_for_images,
+)
 
 logger = logging.getLogger("convert_cellvoyager_task")
 
@@ -43,11 +47,12 @@ def convert_cellvoyager_init_task(
             - "Extend": Extend existing data without removing it.
             Default is "No Overwrite".
     """
-    tiled_images = parse_acquisitions(
+    grouped = parse_acquisitions_grouped(
         parse_function=parse_cellvoyager_metadata,
         acquisitions=acquisitions,
         converter_options=converter_options,
     )
+    tiled_images = [image for _, images in grouped for image in images]
 
     parallelization_list = setup_images_for_conversion(
         tiled_images=tiled_images,
@@ -56,6 +61,16 @@ def convert_cellvoyager_init_task(
         collection_type="ImageInPlate",
         overwrite_mode=overwrite,
     )
+
+    # After the plates exist: under `OverwriteMode.OVERWRITE` the setup above
+    # recreates them from scratch, so anything copied earlier would be wiped.
+    for acquisition, images in grouped:
+        copy_source_metadata(
+            acquisition_dir=acquisition.path,
+            plate_urls=plate_urls_for_images(zarr_dir=zarr_dir, tiled_images=images),
+            acquisition_id=acquisition.acquisition_id,
+        )
+
     logger.info(
         f"Prepared parallelization list with {len(parallelization_list)} items."
     )

@@ -7,6 +7,9 @@ Migration to `ome-zarr-converters-tools` v1.
 ### Features
 - Yokogawa (CQ3K, CellVoyager): channel labels, wavelength ids (`A{action}_C{channel}`) and
   colours are now read from the acquisition's `.mes` protocol file (#27).
+- Yokogawa (CQ3K, CellVoyager): the acquisition's `.mlf`, `.mrf`, `.mes`, `.wpi` and `.wpp`
+  are copied verbatim into `<plate>.zarr/metadata/`, so the vendor metadata the converters
+  do not model travels with the converted plate (#46).
 
 ### API Breaking Changes
 - **Yokogawa default channel labels are no longer `channel_N`** but the `.mes` channel
