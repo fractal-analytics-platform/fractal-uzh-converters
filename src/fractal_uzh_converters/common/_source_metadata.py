@@ -77,7 +77,7 @@ def _source_file_names(acquisition_dir: str) -> list[str]:
     """Basenames of the plate-level vendor files of `acquisition_dir`.
 
     The two fixed names are always returned, even when the `.mrf` is missing or
-    unparseable — the `.mlf` is still worth copying on its own.
+    unparsable — the `.mlf` is still worth copying on its own.
 
     Args:
         acquisition_dir: URL of the acquisition directory.

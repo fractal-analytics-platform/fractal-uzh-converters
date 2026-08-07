@@ -294,12 +294,16 @@ def test_reads_and_writes_through_fsspec(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(_source_metadata, "filesystem_for_url", _spy)
     copy_source_metadata(acquisition_dir=str(acquisition), plate_urls=[plate_url])
 
+    # Both prefixes go through `join_url_paths`, which normalises to forward
+    # slashes. On Windows `str(tmp_path / "raw")` is backslash-separated and
+    # would match none of the URLs the spy collected.
+    acquisition_url = join_url_paths(str(acquisition))
     metadata_dir = join_url_paths(plate_url, METADATA_DIR_NAME)
-    sources = {url for url in urls if url.startswith(str(acquisition))}
+    sources = {url for url in urls if url.startswith(acquisition_url)}
     destinations = {url for url in urls if url.startswith(metadata_dir)}
 
     assert sources == {
-        join_url_paths(str(acquisition), name)
+        join_url_paths(acquisition_url, name)
         for name in (
             "MeasurementDetail.mrf",
             "MeasurementData.mlf",
