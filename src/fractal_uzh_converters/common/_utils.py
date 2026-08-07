@@ -124,6 +124,56 @@ class ParserProtocol(Protocol[AcquisitionModelType]):
         ...
 
 
+def parse_acquisitions_grouped(
+    *,
+    parse_function: ParserProtocol[AcquisitionModelType],
+    acquisitions: list[AcquisitionModelType],
+    converter_options: ConverterOptions,
+) -> list[tuple[AcquisitionModelType, list[TiledImage]]]:
+    """Parse the acquisitions metadata, keeping each image with its acquisition.
+
+    Same work as `parse_acquisitions`, but without flattening. Callers that need
+    to act on the raw acquisition directory *after* the images have been set up
+    — copying the vendor metadata into the plate, say — need the association,
+    and it appears nowhere on a `TiledImage`.
+
+    Args:
+        parse_function (Callable): Function to parse the acquisition metadata
+            and return tiled images.
+        acquisitions (list[AcquisitionModelType]): List of acquisition models.
+        converter_options (ConverterOptions): Converter options.
+
+    Returns:
+        list[tuple[AcquisitionModelType, list[TiledImage]]]: One entry per
+            acquisition that yielded images, in input order. Acquisitions that
+            yielded none are dropped, so no entry has an empty image list.
+    """
+    if not acquisitions:
+        raise ValueError("Acquisitions list is empty.")
+
+    # prepare the parallel list of zarr urls
+    grouped: list[tuple[AcquisitionModelType, list[TiledImage]]] = []
+    total = 0
+    for acq in acquisitions:
+        _tiled_images = parse_function(
+            acquisition_model=acq,
+            converter_options=converter_options,
+        )
+
+        if not _tiled_images:
+            logger.warning(f"No images found in {acq.path}")
+            continue
+        else:
+            logger.info(f"Found {len(_tiled_images)} images in acquisition {acq.path}")
+        grouped.append((acq, _tiled_images))
+        total += len(_tiled_images)
+
+    if total == 0:
+        raise ValueError("No images found in any of the provided acquisitions.")
+    logger.info(f"Total {total} images found in all acquisitions.")
+    return grouped
+
+
 def parse_acquisitions(
     *,
     parse_function: ParserProtocol[AcquisitionModelType],
@@ -141,28 +191,12 @@ def parse_acquisitions(
     Returns:
         list[TiledImage]: List of tiled images.
     """
-    if not acquisitions:
-        raise ValueError("Acquisitions list is empty.")
-
-    # prepare the parallel list of zarr urls
-    tiled_images = []
-    for acq in acquisitions:
-        _tiled_images = parse_function(
-            acquisition_model=acq,
-            converter_options=converter_options,
-        )
-
-        if not _tiled_images:
-            logger.warning(f"No images found in {acq.path}")
-            continue
-        else:
-            logger.info(f"Found {len(_tiled_images)} images in acquisition {acq.path}")
-        tiled_images.extend(_tiled_images)
-
-    if len(tiled_images) == 0:
-        raise ValueError("No images found in any of the provided acquisitions.")
-    logger.info(f"Total {len(tiled_images)} images found in all acquisitions.")
-    return tiled_images
+    grouped = parse_acquisitions_grouped(
+        parse_function=parse_function,
+        acquisitions=acquisitions,
+        converter_options=converter_options,
+    )
+    return [tiled_image for _, images in grouped for tiled_image in images]
 
 
 def get_attributes_from_condition_table(

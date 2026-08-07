@@ -9,6 +9,9 @@ Migration to `ome-zarr-converters-tools` v1.
   colours are now read from the acquisition's `.mes` protocol file (#27).
 - CQ3K: new `advanced.z_processing` option selecting which Z-image processing outputs to
   convert, so a projection or the raw Z stack can be skipped without a path regex filter.
+- Yokogawa (CQ3K, CellVoyager): the acquisition's `.mlf`, `.mrf`, `.mes`, `.wpi` and `.wpp`
+  are copied verbatim into `<plate>.zarr/metadata/`, so the vendor metadata the converters
+  do not model travels with the converted plate (#46).
 
 ### API Breaking Changes
 - **Yokogawa default channel labels are no longer `channel_N`** but the `.mes` channel
