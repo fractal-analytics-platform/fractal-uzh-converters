@@ -29,7 +29,10 @@ CQ3K_EXTENDED_RAW_DIR = EXTENDED_DATA_DIR / "Yokogawa-CQ3K" / "raw"
 
 
 def _parse(name: str, converter_options, root=None, **advanced):
-    """Parse an acquisition without converting it. `root` defaults to the extended store."""
+    """Parse an acquisition without converting it.
+
+    `root` defaults to the extended store.
+    """
     return parse_cq3k_metadata(
         acquisition_model=CQ3KAcquisitionModel(
             path=str((root or CQ3K_EXTENDED_RAW_DIR) / name),

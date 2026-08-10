@@ -18,11 +18,9 @@ _DATASETS = [
     "20251201T135103_Channel_WellTestC5F9_MIP_Slice_2bin",
     "20251201T135346_Channel_WellTestC5H12M19_MIP",
     "20251201T140917_BVC_TS_Test_FP",
-    # "20251201T140949_BVC_TS_Test_SP_grid" cannot be converted today: its
-    # MeasurementData.mlf holds a single record, which xmltodict returns as a bare
-    # dict while `MeasurementData.measurement_record` is typed `list[...] | None`.
-    # Re-enable once the type is widened and normalised (see cellvoyager/_utils.py,
-    # which already does this).
+    # Single-record `.mlf` — the regression case for the widened
+    # `MeasurementData.measurement_record` type.
+    "20251201T140949_BVC_TS_Test_SP_grid",
     "20251201T141350_BVC_TS_Test_SP_centered",
     "20260617T083657_2026-06-17_mNgn3_dox_fractal_test",
 ]

@@ -24,12 +24,16 @@ from pydantic.alias_generators import to_pascal
 
 from fractal_uzh_converters.common import (
     STANDARD_ROWS_NAMES,
+    ChannelGeometry,
     HCSBaseAcquisitionModel,
+    TimeIndex,
     apply_channel_overrides,
+    build_time_index,
     get_attributes_from_condition_table,
     max_acquired_channel,
     read_mes_channels,
     resolve_channels,
+    warn_on_channel_geometry_mismatch,
 )
 
 logger = logging.getLogger(__name__)
@@ -215,20 +219,6 @@ def _get_z_spacing(images: list[ImageMeasurementRecord]) -> float:
     return float(np.mean(delta_z))
 
 
-def _is_time_series(images: list[ImageMeasurementRecord]) -> bool:
-    """Check whether at least one well holds more than one time point.
-
-    `TimePoint` is a per-timeline counter, so distinct values across an
-    acquisition do not make it a time series; only more than one within a single
-    output image does. Evaluated acquisition-wide because `add_tile` requires
-    uniform axes.
-    """
-    per_well: dict[tuple[int, int], set[int]] = {}
-    for img in images:
-        per_well.setdefault((img.row, img.column), set()).add(img.time_point)
-    return any(len(time_points) > 1 for time_points in per_well.values())
-
-
 def _measurement_channels(detail: MeasurementDetail) -> list[MeasurementChannel]:
     """The `.mrf` channel entries, normalised to a list.
 
@@ -237,6 +227,21 @@ def _measurement_channels(detail: MeasurementDetail) -> list[MeasurementChannel]
     if isinstance(detail.measurement_channel, list):
         return detail.measurement_channel
     return [detail.measurement_channel]
+
+
+def _channel_geometries(detail: MeasurementDetail) -> list[ChannelGeometry]:
+    """The geometry fields of every `.mrf` channel, for the consistency check."""
+    return [
+        ChannelGeometry(
+            ch=channel.ch,
+            xy_pixel_size=(
+                channel.horizontal_pixel_dimension,
+                channel.vertical_pixel_dimension,
+            ),
+            frame_size=(channel.horizontal_pixels, channel.vertical_pixels),
+        )
+        for channel in _measurement_channels(detail)
+    ]
 
 
 def _replace_extension(filename: str, new_extension: str) -> str:
@@ -252,6 +257,7 @@ def build_acquisition_details(
     acquisition_model: CellVoyagerAcquisitionModel,
     channels: list[ChannelInfo],
     max_acquired_ch: int,
+    time_index: TimeIndex,
 ) -> AcquisitionDetails:
     """Build AcquisitionDetails from CellVoyager metadata.
 
@@ -266,6 +272,7 @@ def build_acquisition_details(
         channels: One entry per instrument channel slot, from `resolve_channels`.
         max_acquired_ch: Highest `bts:Ch` the acquisition actually acquired, used
             to reject an `advanced.channels` override that is too short.
+        time_index: The acquisition's time axis, from `build_time_index`.
     """
     first_channel = _measurement_channels(detail)[0]
 
@@ -279,8 +286,7 @@ def build_acquisition_details(
         )
 
     z_spacing = _get_z_spacing(images)
-    is_time_series = _is_time_series(images)
-    axes = default_axes_builder(is_time_series=is_time_series)
+    axes = default_axes_builder(is_time_series=time_index.is_time_series)
 
     acquisition_detail = AcquisitionDetails(
         xy_pixel_size=pixelsize_x,
@@ -318,6 +324,7 @@ def _build_tiles(
     detail: MeasurementDetail,
     acquisition_model: CellVoyagerAcquisitionModel,
     acquisition_details: AcquisitionDetails,
+    time_index: TimeIndex,
     row: str,
     column: int,
     fov_idx: int,
@@ -361,7 +368,10 @@ def _build_tiles(
             length_z=1,
             start_c=img.ch - 1,  # Convert to 0-indexed
             length_c=1,
-            start_t=img.time_point - 1,
+            # Not `time_point - 1`: `bts:TimePoint` counts timelines, not frames.
+            start_t=time_index.start_t(
+                row=img.row, column=img.column, time_point=img.time_point
+            ),
             length_t=1,
             collection=image_in_plate,
             image_loader=DefaultImageLoader(file_path=image_path),
@@ -397,6 +407,13 @@ def parse_cellvoyager_metadata(
     acquisition_dir = acquisition_model.path
     data, detail = _load_models(path=acquisition_dir)
     condition_table = acquisition_model.get_condition_table()
+
+    # Once per acquisition: `_build_acquisition_details` and `_build_tiles` both run
+    # per field-of-view group, so neither is the right place to warn from.
+    warn_on_channel_geometry_mismatch(
+        geometries=_channel_geometries(detail),
+        acquisition_dir=acquisition_dir,
+    )
 
     if data.measurement_record is None:
         raise ValueError(f"No measurement records found in {acquisition_dir}")
@@ -442,6 +459,12 @@ def parse_cellvoyager_metadata(
         mrf_channel_count=len(_measurement_channels(detail)),
     )
 
+    # Also acquisition-wide: `bts:TimePoint` is a per-timeline counter, so the
+    # time axis can only be decided by looking at every well at once.
+    time_index = build_time_index(
+        (record.row, record.column, record.time_point) for record in image_records
+    )
+
     # One AcquisitionDetails for the whole acquisition (a single plate): fields
     # of view merge into a single output image, and `TiledImage.add_tile`
     # rejects tiles whose details disagree.
@@ -451,6 +474,7 @@ def parse_cellvoyager_metadata(
         acquisition_model=acquisition_model,
         channels=channels,
         max_acquired_ch=max_acquired_channel(acquired),
+        time_index=time_index,
     )
 
     # Build tiles for each group
@@ -468,6 +492,7 @@ def parse_cellvoyager_metadata(
             detail=detail,
             acquisition_model=acquisition_model,
             acquisition_details=acquisition_details,
+            time_index=time_index,
             row=row,
             column=column,
             fov_idx=fov_idx,

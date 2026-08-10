@@ -3,8 +3,9 @@
 Both Yokogawa converters (`cellvoyager/` for CV7k/CV8k, `cq3k/` for CQ3000/CQ3K)
 read the same `.mlf`/`.mrf`/`.mes` XML schema, but the `.mlf`/`.mrf` models are
 deliberately duplicated per converter. Only *new* shared code lives here: the
-`.mes` (MeasurementProtocol) channel list, and the channel-naming rules that turn
-it into `ChannelInfo` metadata.
+`.mes` (MeasurementProtocol) channel list, the channel-naming rules that turn it
+into `ChannelInfo` metadata, the `.mrf` channel-geometry consistency check and
+the `.mlf` time-index normalisation.
 
 The `.mes` file carries the acquisition protocol, including the human-readable
 channel targets that the `.mlf`/`.mrf` pair lacks. Without it every output is
@@ -12,8 +13,10 @@ labelled `channel_0…channel_N`.
 """
 
 import logging
-from typing import Any
+from collections.abc import Iterable
+from typing import Any, NamedTuple
 
+import numpy as np
 import xmltodict
 from ome_zarr_converters_tools import (
     ChannelInfo,
@@ -427,3 +430,122 @@ def apply_channel_overrides(
             "fail if more than one of them is acquired."
         )
     return merged
+
+
+######################################################################
+#
+# `.mlf` time index
+#
+######################################################################
+
+
+class TimeIndex(NamedTuple):
+    """The time axis of one output plate, derived from `bts:TimePoint`.
+
+    `bts:TimePoint` is a per-*timeline* counter, not a plate-wide time index. In
+    the CV8000 `time-lines-test` acquisition three wells are acquired by three
+    timelines and carry `TimePoint` 1, 2 and 3, yet each holds a *single* time
+    point. Used raw it both mislabels those wells as frames 0, 1 and 2 and, for a
+    well whose time points are sparse, leaves the missing indices as empty
+    frames — there is no `reindex_t` in the registration pipeline to compact them
+    the way `reindex_channels` compacts channels.
+
+    Both fields come from the same per-well grouping, so the `t` axis exists
+    exactly when some well fills more than one index.
+    """
+
+    is_time_series: bool
+    """Whether any well of the plate holds more than one time point.
+
+    Decided plate-wide rather than per well: `TiledImage.add_tile` requires the
+    tiles of an image to agree on `axes`, and a plate whose wells disagreed would
+    be unreadable as a single collection.
+    """
+
+    dense_indices: dict[tuple[int, int], dict[int, int]]
+    """`{(bts:Row, bts:Column): {bts:TimePoint: 0-based time index}}`."""
+
+    def start_t(self, *, row: int, column: int, time_point: int) -> int:
+        """The 0-based time index of one `.mlf` image record."""
+        return self.dense_indices[(row, column)][time_point]
+
+
+def build_time_index(records: Iterable[tuple[int, int, int]]) -> TimeIndex:
+    """Map each well's `bts:TimePoint` values onto a dense 0-based range.
+
+    Call this once per output plate, with every image record of that plate: the
+    mapping is per well because each well is a separate output image, while
+    `is_time_series` has to be decided across all of them (see `TimeIndex`).
+
+    Args:
+        records: `(bts:Row, bts:Column, bts:TimePoint)` of every image record of
+            the plate. Duplicates are expected; order is irrelevant.
+
+    Returns:
+        The plate's `TimeIndex`.
+    """
+    per_well: dict[tuple[int, int], set[int]] = {}
+    for row, column, time_point in records:
+        per_well.setdefault((row, column), set()).add(time_point)
+
+    return TimeIndex(
+        is_time_series=any(len(time_points) > 1 for time_points in per_well.values()),
+        dense_indices={
+            well: {time_point: index for index, time_point in enumerate(sorted(points))}
+            for well, points in per_well.items()
+        },
+    )
+
+
+######################################################################
+#
+# `.mrf` channel geometry
+#
+######################################################################
+
+
+class ChannelGeometry(NamedTuple):
+    """The per-channel geometry fields of one `.mrf` `<bts:MeasurementChannel>`."""
+
+    ch: int
+    xy_pixel_size: tuple[float, float]
+    frame_size: tuple[int, int]
+
+
+def warn_on_channel_geometry_mismatch(
+    *,
+    geometries: list[ChannelGeometry],
+    acquisition_dir: str,
+) -> None:
+    """Warn when the `.mrf` channels disagree on pixel size or frame size.
+
+    Both converters read pixel size and frame size from the *first*
+    `<bts:MeasurementChannel>` and apply them to every channel. That is correct for
+    all data seen so far, but a binned or differently-cropped channel would be
+    silently misplaced. Warn rather than raise: the geometry of channel 1 is still
+    what gets applied, so this reports a suspicion, it does not change behaviour.
+
+    Call once per acquisition, not per plate or per field of view.
+
+    Args:
+        geometries: One entry per `.mrf` channel, in file order.
+        acquisition_dir: Named in the warning, since conversion runs a batch of
+            acquisitions one at a time.
+    """
+    if len(geometries) < 2:
+        return
+
+    reference = geometries[0]
+    for other in geometries[1:]:
+        pixel_size_differs = not np.allclose(
+            other.xy_pixel_size, reference.xy_pixel_size
+        )
+        frame_size_differs = other.frame_size != reference.frame_size
+        if pixel_size_differs or frame_size_differs:
+            logger.warning(
+                f"In {acquisition_dir}, bts:Ch {other.ch} declares pixel size "
+                f"{other.xy_pixel_size} and frame size {other.frame_size}, but "
+                f"bts:Ch {reference.ch} declares {reference.xy_pixel_size} and "
+                f"{reference.frame_size}. Channel {reference.ch}'s geometry is "
+                "applied to every channel, so this image may be misplaced."
+            )

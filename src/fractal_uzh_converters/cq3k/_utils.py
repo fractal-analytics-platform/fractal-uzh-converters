@@ -26,12 +26,16 @@ from pydantic.alias_generators import to_pascal
 
 from fractal_uzh_converters.common import (
     STANDARD_ROWS_NAMES,
+    ChannelGeometry,
     HCSBaseAcquisitionModel,
+    TimeIndex,
     apply_channel_overrides,
+    build_time_index,
     get_attributes_from_condition_table,
     max_acquired_channel,
     read_mes_channels,
     resolve_channels,
+    warn_on_channel_geometry_mismatch,
 )
 
 logger = logging.getLogger(__name__)
@@ -91,7 +95,10 @@ class Base(BaseModel):
 
     model_config = ConfigDict(
         alias_generator=to_pascal,
-        extra="forbid",
+        # `ignore`, not `forbid`: a firmware update adding a single `bts:` attribute
+        # would otherwise be a hard parse failure. Matches CellVoyager, whose `.mrf`
+        # already carries fields these models do not declare.
+        extra="ignore",
     )
 
 
@@ -137,9 +144,14 @@ class MeasurementData(Base):
 
     xmlns: Annotated[dict, Field(alias="xmlns")]
     version: Literal["1.0"]
-    measurement_record: list[ImageMeasurementRecord | ErrorMeasurementRecord] | None = (
-        None
-    )
+    # `xmltodict` collapses a lone `<bts:MeasurementRecord>` to a bare dict, so a
+    # single-record acquisition has to be accepted here and normalised by the caller.
+    measurement_record: (
+        list[ImageMeasurementRecord | ErrorMeasurementRecord]
+        | ImageMeasurementRecord
+        | ErrorMeasurementRecord
+        | None
+    ) = None
 
 
 class MeasurementSamplePlate(Base):
@@ -245,6 +257,21 @@ def _measurement_channels(detail: MeasurementDetail) -> list[MeasurementChannel]
     return [detail.measurement_channel]
 
 
+def _channel_geometries(detail: MeasurementDetail) -> list[ChannelGeometry]:
+    """The geometry fields of every `.mrf` channel, for the consistency check."""
+    return [
+        ChannelGeometry(
+            ch=channel.ch,
+            xy_pixel_size=(
+                channel.horizontal_pixel_dimension,
+                channel.vertical_pixel_dimension,
+            ),
+            frame_size=(channel.horizontal_pixels, channel.vertical_pixels),
+        )
+        for channel in _measurement_channels(detail)
+    ]
+
+
 def _get_z_spacing(images: list[ImageMeasurementRecord]) -> float:
     """Calculate z spacing from image records."""
     z_positions = sorted({img.z for img in images})
@@ -254,19 +281,6 @@ def _get_z_spacing(images: list[ImageMeasurementRecord]) -> float:
     if not np.allclose(delta_z, delta_z[0]):
         logger.warning("Z spacing is not constant, using mean value.")
     return float(np.mean(delta_z))
-
-
-def _is_time_series(images: list[ImageMeasurementRecord]) -> bool:
-    """Check whether at least one well holds more than one time point.
-
-    `TimePoint` is a per-timeline counter, so distinct values across a plate do
-    not make it a time series; only more than one within a single output image
-    does. Evaluated plate-wide because `add_tile` requires uniform axes.
-    """
-    per_well: dict[tuple[int, int], set[int]] = {}
-    for img in images:
-        per_well.setdefault((img.row, img.column), set()).add(img.time_point)
-    return any(len(time_points) > 1 for time_points in per_well.values())
 
 
 #: `bts:ZImageProcessing` values, mapped to the conventional imaging abbreviations.
@@ -395,6 +409,7 @@ def build_acquisition_details(
     acquisition_model: CQ3KAcquisitionModel,
     channels: list[ChannelInfo],
     max_acquired_ch: int,
+    time_index: TimeIndex,
 ) -> AcquisitionDetails:
     """Build AcquisitionDetails from CQ3K metadata.
 
@@ -413,6 +428,7 @@ def build_acquisition_details(
             plates.
         max_acquired_ch: Highest `bts:Ch` the acquisition actually acquired, used
             to reject an `advanced.channels` override that is too short.
+        time_index: This plate's time axis, from `build_time_index`.
     """
     first_channel = _measurement_channels(detail)[0]
 
@@ -426,8 +442,7 @@ def build_acquisition_details(
         )
 
     z_spacing = _get_z_spacing(images)
-    is_time_series = _is_time_series(images)
-    axes = default_axes_builder(is_time_series=is_time_series)
+    axes = default_axes_builder(is_time_series=time_index.is_time_series)
 
     acquisition_detail = AcquisitionDetails(
         xy_pixel_size=pixelsize_x,
@@ -466,6 +481,7 @@ def _build_tiles(
     detail: MeasurementDetail,
     acquisition_model: CQ3KAcquisitionModel,
     acquisition_details: AcquisitionDetails,
+    time_index: TimeIndex,
     row: str,
     column: int,
     fov_idx: int,
@@ -507,7 +523,10 @@ def _build_tiles(
             length_z=1,
             start_c=img.ch - 1,  # Convert to 0-indexed
             length_c=1,
-            start_t=img.time_point - 1,  # Convert to 0-indexed
+            # Not `time_point - 1`: `bts:TimePoint` counts timelines, not frames.
+            start_t=time_index.start_t(
+                row=img.row, column=img.column, time_point=img.time_point
+            ),
             length_t=1,
             collection=image_in_plate,
             image_loader=DefaultImageLoader(file_path=tiff_path),
@@ -544,8 +563,22 @@ def parse_cq3k_metadata(
     data, detail = _load_models(path=acquisition_dir)
     condition_table = acquisition_model.get_condition_table()
 
+    # Once per acquisition: `_build_acquisition_details` runs per plate and
+    # `_build_tiles` per field of view, so neither is the right place to warn from.
+    warn_on_channel_geometry_mismatch(
+        geometries=_channel_geometries(detail),
+        acquisition_dir=acquisition_dir,
+    )
+
     if data.measurement_record is None:
         raise ValueError(f"No measurement records found in {acquisition_dir}")
+
+    # Normalize single record to list (xmltodict returns dict for single elements)
+    records = (
+        data.measurement_record
+        if isinstance(data.measurement_record, list)
+        else [data.measurement_record]
+    )
 
     # Group images by z_type, well (row, column), and field of view
     plates_groups: dict[
@@ -554,7 +587,7 @@ def parse_cq3k_metadata(
     # ... and by z_type alone, since each z_type is written as its own plate
     plates_records: dict[str | None, list[ImageMeasurementRecord]] = {}
 
-    for record in data.measurement_record:
+    for record in records:
         if not isinstance(record, ImageMeasurementRecord):
             continue
 
@@ -616,6 +649,17 @@ def parse_cq3k_metadata(
     # fails identically on every plate of the acquisition.
     max_acquired_ch = max_acquired_channel(acquired)
 
+    # Per plate rather than acquisition-wide: each plate is written as its own
+    # collection, so a projection acquired at fewer time points than the raw
+    # slices gets its own dense time axis. `bts:TimePoint` is a per-timeline
+    # counter, so the axis can only be decided by looking at every well at once.
+    plates_time_indices = {
+        z_type: build_time_index(
+            (record.row, record.column, record.time_point) for record in records
+        )
+        for z_type, records in plates_records.items()
+    }
+
     # One AcquisitionDetails per plate: fields of view merge into a single output
     # image, and `TiledImage.add_tile` rejects tiles whose details disagree.
     plates_details = {
@@ -625,6 +669,7 @@ def parse_cq3k_metadata(
             acquisition_model=acquisition_model,
             channels=channels,
             max_acquired_ch=max_acquired_ch,
+            time_index=plates_time_indices[z_type],
         )
         for z_type, records in plates_records.items()
     }
@@ -650,6 +695,7 @@ def parse_cq3k_metadata(
             detail=detail,
             acquisition_model=acquisition_model,
             acquisition_details=plates_details[z_type],
+            time_index=plates_time_indices[z_type],
             row=row,
             column=column,
             fov_idx=fov_idx,

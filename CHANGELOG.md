@@ -31,6 +31,14 @@ Migration to `ome-zarr-converters-tools` v1.
   `advanced.channels` override maps its first entry to `Ch1` instead of failing (#27).
 - Yokogawa (CQ3K, CellVoyager): build one `AcquisitionDetails` per plate instead of one
   per field of view, so fields merged into a single image cannot disagree on it.
+- CQ3K: a `.mlf` holding a single measurement record now converts; `xmltodict` returns a
+  bare dict for it, which the list-only type rejected.
+- CQ3K: unknown `bts:` attributes are ignored rather than rejected, so a firmware update
+  adding one is no longer a hard parse failure. Matches CellVoyager.
+- Yokogawa (CQ3K, CellVoyager): warn when the `.mrf` channels disagree on pixel size or
+  frame size — channel 1's geometry is applied to all of them.
+- Yokogawa (CQ3K, CellVoyager): each well's `bts:TimePoint` values are mapped onto a dense
+  0-based time axis; the raw value counts timelines, so it left leading frames empty.
 
 ### Chores
 - Bump `ome-zarr-converters-tools` to `>=1.0.2` for its channel-metadata compaction fix,
