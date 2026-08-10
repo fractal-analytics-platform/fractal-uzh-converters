@@ -1,4 +1,4 @@
-"""CQ3K projection plates: one plate per `bts:ZImageProcessing` algorithm.
+"""Yokogawa projection plates: one plate per `bts:ZImageProcessing` algorithm.
 
 The suffix used to be the raw Yokogawa string (`_Maximum`, `_Minimum`, `_Sum`);
 it is now the conventional imaging abbreviation (`_MIP`, `_MinIP`, `_SIP`), with
@@ -8,8 +8,14 @@ Renaming the plates rewrites every CQ3K snapshot, so the cases that matter are
 asserted here explicitly rather than left to the snapshot diff. Where only the
 plate *names* are under test the assertions run off `parse_cq3k_metadata`, which
 reads the `.mlf`/`.mrf` and no image data — `Slices_MIP_MinIP` is 985 MB.
+
+The split applies to both instruments. The only CellVoyager acquisition in either
+store carrying a `bts:ZImageProcessing` lives in the extended one, so the
+CellVoyager cases at the end rewrite the in-repo fixture's `.mlf` in `tmp_path`
+instead — that is the coverage CI gets, `tests/data-extended/` being gitignored.
 """
 
+import shutil
 from pathlib import Path
 
 import pytest
@@ -17,6 +23,10 @@ import pytest
 from fractal_uzh_converters.yokogawa._z_processing import (
     _plate_name,
     _z_processing_token,
+)
+from fractal_uzh_converters.yokogawa.cellvoyager._utils import (
+    CellVoyagerAcquisitionModel,
+    parse_cellvoyager_metadata,
 )
 from fractal_uzh_converters.yokogawa.cq3k import convert_cq3k
 from fractal_uzh_converters.yokogawa.cq3k._utils import (
@@ -28,6 +38,7 @@ from .utils import DATA_DIR, EXTENDED_DATA_DIR, plate_channel_metadata
 
 CQ3K_RAW_DIR = DATA_DIR / "Yokogawa-CQ3K" / "raw"
 CQ3K_EXTENDED_RAW_DIR = EXTENDED_DATA_DIR / "Yokogawa-CQ3K" / "raw"
+CELLVOYAGER_FIXTURE = DATA_DIR / "Yokogawa-CellVoyager" / "raw" / "hcs_1w1p1c1z1t"
 
 
 def _parse(name: str, converter_options, root=None, **advanced):
@@ -336,3 +347,92 @@ def test_a_selection_converts_only_the_selected_plate(
     plates = plate_channel_metadata(zarr_dir, image_list_updates)
     assert set(plates) == {f"{_CHANNELS_MIP_MINIP}_MinIP.zarr"}
     assert not (zarr_dir / f"{_CHANNELS_MIP_MINIP}_MIP.zarr").exists()
+
+
+######################################################################
+#
+# CellVoyager: the same split, on a fixture rewritten in `tmp_path`
+#
+######################################################################
+
+
+def _cellvoyager_plate_names(acquisition_dir: Path, converter_options, **advanced):
+    """Plate paths a CellVoyager acquisition would write, without converting it."""
+    tiled_images = parse_cellvoyager_metadata(
+        acquisition_model=CellVoyagerAcquisitionModel(
+            path=str(acquisition_dir),
+            acquisition_id=0,
+            # The in-repo CellVoyager fixture ships `.png`, not `.tif`.
+            image_extension=".png",
+            advanced=advanced,
+        ),
+        converter_options=converter_options,
+    )
+    return {tiled_image.collection.plate_path() for tiled_image in tiled_images}
+
+
+def _projected_fixture(tmp_path: Path, algorithm: str = "Maximum") -> Path:
+    """The in-repo CellVoyager fixture, its one record tagged as a projection.
+
+    No CellVoyager acquisition in the in-repo store carries a
+    `bts:ZImageProcessing`, so the attribute is injected here rather than shipped
+    as a second fixture.
+    """
+    acquisition_dir = tmp_path / CELLVOYAGER_FIXTURE.name
+    shutil.copytree(CELLVOYAGER_FIXTURE, acquisition_dir)
+    mlf = acquisition_dir / "MeasurementData.mlf"
+    text = mlf.read_text(encoding="utf-8")
+    marker = '<bts:MeasurementRecord bts:Type="IMG"'
+    assert text.count(marker) == 1, "fixture changed; this helper tags one record"
+    mlf.write_text(
+        text.replace(marker, f'{marker} bts:ZImageProcessing="{algorithm}"'),
+        encoding="utf-8",
+    )
+    return acquisition_dir
+
+
+def test_cellvoyager_without_the_attribute_writes_the_unsuffixed_plate(
+    converter_options,
+):
+    """The baseline the case below is a departure from, and the common case."""
+    assert _cellvoyager_plate_names(CELLVOYAGER_FIXTURE, converter_options) == {
+        f"{CELLVOYAGER_FIXTURE.name}.zarr"
+    }
+
+
+def test_cellvoyager_projections_land_in_their_own_plate(
+    tmp_path: Path, converter_options
+):
+    """CellVoyager used to drop `bts:ZImageProcessing` and write one plate.
+
+    Projection and raw records share the well, field of view and channel
+    numbering, so a single plate meant overlapping tiles.
+    """
+    acquisition_dir = _projected_fixture(tmp_path)
+
+    assert _cellvoyager_plate_names(acquisition_dir, converter_options) == {
+        f"{CELLVOYAGER_FIXTURE.name}_MIP.zarr"
+    }
+
+
+def test_cellvoyager_selection_picks_the_plate_subset(
+    tmp_path: Path, converter_options
+):
+    """`advanced.z_processing` reaches the CellVoyager parser, as it does CQ3K's."""
+    acquisition_dir = _projected_fixture(tmp_path)
+
+    assert _cellvoyager_plate_names(
+        acquisition_dir,
+        converter_options,
+        z_processing={"z_slices": False, "mip": True},
+    ) == {f"{CELLVOYAGER_FIXTURE.name}_MIP.zarr"}
+
+
+def test_cellvoyager_a_selection_matching_nothing_raises(
+    tmp_path: Path, converter_options
+):
+    """The rewritten fixture is projection-only, so `Z slices` matches none of it."""
+    acquisition_dir = _projected_fixture(tmp_path)
+
+    with pytest.raises(ValueError, match="z_processing"):
+        _cellvoyager_plate_names(acquisition_dir, converter_options, z_processing={})

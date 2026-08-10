@@ -1,14 +1,12 @@
 """The shared Yokogawa `.mlf`/`.mrf` parser.
 
-One implementation for both instruments. The CQ3K shape is the general one — an
-acquisition is split into one plate per `bts:ZImageProcessing` kind — and a
-CellVoyager acquisition, which the converter does not split, collapses to the
-single `z_type=None` plate.
+One implementation for both instruments: an acquisition is split into one plate
+per `bts:ZImageProcessing` kind, and one that carries the attribute nowhere —
+the common case on both — collapses to the single `z_type=None` plate.
 
-The two genuine per-instrument differences are parameters of
+The one genuine per-instrument difference is a parameter of
 `parse_yokogawa_metadata`: `filename_transform`, because a CellVoyager `.mlf`
-always names `.tif` even when the files on disk are `.png`, and
-`split_z_processing`.
+always names `.tif` even when the files on disk are `.png`.
 """
 
 import logging
@@ -290,7 +288,6 @@ def parse_yokogawa_metadata(
     acquisition_model: HCSBaseAcquisitionModel,
     converter_options: ConverterOptions,
     z_selection: ZProcessingSelection | None = None,
-    split_z_processing: bool = True,
     filename_transform: Callable[[str], str] = lambda file_name: file_name,
 ) -> list[TiledImage]:
     """Parse a Yokogawa acquisition and return a list of TiledImages.
@@ -299,10 +296,7 @@ def parse_yokogawa_metadata(
         acquisition_model: Acquisition input model containing path and options.
         converter_options: Converter options for tile processing.
         z_selection: Which `bts:ZImageProcessing` kinds to convert, or `None` for
-            all of them. Ignored when `split_z_processing` is False.
-        split_z_processing: Write one plate per `bts:ZImageProcessing` kind. When
-            False every record lands in a single unsuffixed plate, whatever the
-            attribute says.
+            all of them.
         filename_transform: Applied to `bts:MeasurementRecord`'s file name before
             it is resolved against the acquisition directory.
 
@@ -353,7 +347,7 @@ def parse_yokogawa_metadata(
     plates_records: dict[str | None, list[ImageMeasurementRecord]] = {}
 
     for record in all_image_records:
-        z_type = record.z_image_processing if split_z_processing else None
+        z_type = record.z_image_processing
         row = STANDARD_ROWS_NAMES[record.row - 1]
         column = record.column
         fov_idx = record.field_index
@@ -374,7 +368,7 @@ def parse_yokogawa_metadata(
     plates_tokens = {z_type: _z_processing_token(z_type) for z_type in plates_records}
     kept = _select_z_processing(
         plates_tokens=plates_tokens,
-        selection=z_selection if split_z_processing else None,
+        selection=z_selection,
         acquisition_dir=acquisition_dir,
     )
     plates_records = {

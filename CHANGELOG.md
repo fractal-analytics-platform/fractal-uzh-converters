@@ -14,6 +14,9 @@ Migration to `ome-zarr-converters-tools` v1.
   do not model travels with the converted plate (#46).
 
 ### API Breaking Changes
+- **CellVoyager acquisitions tagged `bts:ZImageProcessing` now split into one plate per
+  algorithm** (`_MIP`/`_MinIP`/`_SIP`), with the same `advanced.z_processing` selection
+  as CQ3K; the attribute was previously dropped, overlapping the tiles of both plates.
 - **Yokogawa default channel labels are no longer `channel_N`** but the `.mes` channel
   target, falling back to the wavelength id when no `.mes` is available. With
   `reindex_channels` disabled, instrument channels the acquisition did not use are now

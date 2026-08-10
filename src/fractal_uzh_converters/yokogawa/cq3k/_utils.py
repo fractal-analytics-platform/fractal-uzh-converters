@@ -67,5 +67,4 @@ def parse_cq3k_metadata(
         acquisition_model=acquisition_model,
         converter_options=converter_options,
         z_selection=acquisition_model.advanced.z_processing,
-        split_z_processing=True,
     )

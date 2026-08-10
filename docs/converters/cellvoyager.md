@@ -44,6 +44,7 @@ MyPlate.zarr/
 
 The `.mlf` and `.mrf` are copied under their fixed names; the `.mes`, `.wpi` and `.wpp` under the names recorded inside the `.mrf`. Filenames are preserved exactly, spaces and non-ASCII characters included.
 
+- **Every plate the acquisition produced gets its own copy**, so each [projection plate](#z-image-processing) carries the same five files as the unsuffixed one.
 - **A file the acquisition does not ship is a warning, not an error.** The conversion itself is unaffected. This is a common case rather than a defect: CV8000 acquisitions routinely name a `.wpi` in the `.mrf` that was never written.
 - When several acquisitions land in the same plate with identically named files, the second copy becomes `<stem>_acq{acquisition_id}<ext>` rather than overwriting the first. A byte-identical copy is left alone, so re-running a conversion does not accumulate duplicates.
 
@@ -64,9 +65,73 @@ The list must have at least as many entries as the highest channel number the ac
 - Leaving `Wavelength ID` empty keeps the computed `A{action}_C{channel}`.
 - Leaving the colour on `Auto` keeps the colour from the `.mes`.
 
+### With projection plates
+
+One list covers the **whole acquisition**, every plate included, and it is numbered in the acquisition-wide channel space — not per plate. Because each [projection algorithm](#z-image-processing) carries its own channel numbers, the entries are split across plates rather than repeated in each.
+
+> An acquisition that min-projects `Ch1` and max-projects `Ch2`–`Ch5` needs one 5-entry list. Element 0 surfaces in `MyPlate_MinIP.zarr`; elements 1–4 surface in `MyPlate_MIP.zarr`.
+
+So do not write a separate list per plate, and do not size the list by the channels visible in one plate. Selecting a single plate with `Z Processing` does relax the requirement to that plate's own channels.
+
 ## Z-Image Processing
 
-Unlike the [CQ3K converter](cq3k.md), the CellVoyager converter does **not** support Z-image processing types. A single plate is always produced per acquisition.
+A CellVoyager acquisition can write projections alongside — or instead of — the raw Z slices, tagged `bts:ZImageProcessing` in the `.mlf`. Each projection algorithm carries its own channel numbers, so the converter writes one plate per algorithm, suffixing the plate name:
+
+| `ZImageProcessing` | Plate suffix |
+|---|---|
+| *(absent — raw Z slices)* | *(none)* |
+| `Maximum` | `_MIP` |
+| `Minimum` | `_MinIP` |
+| `Sum` | `_SIP` |
+
+Any other value is used verbatim as the suffix, with a warning.
+
+The suffixed plates coexist with the unsuffixed one. An acquisition named `MyPlate` that stores raw slices plus a maximum and a minimum projection produces:
+
+- `MyPlate.zarr` — the raw Z slices
+- `MyPlate_MIP.zarr`
+- `MyPlate_MinIP.zarr`
+
+The split follows the acquisition, not the channel set: an acquisition that max-projects its fluorescence channels and min-projects a brightfield channel yields a `_MIP` plate and a `_MinIP` plate, each holding only its own channels.
+
+Channel labels do **not** carry the algorithm — it is already in the plate name — so a channel keeps the same label across the raw and the projection plates.
+
+Most CellVoyager acquisitions carry no `bts:ZImageProcessing` at all and produce the single unsuffixed plate they always have.
+
+### Converting only some of them
+
+`Advanced` → `Z Processing` selects which of these plates are written. Leave it unset — the default — to convert every kind the acquisition contains. Otherwise it is one switch per kind:
+
+| Switch | Default | Selects |
+|---|---|---|
+| `Z slices` | on | the unsuffixed raw-stack plate |
+| `MIP` | off | `_MIP` |
+| `MinIP` | off | `_MinIP` |
+| `SIP` | off | `_SIP` |
+
+Note that `Z slices` is the only one on by default, so enabling a projection *adds* to the raw stack rather than replacing it:
+
+```python
+advanced={"z_processing": {"mip": True}}                     # Z slices + MIP
+advanced={"z_processing": {"z_slices": False, "mip": True}}  # MIP only
+advanced={"z_processing": {}}                                # Z slices only
+```
+
+| Selection | Result |
+|---|---|
+| unset | Every kind the acquisition contains. |
+| nothing enabled | An error — enable something, or leave the option unset. |
+| all enabled kinds present | Exactly those. |
+| some enabled kinds absent | The ones that matched, plus a warning naming the rest. One selection stays usable across a batch of mixed acquisitions. |
+| no enabled kind present | An error naming what the acquisition actually contains. |
+
+A `ZImageProcessing` value outside the four above cannot be named here. To single one out, use a `Path Regex Filter` on the plate name instead:
+
+```python
+advanced={"filters": [
+    {"name": "Path Regex Filter", "mode": "Exclude", "regex": r"_Median\.zarr"}
+]}
+```
 
 ## Task Parameters
 
@@ -78,7 +143,7 @@ The CellVoyager init task extends the base acquisition parameters with one addit
 | `Plate Name` | `str` or `null` | `null` | Custom plate name. Defaults to the directory name. |
 | `Acquisition Id` | `int` | `0` | Acquisition identifier for multi-acquisition plates. |
 | `Image Extension` | `"png"` or `"tif"` | `"png"` | File extension of the actual image files. The metadata always references `.tif`, but actual files may be `.png` or `.tif`. |
-| `Advanced` | `AcquisitionOptions` | `{}` | Advanced options (condition table, [channel overrides](#channels), filters). |
+| `Advanced` | `CellVoyagerAcquisitionOptions` | `{}` | Advanced options (condition table, [channel overrides](#channels), [`Z Processing`](#converting-only-some-of-them), filters). |
 
 ## Python API
 

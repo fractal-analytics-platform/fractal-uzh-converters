@@ -43,8 +43,8 @@ class ImageMeasurementRecord(MeasurementRecordBase):
     """Image measurement record.
 
     The fields below `z_index` are written by CQ3K and absent from a CellVoyager
-    `.mlf`, except `z_image_processing`, which a CellVoyager acquisition with a
-    projection carries too.
+    `.mlf`, except `z_image_processing`: both instruments tag a projection with
+    it, and both converters split the acquisition on it.
     """
 
     type: Literal["IMG"]

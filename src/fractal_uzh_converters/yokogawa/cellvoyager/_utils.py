@@ -5,16 +5,34 @@ The parsing itself is shared with CQ3K — see `yokogawa/_parse.py`.
 
 from typing import Literal
 
-from ome_zarr_converters_tools import ConverterOptions, TiledImage
+from ome_zarr_converters_tools import (
+    AcquisitionOptions,
+    ConverterOptions,
+    TiledImage,
+)
+from pydantic import Field
 
 from fractal_uzh_converters.common import HCSBaseAcquisitionModel
 from fractal_uzh_converters.yokogawa._parse import parse_yokogawa_metadata
+from fractal_uzh_converters.yokogawa._z_processing import ZProcessingSelection
 
 ######################################################################
 #
 # Acquisition Input Model
 #
 ######################################################################
+
+
+class CellVoyagerAcquisitionOptions(AcquisitionOptions):
+    """Acquisition options for the CellVoyager converter."""
+
+    z_processing: ZProcessingSelection | None = Field(
+        default=None, title="Z Processing"
+    )
+    """
+    Which Z-image processing outputs to convert, each written as its own plate.
+    Leave unset to convert every one the acquisition contains.
+    """
 
 
 class CellVoyagerAcquisitionModel(HCSBaseAcquisitionModel):
@@ -25,6 +43,12 @@ class CellVoyagerAcquisitionModel(HCSBaseAcquisitionModel):
     File extension of the actual image files.
     The metadata (.mlf) always references '.tif', but the actual files
     may be '.png' or '.tif'. Select the extension matching your data.
+    """
+    advanced: CellVoyagerAcquisitionOptions = Field(
+        default_factory=CellVoyagerAcquisitionOptions
+    )
+    """
+    Advanced acquisition options.
     """
 
 
@@ -59,10 +83,7 @@ def parse_cellvoyager_metadata(
     return parse_yokogawa_metadata(
         acquisition_model=acquisition_model,
         converter_options=converter_options,
-        # The converter does not (yet) split a CellVoyager acquisition by
-        # `bts:ZImageProcessing`: an acquisition carrying one lands in a single
-        # unsuffixed plate, as it always has.
-        split_z_processing=False,
+        z_selection=acquisition_model.advanced.z_processing,
         filename_transform=lambda file_name: _replace_extension(
             file_name, acquisition_model.image_extension
         ),
