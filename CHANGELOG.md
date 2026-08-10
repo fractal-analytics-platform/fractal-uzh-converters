@@ -39,6 +39,9 @@ Migration to `ome-zarr-converters-tools` v1.
   frame size — channel 1's geometry is applied to all of them.
 - Yokogawa (CQ3K, CellVoyager): each well's `bts:TimePoint` values are mapped onto a dense
   0-based time axis; the raw value counts timelines, so it left leading frames empty.
+- Yokogawa (CQ3K, CellVoyager): a `bts:Type="ERR"` record no longer makes the whole `.mlf`
+  unparsable — it carries no `bts:FieldIndex`, which was required on the shared record
+  base. Such records are skipped, with one warning per acquisition (#41).
 
 ### Chores
 - Bump `ome-zarr-converters-tools` to `>=1.0.2` for its channel-metadata compaction fix,

@@ -79,7 +79,6 @@ class MeasurementRecordBase(Base):
     time: str
     column: int
     row: int
-    field_index: int
     time_point: int
     timeline_index: int
     x: float
@@ -91,6 +90,7 @@ class ImageMeasurementRecord(MeasurementRecordBase):
     """Image measurement record."""
 
     type: Literal["IMG"]
+    field_index: int
     z_index: int
     action_index: int
     action: str
@@ -99,7 +99,13 @@ class ImageMeasurementRecord(MeasurementRecordBase):
 
 
 class ErrorMeasurementRecord(MeasurementRecordBase):
-    """Error measurement record."""
+    """Error measurement record.
+
+    An autofocus failure carries no `bts:FieldIndex`, which is why that field
+    sits on `ImageMeasurementRecord` rather than the base (#41). The attributes
+    an ERR record does carry beyond the base set — `bts:PartialTileIndex` — are
+    never read, so `extra="ignore"` absorbs them and they stay unmodelled.
+    """
 
     type: Literal["ERR"]
 
@@ -425,14 +431,25 @@ def parse_cellvoyager_metadata(
         else [data.measurement_record]
     )
 
+    # `bts:Type="ERR"` records — autofocus failures — describe no image and are
+    # dropped here rather than at the grouping loop below: a plate-wide focus
+    # failure would otherwise warn hundreds of times per acquisition.
+    image_records = [r for r in records if isinstance(r, ImageMeasurementRecord)]
+    skipped = len(records) - len(image_records)
+    if skipped:
+        logger.warning(
+            f"Skipping {skipped} error record(s) (bts:Type='ERR') in {acquisition_dir}."
+        )
+    if not image_records:
+        raise ValueError(
+            f"No image measurement records found in {acquisition_dir}: "
+            f"all {skipped} record(s) are errors."
+        )
+
     # Group images by well (row, column) and field of view
     groups: dict[tuple[str, int, int], list[ImageMeasurementRecord]] = {}
-    image_records: list[ImageMeasurementRecord] = []
 
-    for record in records:
-        if not isinstance(record, ImageMeasurementRecord):
-            continue
-
+    for record in image_records:
         row = STANDARD_ROWS_NAMES[record.row - 1]
         column = record.column
         fov_idx = record.field_index
@@ -442,7 +459,6 @@ def parse_cellvoyager_metadata(
         if key not in groups:
             groups[key] = []
         groups[key].append(record)
-        image_records.append(record)
 
     # Channel metadata comes from the `.mes` protocol file, whose basename is
     # recorded in the `.mrf`. The resolved list spans the full instrument channel

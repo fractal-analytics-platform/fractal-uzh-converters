@@ -108,7 +108,6 @@ class MeasurementRecordBase(Base):
     time: str
     column: int
     row: int
-    field_index: int
     time_point: int
     timeline_index: int
     x: float
@@ -120,6 +119,7 @@ class ImageMeasurementRecord(MeasurementRecordBase):
     """Image measurement record."""
 
     type: Literal["IMG"]
+    field_index: int
     tile_x_index: int | None = None
     tile_y_index: int | None = None
     z_index: int
@@ -134,7 +134,13 @@ class ImageMeasurementRecord(MeasurementRecordBase):
 
 
 class ErrorMeasurementRecord(MeasurementRecordBase):
-    """Error measurement record."""
+    """Error measurement record.
+
+    An autofocus failure carries no `bts:FieldIndex`, which is why that field
+    sits on `ImageMeasurementRecord` rather than the base (#41). The attributes
+    an ERR record does carry beyond the base set — `bts:PartialTileIndex` — are
+    never read, so `extra="ignore"` absorbs them and they stay unmodelled.
+    """
 
     type: Literal["ERR"]
 
@@ -580,6 +586,21 @@ def parse_cq3k_metadata(
         else [data.measurement_record]
     )
 
+    # `bts:Type="ERR"` records — autofocus failures — describe no image and are
+    # dropped here rather than at the grouping loop below: a plate-wide focus
+    # failure would otherwise warn hundreds of times per acquisition.
+    all_image_records = [r for r in records if isinstance(r, ImageMeasurementRecord)]
+    skipped = len(records) - len(all_image_records)
+    if skipped:
+        logger.warning(
+            f"Skipping {skipped} error record(s) (bts:Type='ERR') in {acquisition_dir}."
+        )
+    if not all_image_records:
+        raise ValueError(
+            f"No image measurement records found in {acquisition_dir}: "
+            f"all {skipped} record(s) are errors."
+        )
+
     # Group images by z_type, well (row, column), and field of view
     plates_groups: dict[
         tuple[str | None, str, int, int], list[ImageMeasurementRecord]
@@ -587,10 +608,7 @@ def parse_cq3k_metadata(
     # ... and by z_type alone, since each z_type is written as its own plate
     plates_records: dict[str | None, list[ImageMeasurementRecord]] = {}
 
-    for record in records:
-        if not isinstance(record, ImageMeasurementRecord):
-            continue
-
+    for record in all_image_records:
         z_type = record.z_image_processing
         row = STANDARD_ROWS_NAMES[record.row - 1]
         column = record.column

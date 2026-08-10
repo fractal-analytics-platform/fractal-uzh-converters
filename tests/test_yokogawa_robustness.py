@@ -1,6 +1,6 @@
 """Robustness of the Yokogawa `.mlf`/`.mrf` parsers against real-world variation.
 
-Three independent defects, each with a concrete failing input:
+Four independent defects, each with a concrete failing input:
 
 1. `xmltodict` collapses a lone `<bts:MeasurementRecord>` to a bare dict, so the
    CQ3K parser rejected any acquisition holding exactly one record —
@@ -9,9 +9,11 @@ Three independent defects, each with a concrete failing input:
    from a firmware update a hard parse failure.
 3. Both converters take pixel size and frame size from the *first* `.mrf`
    channel and apply them to all of them, silently.
+4. `bts:Type="ERR"` records carry no `bts:FieldIndex`, which was required on the
+   shared record base — one autofocus failure made the whole `.mlf` unparsable.
 
 The fixtures are derived from the in-repo CQ3K and CellVoyager acquisitions by
-rewriting their XML in `tmp_path`, so all three are covered by the fast suite.
+rewriting their XML in `tmp_path`, so all four are covered by the fast suite.
 """
 
 import logging
@@ -45,6 +47,25 @@ def _copy_acquisition(source: Path, tmp_path: Path) -> Path:
     destination = tmp_path / source.name
     shutil.copytree(source, destination)
     return destination
+
+
+#: The two in-repo Yokogawa acquisitions, with what each parser needs to read one.
+BOTH_CONVERTERS = pytest.mark.parametrize(
+    "fixture, model_cls, parse_fn, model_kwargs",
+    [
+        pytest.param(
+            CQ3K_FIXTURE, CQ3KAcquisitionModel, parse_cq3k_metadata, {}, id="cq3k"
+        ),
+        pytest.param(
+            CELLVOYAGER_FIXTURE,
+            CellVoyagerAcquisitionModel,
+            parse_cellvoyager_metadata,
+            # The in-repo CellVoyager fixture ships `.png`, not `.tif`.
+            {"image_extension": ".png"},
+            id="cellvoyager",
+        ),
+    ],
+)
 
 
 ######################################################################
@@ -172,22 +193,7 @@ def test_disagreeing_channel_geometry_warns(caplog, odd_one_out, expected: str):
     assert "/some/acquisition" in message
 
 
-@pytest.mark.parametrize(
-    "fixture, model_cls, parse_fn, model_kwargs",
-    [
-        pytest.param(
-            CQ3K_FIXTURE, CQ3KAcquisitionModel, parse_cq3k_metadata, {}, id="cq3k"
-        ),
-        pytest.param(
-            CELLVOYAGER_FIXTURE,
-            CellVoyagerAcquisitionModel,
-            parse_cellvoyager_metadata,
-            # The in-repo CellVoyager fixture ships `.png`, not `.tif`.
-            {"image_extension": ".png"},
-            id="cellvoyager",
-        ),
-    ],
-)
+@BOTH_CONVERTERS
 def test_geometry_warning_does_not_change_the_applied_pixel_size(
     tmp_path: Path,
     caplog,
@@ -233,3 +239,139 @@ def test_geometry_warning_does_not_change_the_applied_pixel_size(
     applied = {image.xy_pixel_size for image in tiled_images}
     assert len(applied) == 1
     assert applied.pop() < 1.0, "channel 1's sub-micron pixel size, not channel 99's"
+
+
+######################################################################
+#
+# 4. `bts:Type="ERR"` measurement records
+#
+######################################################################
+
+# Verbatim from issue #41, with its data already mangled by the reporter. Note
+# what an autofocus failure does *not* carry: no `bts:FieldIndex`, and no
+# `bts:ZIndex`/`bts:Ch`/`bts:Action` either.
+ERROR_RECORDS = (
+    '<bts:MeasurementRecord bts:Type="ERR" bts:Time="2020-01-01T11:00:00.000+01:00"'
+    ' bts:Column="14" bts:Row="3" bts:TimePoint="1" bts:PartialTileIndex="1"'
+    ' bts:TimelineIndex="1" bts:X="-20.0" bts:Y="25.0">'
+    "AF Error at C14 No. 0 (SAMPLE_PLATE_000000_000000)</bts:MeasurementRecord>\n"
+    '<bts:MeasurementRecord bts:Type="ERR" bts:Time="2020-01-01T12:00:00.000+01:00"'
+    ' bts:Column="9" bts:Row="14" bts:TimePoint="1" bts:PartialTileIndex="1"'
+    ' bts:TimelineIndex="1" bts:X="-20.0" bts:Y="25.0">'
+    "AF Error at N09 No. 0 (SAMPLE_PLATE_000000_000000)</bts:MeasurementRecord>\n"
+)
+
+
+def _add_error_records(acquisition_dir: Path) -> None:
+    """Append the two ERR records of issue #41 to a copied `.mlf`."""
+    mlf = acquisition_dir / "MeasurementData.mlf"
+    text = mlf.read_text(encoding="utf-8")
+    closing = "</bts:MeasurementData>"
+    assert closing in text, "fixture has no closing <bts:MeasurementData>"
+    mlf.write_text(text.replace(closing, ERROR_RECORDS + closing), encoding="utf-8")
+
+
+def _drop_image_records(acquisition_dir: Path) -> None:
+    """Remove every `<bts:MeasurementRecord>` line from a copied `.mlf`."""
+    mlf = acquisition_dir / "MeasurementData.mlf"
+    lines = mlf.read_text(encoding="utf-8").splitlines(keepends=True)
+    kept = [line for line in lines if "<bts:MeasurementRecord" not in line]
+    assert len(kept) < len(lines), "fixture has no <bts:MeasurementRecord>"
+    mlf.write_text("".join(kept), encoding="utf-8")
+
+
+@BOTH_CONVERTERS
+def test_error_records_are_skipped(
+    tmp_path: Path,
+    converter_options,
+    fixture: Path,
+    model_cls,
+    parse_fn,
+    model_kwargs: dict,
+):
+    """An ERR record must be dropped, not fail the whole acquisition (#41).
+
+    `bts:FieldIndex` used to be required on the shared record base, so a single
+    autofocus failure made the `.mlf` unparsable in both converters.
+    """
+
+    def parse(acquisition_dir: Path):
+        return parse_fn(
+            acquisition_model=model_cls(
+                path=str(acquisition_dir), acquisition_id=0, **model_kwargs
+            ),
+            converter_options=converter_options,
+        )
+
+    # The unmodified fixture is only read, never written.
+    baseline = parse(fixture)
+    assert baseline, "fixture parses to nothing; there is nothing to compare against"
+
+    acquisition_dir = _copy_acquisition(fixture, tmp_path)
+    _add_error_records(acquisition_dir)
+    tiled_images = parse(acquisition_dir)
+
+    # ERR records describe no image, so the output must be untouched by them.
+    assert len(tiled_images) == len(baseline)
+    assert sum(len(image.regions) for image in tiled_images) == sum(
+        len(image.regions) for image in baseline
+    )
+
+
+@BOTH_CONVERTERS
+def test_error_records_warn_once_per_acquisition(
+    tmp_path: Path,
+    caplog,
+    converter_options,
+    fixture: Path,
+    model_cls,
+    parse_fn,
+    model_kwargs: dict,
+):
+    """Two skipped records, one warning — not one warning per record.
+
+    A plate-wide autofocus failure produces hundreds of ERR records, so the
+    count is reported once for the acquisition.
+    """
+    acquisition_dir = _copy_acquisition(fixture, tmp_path)
+    _add_error_records(acquisition_dir)
+
+    with caplog.at_level(logging.WARNING):
+        parse_fn(
+            acquisition_model=model_cls(
+                path=str(acquisition_dir), acquisition_id=0, **model_kwargs
+            ),
+            converter_options=converter_options,
+        )
+
+    warnings = [r.message for r in caplog.records if "bts:Type='ERR'" in r.message]
+    assert len(warnings) == 1, "expected exactly one warning, per acquisition"
+    assert "2" in warnings[0], "the warning must carry the count"
+    assert str(acquisition_dir) in warnings[0]
+
+
+@BOTH_CONVERTERS
+def test_all_error_mlf_raises(
+    tmp_path: Path,
+    converter_options,
+    fixture: Path,
+    model_cls,
+    parse_fn,
+    model_kwargs: dict,
+):
+    """An `.mlf` of nothing but ERR records fails with a message that says so.
+
+    It holds records, so the empty-`.mlf` check does not catch it; without an
+    explicit guard it would fall through to an obscure failure downstream.
+    """
+    acquisition_dir = _copy_acquisition(fixture, tmp_path)
+    _drop_image_records(acquisition_dir)
+    _add_error_records(acquisition_dir)
+
+    with pytest.raises(ValueError, match="No image measurement records"):
+        parse_fn(
+            acquisition_model=model_cls(
+                path=str(acquisition_dir), acquisition_id=0, **model_kwargs
+            ),
+            converter_options=converter_options,
+        )
