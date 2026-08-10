@@ -1,8 +1,9 @@
 """Time index normalisation for the Yokogawa converters.
 
 `bts:TimePoint` is a per-*timeline* counter, not a plate-wide frame index. In the
-CV8000 `time-lines-test` acquisition three wells are acquired by three timelines
-and carry `TimePoint` 1, 2 and 3 although each holds a single time point, so the
+CV8000 `TimelinesSharedChannel` acquisition three wells are acquired by three
+timelines and carry `TimePoint` 1, 2 and 3 although each holds a single time
+point, so the
 converters used to set `start_t` to 1 and 2 on images that have no `t` axis at
 all.
 
@@ -47,8 +48,8 @@ CELLVOYAGER_FIXTURE = DATA_DIR / "Yokogawa-CellVoyager" / "raw" / "hcs_1w1p1c1z1
 def test_one_time_point_per_well_is_not_a_time_series():
     """The real-data case: `TimePoint` counting timelines, not frames.
 
-    `time-lines-test` acquires three wells with three timelines, so its records
-    carry `TimePoint` 1, 2 and 3 while every well holds a single time point. The
+    `TimelinesSharedChannel` acquires three wells with three timelines, so its
+    records carry `TimePoint` 1, 2 and 3 while every well holds a single time point. The
     plate must stay `czyx`, and every record must land on frame 0.
     """
     time_index = build_time_index([(3, 2, 1), (3, 3, 2), (3, 4, 3)])

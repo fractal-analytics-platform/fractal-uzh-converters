@@ -4,7 +4,7 @@ Three independent defects, each with a concrete failing input:
 
 1. `xmltodict` collapses a lone `<bts:MeasurementRecord>` to a bare dict, so the
    CQ3K parser rejected any acquisition holding exactly one record —
-   `20251201T140949_BVC_TS_Test_SP_grid` in the extended store.
+   `hcs_1w1p1c1z1t_SearchFirst_SP_Grid` in the extended store.
 2. The CQ3K models used `extra="forbid"`, making a single new `bts:` attribute
    from a firmware update a hard parse failure.
 3. Both converters take pixel size and frame size from the *first* `.mrf`

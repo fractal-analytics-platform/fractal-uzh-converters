@@ -10,19 +10,19 @@ SNAPSHOT_DIR = EXTENDED_DATA_DIR / "Yokogawa-CQ3K" / "snapshots"
 RAW_DIR = EXTENDED_DATA_DIR / "Yokogawa-CQ3K" / "raw"
 
 _DATASETS = [
-    "20251201T133446_Channel_Well_test",
-    "20251201T134617_Channel_WellTestC5F9_MIP_SUM",
-    "20251201T134728_Channel_WellTestC5F9_MIP_SUM_Slice",
-    "20251201T134840_Channel_WellTestC5F9_MIP_Only",
-    "20251201T134956_Channel_WellTestC5F9_MIP_Slice",
-    "20251201T135103_Channel_WellTestC5F9_MIP_Slice_2bin",
-    "20251201T135346_Channel_WellTestC5H12M19_MIP",
-    "20251201T140917_BVC_TS_Test_FP",
     # Single-record `.mlf` — the regression case for the widened
     # `MeasurementData.measurement_record` type.
-    "20251201T140949_BVC_TS_Test_SP_grid",
-    "20251201T141350_BVC_TS_Test_SP_centered",
-    "20260617T083657_2026-06-17_mNgn3_dox_fractal_test",
+    "hcs_1w1p1c1z1t_SearchFirst_SP_Grid",
+    "hcs_1w2p1c1z1t_SearchFirst_FP",
+    "hcs_1w2p1c1z1t_SearchFirst_SP_Centered",
+    "hcs_2w1p1c1z1t_MIP_Only",
+    "hcs_2w1p1c1z1t_MIP_SUM",
+    "hcs_2w1p1c33z1t_MIP_SUM_Slice",
+    "hcs_2w1p1c33z1t_MIP_Slice",
+    "hcs_2w1p1c33z1t_MIP_Slice_2bin",
+    "hcs_2w4p2c10z1t_Slices_MIP_MinIP",
+    "hcs_3w1p1c1z1t_MIP_384Well",
+    "hcs_3w2p4c1z1t_Channels_MIP_MinIP",
 ]
 
 

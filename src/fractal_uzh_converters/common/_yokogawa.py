@@ -90,7 +90,7 @@ class MeasurementSetting(_MesBase):
 
     `bts:Version` is deliberately absent from this model — unlike the `.mlf`/`.mrf`
     roots, which pin `version: Literal["1.0"]`. The CV8000 acquisition
-    `sf-test_071026_133615` ships a `.mes` with no `bts:Version` attribute at all.
+    `hcs_2w20p3c9z1t_SearchFirst` ships a `.mes` with no `bts:Version` attribute at all.
     """
 
     channel_list: MesChannelList | None = None
@@ -443,8 +443,8 @@ class TimeIndex(NamedTuple):
     """The time axis of one output plate, derived from `bts:TimePoint`.
 
     `bts:TimePoint` is a per-*timeline* counter, not a plate-wide time index. In
-    the CV8000 `time-lines-test` acquisition three wells are acquired by three
-    timelines and carry `TimePoint` 1, 2 and 3, yet each holds a *single* time
+    the CV8000 `TimelinesSharedChannel` acquisition three wells are acquired by
+    three timelines and carry `TimePoint` 1, 2 and 3, yet each holds a *single* time
     point. Used raw it both mislabels those wells as frames 0, 1 and 2 and, for a
     well whose time points are sparse, leaves the missing indices as empty
     frames — there is no `reindex_t` in the registration pipeline to compact them

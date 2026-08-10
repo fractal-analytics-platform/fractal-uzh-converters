@@ -47,6 +47,9 @@ Migration to `ome-zarr-converters-tools` v1.
   datasets — with BSSE-CQ3000 acquisitions; the previous data was not redistributable.
   The new fixture also ships `.mes`, `.wpi` and `.wpp`.
 - Add an extended test suite for the Yokogawa CellVoyager converter.
+- Rename the Yokogawa extended test datasets to the canonical `hcs_…` convention and
+  regenerate their reference snapshots, now that the channel counts and plate names have
+  settled.
 - Bump `ome-zarr-converters-tools` to `[s3]>=1.0.0,<2.0.0`. The `[s3]` extra is now
   required: v1 makes `s3fs` optional, so it is pinned here to keep `s3://` inputs working
   (it was previously pulled in transitively).

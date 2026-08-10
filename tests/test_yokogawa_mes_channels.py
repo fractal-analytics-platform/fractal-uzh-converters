@@ -194,7 +194,7 @@ class TestReadMesChannels:
             parse_mes(str(path))
 
     def test_missing_version_attribute_is_accepted(self, tmp_path: Path):
-        """The CV8000 `sf-test_071026_133615` protocol has no `bts:Version`."""
+        """The CV8000 `hcs_2w20p3c9z1t_SearchFirst` protocol has no `bts:Version`."""
         path = tmp_path / "no_version.mes"
         path.write_text(
             '<?xml version="1.0" encoding="utf-8"?>\n'
@@ -220,7 +220,7 @@ class TestPureHelpers:
     @pytest.mark.parametrize(
         "labels, expected",
         [
-            # The `same-target` / `partial-tile_duplicate-targets` channel list.
+            # The `DuplicateTargets` / `PartialTile_DuplicateTargets` channel list.
             (
                 ["1", "test", "test", "test", "test"],
                 ["1", "test", "test_1", "test_2", "test_3"],
@@ -599,31 +599,31 @@ def _resolve_acquisition(kind: str, acquisition_dir: Path) -> list[ChannelInfo]:
     )
 
 
-# `20251201T140949_BVC_TS_Test_SP_grid` is excluded: its single-record `.mlf`
+# `hcs_1w1p1c1z1t_SearchFirst_SP_Grid` is excluded: its single-record `.mlf`
 # cannot be parsed at all today. That is a separate, already-identified defect.
 _CQ3K_ACQUISITIONS = [
-    "20251201T133446_Channel_Well_test",
-    "20251201T134617_Channel_WellTestC5F9_MIP_SUM",
-    "20251201T134728_Channel_WellTestC5F9_MIP_SUM_Slice",
-    "20251201T134840_Channel_WellTestC5F9_MIP_Only",
-    "20251201T134956_Channel_WellTestC5F9_MIP_Slice",
-    "20251201T135103_Channel_WellTestC5F9_MIP_Slice_2bin",
-    "20251201T135346_Channel_WellTestC5H12M19_MIP",
-    "20251201T140917_BVC_TS_Test_FP",
-    "20251201T141350_BVC_TS_Test_SP_centered",
-    "20260617T083657_2026-06-17_mNgn3_dox_fractal_test",
+    "hcs_3w2p4c1z1t_Channels_MIP_MinIP",
+    "hcs_2w1p1c1z1t_MIP_SUM",
+    "hcs_2w1p1c33z1t_MIP_SUM_Slice",
+    "hcs_2w1p1c1z1t_MIP_Only",
+    "hcs_2w1p1c33z1t_MIP_Slice",
+    "hcs_2w1p1c33z1t_MIP_Slice_2bin",
+    "hcs_3w1p1c1z1t_MIP_384Well",
+    "hcs_1w2p1c1z1t_SearchFirst_FP",
+    "hcs_1w2p1c1z1t_SearchFirst_SP_Centered",
+    "hcs_2w4p2c10z1t_Slices_MIP_MinIP",
 ]
 
 _CELLVOYAGER_ACQUISITIONS = [
-    "2ch-sim",
-    "no-sim-ch",
-    "partial-tile_duplicate-targets",
-    "partial-tile_unique-targets",
-    "same-target",
-    "sf-test_071026_133540",
-    "sf-test_071026_133615",
-    "time-lines-ill-qc",
-    "time-lines-test",
+    "hcs_2w1p4c9z1t_SimultaneousChannels",
+    "hcs_2w1p3c9z1t_SequentialChannels",
+    "hcs_2w2p3c9z1t_PartialTile_DuplicateTargets",
+    "hcs_2w2p3c9z1t_PartialTile",
+    "hcs_2w1p3c9z1t_DuplicateTargets",
+    "hcs_2w4p1c1z1t_SearchFirst_Seed",
+    "hcs_2w20p3c9z1t_SearchFirst",
+    "hcs_2w2p1c9z1t_TimelinesPerWellChannels",
+    "hcs_3w2p2c9z1t_TimelinesSharedChannel",
 ]
 
 _ALL_ACQUISITIONS = [("cq3k", name) for name in _CQ3K_ACQUISITIONS] + [
@@ -655,32 +655,32 @@ def test_resolution_invariants_hold_on_every_acquisition(kind, name):
     [
         (
             "cellvoyager",
-            "2ch-sim",
+            "hcs_2w1p4c9z1t_SimultaneousChannels",
             ["405", "488", "561", "640", "BF"],
             # Ch1 and Ch4 share action 1: one action, two channels at once.
             ["A01_C01", "A03_C02", "A02_C03", "A01_C04", "A00_C05"],
         ),
         (
             "cellvoyager",
-            "same-target",
+            "hcs_2w1p3c9z1t_DuplicateTargets",
             ["1", "test", "test_1", "test_2", "test_3"],
             ["A00_C01", "A03_C02", "A02_C03", "A01_C04", "A00_C05"],
         ),
         (
             "cellvoyager",
-            "time-lines-test",
+            "hcs_3w2p2c9z1t_TimelinesSharedChannel",
             ["405", "488", "561", "640", "BF", "488-2"],
             ["A01_C01", "A01_C02", "A00_C03", "A01_C04", "A00_C05", "A02_C06"],
         ),
         (
             "cellvoyager",
-            "no-sim-ch",
+            "hcs_2w1p3c9z1t_SequentialChannels",
             ["405", "488", "561", "640", "BF"],
             ["A00_C01", "A03_C02", "A02_C03", "A01_C04", "A00_C05"],
         ),
         (
             "cq3k",
-            "20260617T083657_2026-06-17_mNgn3_dox_fractal_test",
+            "hcs_2w4p2c10z1t_Slices_MIP_MinIP",
             [
                 "Ch1_BrightField(Confocal Path)_Lamp_Through",
                 "Ch2_EpiFluorescence_561nm/150mW_BP599/44",
@@ -704,7 +704,7 @@ def test_resolved_channels_match_the_protocol(kind, name, labels, wavelength_ids
 def test_cq3k_colors_come_from_the_protocol():
     """CQ3K `bts:Color` values survive as `#RRGGBB`, alpha stripped."""
     resolved = _resolve_acquisition(
-        "cq3k", CQ3K_EXTENDED_RAW_DIR / "20251201T133446_Channel_Well_test"
+        "cq3k", CQ3K_EXTENDED_RAW_DIR / "hcs_3w2p4c1z1t_Channels_MIP_MinIP"
     )
 
     assert [channel.color for channel in resolved] == [
@@ -720,8 +720,8 @@ def test_cq3k_colors_come_from_the_protocol():
 @pytest.mark.parametrize(
     "well_channels, expected",
     [
-        # `time-lines-test` acquires a different channel set per well; each still
-        # gets the labels its channel numbers point at.
+        # `TimelinesSharedChannel` acquires a different channel set per well;
+        # each still gets the labels its channel numbers point at.
         ((4,), ["640"]),
         ((1, 6), ["405", "488-2"]),
         ((2, 6), ["488", "488-2"]),
@@ -730,22 +730,24 @@ def test_cq3k_colors_come_from_the_protocol():
 def test_per_well_channel_subsets(well_channels, expected):
     """What `reindex_channels` will prune each well down to at compute time."""
     resolved = _resolve_acquisition(
-        "cellvoyager", CELLVOYAGER_EXTENDED_RAW_DIR / "time-lines-test"
+        "cellvoyager",
+        CELLVOYAGER_EXTENDED_RAW_DIR / "hcs_3w2p2c9z1t_TimelinesSharedChannel",
     )
     assert [resolved[ch - 1].channel_label for ch in well_channels] == expected
 
 
 @pytest.mark.extended
 def test_same_mes_basename_resolves_per_acquisition():
-    """Both `partial-tile_*` acquisitions name the same `.mes`, with different content.
+    """Both `PartialTile*` acquisitions name the same `.mes`, with different content.
 
     This is what a `*.mes` glob would get wrong.
     """
     duplicate = _resolve_acquisition(
-        "cellvoyager", CELLVOYAGER_EXTENDED_RAW_DIR / "partial-tile_duplicate-targets"
+        "cellvoyager",
+        CELLVOYAGER_EXTENDED_RAW_DIR / "hcs_2w2p3c9z1t_PartialTile_DuplicateTargets",
     )
     unique = _resolve_acquisition(
-        "cellvoyager", CELLVOYAGER_EXTENDED_RAW_DIR / "partial-tile_unique-targets"
+        "cellvoyager", CELLVOYAGER_EXTENDED_RAW_DIR / "hcs_2w2p3c9z1t_PartialTile"
     )
 
     assert [c.channel_label for c in duplicate] == [

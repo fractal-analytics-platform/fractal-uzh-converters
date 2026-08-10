@@ -37,6 +37,13 @@ hcs_{W}w{P}p{C}c{Z}z{T}t_{Descriptor}
 | `{T}` | Number of time points | `images[img].shape` at `axes.index('t')`, or `1` if `t` not in axes |
 | `{Descriptor}` | Human-readable variant | Inferred from acquisition characteristics (see below) |
 
+**None of these is guaranteed uniform.** A converter may prune unacquired channels per
+image, wells may hold different field counts, and one acquisition may produce several
+plates with different shapes (the CQ3K converter emits one plate per Z-projection
+algorithm, each carrying its own channel subset and `Z = 1` for the projections). **Take
+each token as the maximum over every image of every plate the acquisition produces**, and
+record the variation in the store `README.md` row.
+
 **Descriptor guidance** — use PascalCase words separated by underscores to describe what makes the dataset distinctive. It is
 usually written in the raw folder name, and can not be reliably parsed from the snapshot JSON. Examples include:
 - Projection type: `MIP`, `SUM`, `MIP_SUM`, `MIP_Slice`, `MIP_SUM_Slice`
@@ -172,16 +179,17 @@ Open `tests/data-extended/{InstrumentDir}/snapshots/{tmp_name}.json` and read:
 }
 ```
 
+Per the rule above, each token is the **maximum** over every image of every plate:
+
 - **W**: `len(plates[plate]["wells"])`
-  Use the value from the first plate. If multiple plates exist (e.g., MIP + SUM), they should have the same W.
-- **P**: `len(plates[plate]["images"][img]["tables"]["FOV_ROI_table"]["rois"])` for any image. If `FOV_ROI_table` is absent → `P = 1`.
+- **P**: `len(plates[plate]["images"][img]["tables"]["FOV_ROI_table"]["rois"])`. If `FOV_ROI_table` is absent → `P = 1`.
 - **C**: `shape[axes.index("c")]`
 - **Z**: `shape[axes.index("z")]` — for projection-only datasets this will be `1`
 - **T**: `shape[axes.index("t")]` if `"t"` in axes, else `1`
 
-If different wells have different channel counts (which happens when a converter prunes
-unacquired channels per image), the `{C}` token is not well defined — record the maximum
-and note the variation in the store `README.md`.
+Do not eyeball this. Derive the tokens with a script and assert they match the folder name
+you chose, then note in the store `README.md` wherever a value actually varies — which
+well has fewer fields, which plate has fewer channels.
 
 Construct the canonical name: `hcs_{W}w{P}p{C}c{Z}z{T}t_{Descriptor}`
 
@@ -266,7 +274,11 @@ All tests — including the new one — must pass.
 ## Edge Cases
 
 **Multiple plates per dataset** (e.g., CQ3K with MIP + SUM + Slice):  
-The snapshot JSON will have multiple entries under `"plates"`. W, P, C, T are read from any one plate (they match). Z may differ between plates (projections = 1, slices = N) — use the slice count for the canonical name's `{Z}`, or use `1` if only projections exist.
+The snapshot JSON will have multiple entries under `"plates"`, and they do **not** all
+have the same shape. `Z` differs (projections = 1, slices = N) and so does `C`, because
+each projection algorithm carries its own `bts:Ch` numbers — in
+`hcs_3w2p4c1z1t_Channels_MIP_MinIP` the `_MIP` plate has 4 channels and the `_MinIP` plate
+has 1. Take the maximum across plates for every token, as above.
 
 **No `FOV_ROI_table`** (single-FOV wells):  
 `P = 1`. The `well_ROI_table` with an `image` ROI will be the only table.

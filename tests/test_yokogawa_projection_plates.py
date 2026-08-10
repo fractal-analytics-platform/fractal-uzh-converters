@@ -7,7 +7,7 @@ anything unrecognised passed through verbatim (issue #45).
 Renaming the plates rewrites every CQ3K snapshot, so the cases that matter are
 asserted here explicitly rather than left to the snapshot diff. Where only the
 plate *names* are under test the assertions run off `parse_cq3k_metadata`, which
-reads the `.mlf`/`.mrf` and no image data — the mNgn3 acquisition is 985 MB.
+reads the `.mlf`/`.mrf` and no image data — `Slices_MIP_MinIP` is 985 MB.
 """
 
 from pathlib import Path
@@ -126,21 +126,21 @@ def test_cq3k_fixture_writes_a_mip_plate(tmp_path: Path, converter_options):
 #
 ######################################################################
 
-_MNGN3 = "20260617T083657_2026-06-17_mNgn3_dox_fractal_test"
-_CHANNEL_WELL_TEST = "20251201T133446_Channel_Well_test"
+_SLICES_MIP_MINIP = "hcs_2w4p2c10z1t_Slices_MIP_MinIP"
+_CHANNELS_MIP_MINIP = "hcs_3w2p4c1z1t_Channels_MIP_MinIP"
 
 
 @pytest.mark.extended
 def test_slices_and_both_projection_kinds_split_into_three_plates(converter_options):
-    """mNgn3 acquires Ch1+Ch2 as slices, Ch3 min-projected and Ch4 max-projected.
+    """It acquires Ch1+Ch2 as slices, Ch3 min-projected and Ch4 max-projected.
 
     Each algorithm carries its own `bts:Ch` numbers — the root cause of #45 —
     so the per-plate channel sets are disjoint.
     """
-    assert _acquired_channels(_MNGN3, converter_options) == {
-        f"{_MNGN3}.zarr": {0, 1},
-        f"{_MNGN3}_MinIP.zarr": {2},
-        f"{_MNGN3}_MIP.zarr": {3},
+    assert _acquired_channels(_SLICES_MIP_MINIP, converter_options) == {
+        f"{_SLICES_MIP_MINIP}.zarr": {0, 1},
+        f"{_SLICES_MIP_MINIP}_MinIP.zarr": {2},
+        f"{_SLICES_MIP_MINIP}_MIP.zarr": {3},
     }
 
 
@@ -161,7 +161,7 @@ def test_min_projected_brightfield_lands_in_its_own_plate(
         zarr_dir=str(zarr_dir),
         acquisitions=[
             {
-                "path": str(CQ3K_EXTENDED_RAW_DIR / _CHANNEL_WELL_TEST),
+                "path": str(CQ3K_EXTENDED_RAW_DIR / _CHANNELS_MIP_MINIP),
                 "acquisition_id": 0,
             }
         ],
@@ -170,14 +170,14 @@ def test_min_projected_brightfield_lands_in_its_own_plate(
 
     plates = plate_channel_metadata(zarr_dir, image_list_updates)
     assert set(plates) == {
-        f"{_CHANNEL_WELL_TEST}_MIP.zarr",
-        f"{_CHANNEL_WELL_TEST}_MinIP.zarr",
+        f"{_CHANNELS_MIP_MINIP}_MIP.zarr",
+        f"{_CHANNELS_MIP_MINIP}_MinIP.zarr",
     }
-    assert plates[f"{_CHANNEL_WELL_TEST}_MIP.zarr"]
-    for labels, _ in plates[f"{_CHANNEL_WELL_TEST}_MIP.zarr"].values():
+    assert plates[f"{_CHANNELS_MIP_MINIP}_MIP.zarr"]
+    for labels, _ in plates[f"{_CHANNELS_MIP_MINIP}_MIP.zarr"].values():
         assert len(labels) == 4
-    assert plates[f"{_CHANNEL_WELL_TEST}_MinIP.zarr"]
-    for labels, _ in plates[f"{_CHANNEL_WELL_TEST}_MinIP.zarr"].values():
+    assert plates[f"{_CHANNELS_MIP_MINIP}_MinIP.zarr"]
+    for labels, _ in plates[f"{_CHANNELS_MIP_MINIP}_MinIP.zarr"].values():
         assert len(labels) == 1
 
     # The algorithm belongs in the plate name only: labels come from the `.mes`
@@ -194,7 +194,7 @@ def test_min_projected_brightfield_lands_in_its_own_plate(
 @pytest.mark.extended
 def test_sum_projections_are_suffixed_sip(converter_options):
     """`Sum` is the third algorithm, alongside a raw-slice plate."""
-    name = "20251201T134728_Channel_WellTestC5F9_MIP_SUM_Slice"
+    name = "hcs_2w1p1c33z1t_MIP_SUM_Slice"
 
     assert _plate_names(name, converter_options) == {
         f"{name}.zarr",
@@ -225,11 +225,11 @@ def test_sum_projections_are_suffixed_sip(converter_options):
     ],
 )
 def test_selection_picks_the_plate_subset(selection, expected, converter_options):
-    """mNgn3 is the only acquisition holding slices *and* two projection kinds."""
+    """`Slices_MIP_MinIP` is the only acquisition holding slices *and* two kinds."""
     advanced = {} if selection is None else {"z_processing": selection}
 
-    assert _plate_names(_MNGN3, converter_options, **advanced) == {
-        f"{_MNGN3}{suffix}.zarr" for suffix in expected
+    assert _plate_names(_SLICES_MIP_MINIP, converter_options, **advanced) == {
+        f"{_SLICES_MIP_MINIP}{suffix}.zarr" for suffix in expected
     }
 
 
@@ -237,12 +237,12 @@ def test_selection_picks_the_plate_subset(selection, expected, converter_options
 def test_a_selected_kind_the_acquisition_lacks_only_warns(converter_options, caplog):
     """One selection has to stay usable across a batch of mixed acquisitions."""
     plates = _plate_names(
-        _MNGN3,
+        _SLICES_MIP_MINIP,
         converter_options,
         z_processing={"z_slices": False, "mip": True, "sip": True},
     )
 
-    assert plates == {f"{_MNGN3}_MIP.zarr"}
+    assert plates == {f"{_SLICES_MIP_MINIP}_MIP.zarr"}
     assert "SIP" in caplog.text
 
 
@@ -298,7 +298,7 @@ def test_selection_relaxes_the_required_channel_override_length(converter_option
     one_entry = [{"channel_label": "brightfield"}]
 
     tiled_images = _parse(
-        _CHANNEL_WELL_TEST,
+        _CHANNELS_MIP_MINIP,
         converter_options,
         z_processing={"z_slices": False, "min_ip": True},
         channels=one_entry,
@@ -308,7 +308,7 @@ def test_selection_relaxes_the_required_channel_override_length(converter_option
         assert tiled_image.channels[0].channel_label == "brightfield"
 
     with pytest.raises(ValueError, match="at least 5 entries"):
-        _parse(_CHANNEL_WELL_TEST, converter_options, channels=one_entry)
+        _parse(_CHANNELS_MIP_MINIP, converter_options, channels=one_entry)
 
 
 @pytest.mark.extended
@@ -323,7 +323,7 @@ def test_a_selection_converts_only_the_selected_plate(
         zarr_dir=str(zarr_dir),
         acquisitions=[
             {
-                "path": str(CQ3K_EXTENDED_RAW_DIR / _CHANNEL_WELL_TEST),
+                "path": str(CQ3K_EXTENDED_RAW_DIR / _CHANNELS_MIP_MINIP),
                 "acquisition_id": 0,
                 "advanced": {"z_processing": {"z_slices": False, "min_ip": True}},
             }
@@ -332,5 +332,5 @@ def test_a_selection_converts_only_the_selected_plate(
     )
 
     plates = plate_channel_metadata(zarr_dir, image_list_updates)
-    assert set(plates) == {f"{_CHANNEL_WELL_TEST}_MinIP.zarr"}
-    assert not (zarr_dir / f"{_CHANNEL_WELL_TEST}_MIP.zarr").exists()
+    assert set(plates) == {f"{_CHANNELS_MIP_MINIP}_MinIP.zarr"}
+    assert not (zarr_dir / f"{_CHANNELS_MIP_MINIP}_MIP.zarr").exists()

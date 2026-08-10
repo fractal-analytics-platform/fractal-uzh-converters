@@ -10,15 +10,15 @@ SNAPSHOT_DIR = EXTENDED_DATA_DIR / "Yokogawa-CellVoyager" / "snapshots"
 RAW_DIR = EXTENDED_DATA_DIR / "Yokogawa-CellVoyager" / "raw"
 
 _DATASETS = [
-    "2ch-sim",
-    "no-sim-ch",
-    "partial-tile_duplicate-targets",
-    "partial-tile_unique-targets",
-    "same-target",
-    "sf-test_071026_133540",
-    "sf-test_071026_133615",
-    "time-lines-ill-qc",
-    "time-lines-test",
+    "hcs_2w1p3c9z1t_DuplicateTargets",
+    "hcs_2w1p3c9z1t_SequentialChannels",
+    "hcs_2w1p4c9z1t_SimultaneousChannels",
+    "hcs_2w2p1c9z1t_TimelinesPerWellChannels",
+    "hcs_2w2p3c9z1t_PartialTile",
+    "hcs_2w2p3c9z1t_PartialTile_DuplicateTargets",
+    "hcs_2w4p1c1z1t_SearchFirst_Seed",
+    "hcs_2w20p3c9z1t_SearchFirst",
+    "hcs_3w2p2c9z1t_TimelinesSharedChannel",
 ]
 
 

@@ -116,13 +116,15 @@ def test_cellvoyager_without_a_mes_falls_back_to_the_wavelength_id(
 
 @pytest.mark.extended
 def test_duplicate_targets_are_deduplicated(tmp_path: Path, converter_options):
-    """`same-target` names Ch2-Ch5 all `test`; the suffixes must be stable.
+    """`DuplicateTargets` names Ch2-Ch5 all `test`; the suffixes must be stable.
 
     Deduplication runs over the whole instrument channel list in `bts:Ch` order,
     before per-image pruning, so a well's names cannot depend on which other
     wells were acquired. Both wells acquire Ch2-Ch4 out of the five declared.
     """
-    channels = _convert_cellvoyager(tmp_path, converter_options, "same-target")
+    channels = _convert_cellvoyager(
+        tmp_path, converter_options, "hcs_2w1p3c9z1t_DuplicateTargets"
+    )
 
     assert channels
     for labels, _ in channels.values():
@@ -131,13 +133,15 @@ def test_duplicate_targets_are_deduplicated(tmp_path: Path, converter_options):
 
 @pytest.mark.extended
 def test_per_well_channel_subsets_are_pruned(tmp_path: Path, converter_options):
-    """`time-lines-test` acquires a different channel set per well.
+    """`TimelinesSharedChannel` acquires a different channel set per well.
 
     The converter indexes channels over the full instrument range and the
     library's `reindex_channels` compacts each image to what it actually
     acquired. Ch6 is a second `488` line, deduplicated to `488-2`.
     """
-    channels = _convert_cellvoyager(tmp_path, converter_options, "time-lines-test")
+    channels = _convert_cellvoyager(
+        tmp_path, converter_options, "hcs_3w2p2c9z1t_TimelinesSharedChannel"
+    )
 
     labels_by_well = {path: labels for path, (labels, _) in channels.items()}
     assert labels_by_well == {
@@ -149,8 +153,10 @@ def test_per_well_channel_subsets_are_pruned(tmp_path: Path, converter_options):
 
 @pytest.mark.extended
 def test_wavelength_ids_carry_the_action_index(tmp_path: Path, converter_options):
-    """`2ch-sim` runs 4 channels over 3 actions, A01 acquiring Ch1 and Ch4."""
-    channels = _convert_cellvoyager(tmp_path, converter_options, "2ch-sim")
+    """`SimultaneousChannels` runs 4 channels over 3 actions, A01 acquiring Ch1+Ch4."""
+    channels = _convert_cellvoyager(
+        tmp_path, converter_options, "hcs_2w1p4c9z1t_SimultaneousChannels"
+    )
 
     assert channels
     for _, wavelength_ids in channels.values():
@@ -163,10 +169,10 @@ def test_wavelength_ids_carry_the_action_index(tmp_path: Path, converter_options
 #
 ######################################################################
 
-# `time-lines-ill-qc` acquires only Ch1 (well C03) and Ch4 (well C02) of the five
-# channels its `.mrf` declares -- the case where a dense, acquired-channels-only
-# override would silently mislabel both wells.
-_ILL_QC = "time-lines-ill-qc"
+# `TimelinesPerWellChannels` acquires only Ch1 (well C03) and Ch4 (well C02) of
+# the five channels its `.mrf` declares -- the case where a dense,
+# acquired-channels-only override would silently mislabel both wells.
+_ILL_QC = "hcs_2w2p1c9z1t_TimelinesPerWellChannels"
 
 
 @pytest.mark.extended

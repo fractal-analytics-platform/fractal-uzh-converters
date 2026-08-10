@@ -133,7 +133,7 @@ def test_cq3k_acquisition_details_are_plate_scoped(monkeypatch, converter_option
     """Multi-field wells merge without an AcquisitionDetails mismatch."""
     calls = _count_acquisition_details_calls(monkeypatch, cq3k_utils)
     acquisition_model = CQ3KAcquisitionModel(
-        path=str(CQ3K_EXTENDED_RAW_DIR / "20251201T133446_Channel_Well_test"),
+        path=str(CQ3K_EXTENDED_RAW_DIR / "hcs_3w2p4c1z1t_Channels_MIP_MinIP"),
         acquisition_id=0,
         advanced={"channels": _FIVE_CHANNEL_OVERRIDE},
     )
@@ -159,7 +159,7 @@ def test_cellvoyager_acquisition_details_are_acquisition_scoped(
     """Multi-field wells merge without an AcquisitionDetails mismatch."""
     calls = _count_acquisition_details_calls(monkeypatch, cellvoyager_utils)
     acquisition_model = CellVoyagerAcquisitionModel(
-        path=str(CELLVOYAGER_EXTENDED_RAW_DIR / "partial-tile_unique-targets"),
+        path=str(CELLVOYAGER_EXTENDED_RAW_DIR / "hcs_2w2p3c9z1t_PartialTile"),
         acquisition_id=0,
         advanced={"channels": _FIVE_CHANNEL_OVERRIDE},
     )
