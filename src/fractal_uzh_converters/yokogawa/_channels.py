@@ -27,6 +27,8 @@ from ome_zarr_converters_tools import (
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_pascal
 
+from fractal_uzh_converters.common import clean_channel_string
+
 logger = logging.getLogger(__name__)
 
 BTS_NAMESPACE = "http://www.yokogawa.co.jp/BTS/BTSSchema/1.0"
@@ -353,7 +355,7 @@ def resolve_channels(
     colors = []
     for ch, wavelength_id in enumerate(wavelength_ids, start=1):
         channel = by_ch.get(ch)
-        target = (channel.target or "").strip() if channel is not None else ""
+        target = clean_channel_string(channel.target) if channel is not None else None
         raw_labels.append(target or wavelength_id)
         colors.append(
             _strip_argb_alpha(channel.color, ch=ch) if channel is not None else None
@@ -415,9 +417,15 @@ def apply_channel_overrides(
         # `to_hexstr()` returns None exactly for `ColorMenu.Auto`, i.e. when the
         # user expressed no preference — so the `.mes` colour stands.
         color = override.color.to_hexstr()
+        # A label the user left blank (or padded into blankness) keeps the
+        # `.mes`-derived one, exactly as an omitted wavelength id does.
         merged[index] = ChannelInfo(
-            channel_label=override.channel_label,
-            wavelength_id=override.wavelength_id or fallback.wavelength_id,
+            channel_label=(
+                clean_channel_string(override.channel_label) or fallback.channel_label
+            ),
+            wavelength_id=(
+                clean_channel_string(override.wavelength_id) or fallback.wavelength_id
+            ),
             color=fallback.color if color is None else color,
         )
 

@@ -25,6 +25,7 @@ from pydantic import field_validator
 from fractal_uzh_converters.common import (
     STANDARD_ROWS_NAMES,
     HCSBaseAcquisitionModel,
+    clean_channel_string,
     get_attributes_from_condition_table,
 )
 
@@ -115,11 +116,15 @@ def _extract_well_position_id(
 
 def _get_channel_names(image) -> list[str] | None:
     try:
-        parsed_channels = [channel.name for channel in image.pixels.channels]
-        if all(name is not None for name in parsed_channels):
-            return parsed_channels
-        else:
+        # A blank or all-whitespace `Channel/@Name` is treated exactly like a
+        # missing one: the whole list is dropped and the library falls back to
+        # its default `channel_N` naming.
+        parsed_channels = [
+            clean_channel_string(channel.name) for channel in image.pixels.channels
+        ]
+        if any(name is None for name in parsed_channels):
             return None
+        return [name for name in parsed_channels if name is not None]
     except Exception as e:
         logger.warning(f"Could not parse channel names: {e}")
         return None

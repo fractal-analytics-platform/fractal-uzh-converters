@@ -27,6 +27,9 @@ Migration to `ome-zarr-converters-tools` v1.
   be updated. See `docs/converters/custom_tiff.md`.
 
 ### Fix
+- All converters: strip leading and trailing whitespace from channel labels and
+  wavelength ids — ngio treats `"DAPI"` and `"DAPI "` as two distinct valid channels, so
+  a stray space silently broke per-name channel matching downstream.
 - Yokogawa (CQ3K, CellVoyager): channel indices are now 0-based, so an
   `advanced.channels` override maps its first entry to `Ch1` instead of failing (#27).
 - Yokogawa (CQ3K, CellVoyager): build one `AcquisitionDetails` per plate instead of one

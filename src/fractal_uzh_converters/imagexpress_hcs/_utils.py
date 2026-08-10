@@ -26,6 +26,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from fractal_uzh_converters.common import (
     STANDARD_ROWS_NAMES,
     HCSBaseAcquisitionModel,
+    clean_channel_string,
     get_attributes_from_condition_table,
 )
 
@@ -424,10 +425,15 @@ def _build_acquisition_details(
             raise ValueError(
                 f"Channel index mismatch: expected {len(channels)}, got {wl.index}"
             )
+        wavelength_id = str(int(wl.emission_filter.wavelength))
         channels.append(
             ChannelInfo(
-                channel_label=wl.emission_filter.name,
-                wavelength_id=str(int(wl.emission_filter.wavelength)),
+                # The wavelength is a required numeric field, so its id is never
+                # blank and serves as the fallback for an unnamed filter.
+                channel_label=(
+                    clean_channel_string(wl.emission_filter.name) or wavelength_id
+                ),
+                wavelength_id=wavelength_id,
             )
         )
     acq = AcquisitionDetails(

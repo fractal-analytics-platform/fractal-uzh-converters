@@ -22,6 +22,7 @@ from ome_zarr_converters_tools.core import (
 from fractal_uzh_converters.common import (
     HCSBaseAcquisitionModel,
     SingleBaseAcquisitionModel,
+    clean_channel_string,
 )
 
 logger = logging.getLogger(__name__)
@@ -290,10 +291,27 @@ def _build_acquisition_details(raw: dict) -> AcquisitionDetails:
     if channel_names is not None:
         if wavelengths is None:
             wavelengths = [None] * len(channel_names)
-        channels = [
-            ChannelInfo(channel_label=ch, wavelength_id=w)
+        cleaned = [
+            (clean_channel_string(ch), clean_channel_string(w))
             for ch, w in zip(channel_names, wavelengths, strict=True)
         ]
+        # A `channel_names` entry the user left blank is treated like an absent
+        # `channel_names` key: the whole list is dropped and the library falls
+        # back to its default `channel_N` naming, rather than one channel of the
+        # user's plate silently becoming nameless.
+        named = [
+            (label, wavelength) for label, wavelength in cleaned if label is not None
+        ]
+        if len(named) != len(cleaned):
+            logger.warning(
+                "`channel_names` in `acquisition_details.toml` has a blank entry; "
+                "ignoring the whole list and using the default channel names."
+            )
+        else:
+            channels = [
+                ChannelInfo(channel_label=label, wavelength_id=wavelength)
+                for label, wavelength in named
+            ]
 
     kwargs: dict = {k: v for k, v in raw.items() if not k.startswith("#")}
     if channels is not None:

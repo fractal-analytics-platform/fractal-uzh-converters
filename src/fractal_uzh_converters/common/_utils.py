@@ -20,6 +20,31 @@ logger = logging.getLogger("common_converters_compute_task")
 STANDARD_ROWS_NAMES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 
+def clean_channel_string(value: str | None) -> str | None:
+    """Strip a vendor channel label or wavelength id, or `None` if it is blank.
+
+    Vendor metadata routinely pads these strings — an OME-XML `Channel/@Name` of
+    `"DAPI "` is common enough — and neither ngio nor `ome-zarr-converters-tools`
+    normalises them. ngio only enforces *uniqueness*, so `"DAPI"` and `"DAPI "`
+    are two valid distinct channels and a later `get_channel_idx(
+    channel_label="DAPI")` silently misses the padded one.
+
+    Strips only: the label is the vendor's identifier and is not otherwise
+    rewritten. A string that is empty or all whitespace becomes `None` rather
+    than `""`, so the caller applies its own fallback instead of writing a
+    nameless channel.
+
+    Args:
+        value: The raw vendor string, or `None`.
+
+    Returns:
+        The stripped string, or `None` if there is nothing left of it.
+    """
+    if value is None:
+        return None
+    return value.strip() or None
+
+
 def _path_basename(path: str) -> str:
     """Last path component, robust to fwd/back slashes and URL protocols.
 
