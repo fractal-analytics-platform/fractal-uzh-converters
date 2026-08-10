@@ -63,6 +63,8 @@ Migration to `ome-zarr-converters-tools` v1.
   channels present in the output.
 - Fix `tests/data_intake_instructions.md` and `tests/cleanup_test_data.sh`: snapshots are
   JSON, not YAML, and the extended-test template was outdated.
+- Document the Yokogawa vendor-metadata copy on both converter pages, and drop the
+  limited-testing caveats now that both converters have an extended test suite.
 
 ## [v0.7.2]
 

@@ -161,6 +161,7 @@ This mode can be used to incrementally add acquisitions to a plate without repro
 
 - [Revity Operetta / Opera Phenix](operetta.md)
 - [Evident ScanR](scanr.md)
-- [Yokogawa CQ3K / CellVoyager](cq3k.md)
+- [Yokogawa CQ3K](cq3k.md)
+- [Yokogawa CellVoyager](cellvoyager.md)
 - [Molecular Devices ImageXpress HCS.ai](md_imagexpress.md)
 - [Custom TIFF (HCS & Single Image)](custom_tiff.md)

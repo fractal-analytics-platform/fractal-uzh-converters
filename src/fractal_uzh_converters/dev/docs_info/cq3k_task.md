@@ -1,6 +1,6 @@
 ### Purpose
 
-- Convert images acquired with a Yokogawa CQ3K / CellVoyager microscope to an OME-Zarr Plate.
+- Convert images acquired with a Yokogawa CQ3K microscope to an OME-Zarr Plate.
 
 ### Outputs
 
@@ -14,9 +14,10 @@
 - To override them, `Advanced` → `Channels` is ordered by the **instrument channel number**: element 0 is `Ch1`, element 1 is `Ch2`, over the full range the protocol declares — not one entry per channel visible in the output. It must be at least as long as the highest channel the acquisition uses; the error names that number if it is too short.
 - One list covers the whole acquisition, projection plates included: each projection algorithm carries its own channel numbers, so the entries are split across plates rather than repeated in each.
 
-### Limitations
+### Metadata
 
-- This task has been tested on a limited set of acquisitions. It may not work on all Yokogawa CQ3K acquisitions.
+- The acquisition's five plate-level vendor files are copied verbatim into `<plate>.zarr/metadata/`: the `.mlf` and `.mrf` under their fixed names, the `.mes`, `.wpi` and `.wpp` under the names recorded in the `.mrf`.
+- Every plate the acquisition produced gets a copy, projection plates included. A file the acquisition does not ship is only a warning, and a name already taken by another acquisition becomes `<stem>_acq{id}<ext>` instead of overwriting.
 
 ### Expected inputs
 
@@ -27,9 +28,11 @@ my_acquisition/
 ├── MeasurementData.mlf         # Image measurement records (required)
 ├── MeasurementDetail.mrf       # Acquisition details and channel info (required)
 ├── MeasurementProtocol.mes     # Acquisition protocol (optional, sets channel names)
+├── NoPlateID.wpi               # Plate definition (optional)
+├── 10_Greiner_μClear.wpp       # Plate product (optional)
 └── <subdirectories>/
     ├── image_001.tif
     └── ...
 ```
 
-The TIFF file paths are referenced inside `MeasurementData.mlf` and can be in subdirectories relative to the acquisition directory.
+The TIFF file paths are referenced inside `MeasurementData.mlf` and can be in subdirectories relative to the acquisition directory. The `.mes`, `.wpi` and `.wpp` filenames vary per acquisition and are read out of the `.mrf` — the names above are only examples.

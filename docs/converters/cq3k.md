@@ -9,6 +9,8 @@ my_acquisition/
 ├── MeasurementData.mlf         # Image measurement records (required)
 ├── MeasurementDetail.mrf       # Acquisition details and channel info (required)
 ├── MeasurementProtocol.mes     # Acquisition protocol (optional, see Channels)
+├── NoPlateID.wpi               # Plate definition (optional)
+├── 10_Greiner_μClear.wpp       # Plate product (optional)
 └── <subdirectories>/
     ├── image_001.tif
     ├── image_002.tif
@@ -16,7 +18,7 @@ my_acquisition/
     └── image_NNN.tif
 ```
 
-The TIFF file paths are referenced inside `MeasurementData.mlf` and can be in subdirectories relative to the acquisition directory.
+The TIFF file paths are referenced inside `MeasurementData.mlf` and can be in subdirectories relative to the acquisition directory. The `.mes`, `.wpi` and `.wpp` filenames vary per acquisition and are read out of the `.mrf` — the names above are only examples.
 
 ## Metadata
 
@@ -25,6 +27,26 @@ The converter parses up to three XML files:
 - **`MeasurementData.mlf`** — Contains one record per acquired image tile, including well position (row, column), field index, channel, Z-index, timepoint, stage coordinates (X, Y, Z), and the relative path to the TIFF file.
 - **`MeasurementDetail.mrf`** — Contains acquisition-level metadata: pixel dimensions, number of channels, rows/columns/fields/Z-planes/timepoints, and channel details (pixel size, bit depth).
 - **the `.mes` protocol file** — Contains the channel definitions. Its filename varies per acquisition and is read out of the `.mrf`, so it is not always called `MeasurementProtocol.mes`. Optional; see [Channels](#channels).
+
+### Copied into the plate
+
+The converter models only the fraction of the vendor metadata it needs, so the five plate-level files are also copied verbatim into `<plate>.zarr/metadata/`:
+
+```
+MyPlate.zarr/
+└── metadata/
+    ├── MeasurementData.mlf
+    ├── MeasurementDetail.mrf
+    ├── MeasurementProtocol.mes
+    ├── NoPlateID.wpi
+    └── 10_Greiner_μClear #655090.wpp
+```
+
+The `.mlf` and `.mrf` are copied under their fixed names; the `.mes`, `.wpi` and `.wpp` under the names recorded inside the `.mrf`. Filenames are preserved exactly, spaces and non-ASCII characters included.
+
+- **Every plate the acquisition produced gets its own copy**, so each [projection plate](#z-image-processing) carries the same five files as the unsuffixed one.
+- **A file the acquisition does not ship is a warning, not an error.** The conversion itself is unaffected — a `.mrf` routinely names a `.wpi` that was never written.
+- When several acquisitions land in the same plate with identically named files, the second copy becomes `<stem>_acq{acquisition_id}<ext>` rather than overwriting the first. A byte-identical copy is left alone, so re-running a conversion does not accumulate duplicates.
 
 ## Z-Image Processing
 
