@@ -7,6 +7,7 @@ import numpy as np
 import xmltodict
 from ome_zarr_converters_tools import (
     AcquisitionDetails,
+    AcquisitionOptions,
     AttributeType,
     ChannelInfo,
     ConverterOptions,
@@ -47,6 +48,10 @@ class OperettaAcquisitionModel(HCSBaseAcquisitionModel):
     Path to the acquisition directory. For Operetta, this should be the base directory
     of the acquisition or the "{acquisition_dir}/Images" directory containing the tiff
     files and metadata.ome.xml file.
+    """
+    advanced: AcquisitionOptions = Field(default_factory=AcquisitionOptions)
+    """
+    Advanced acquisition options.
     """
 
     @field_validator("path", mode="before")

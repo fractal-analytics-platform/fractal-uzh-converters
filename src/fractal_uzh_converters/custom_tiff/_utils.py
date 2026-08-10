@@ -9,6 +9,7 @@ import pandas as pd
 import tifffile
 from ome_zarr_converters_tools import (
     AcquisitionDetails,
+    AcquisitionOptions,
     ChannelInfo,
     ConverterOptions,
     TiledImage,
@@ -18,6 +19,7 @@ from ome_zarr_converters_tools.core import (
     hcs_images_from_dataframe,
     single_images_from_dataframe,
 )
+from pydantic import Field
 
 from fractal_uzh_converters.common import (
     HCSBaseAcquisitionModel,
@@ -45,6 +47,11 @@ class HcsTiffAcquisitionModel(HCSBaseAcquisitionModel):
     channels, axes, coordinate-space flags).
     """
 
+    advanced: AcquisitionOptions = Field(default_factory=AcquisitionOptions)
+    """
+    Advanced acquisition options.
+    """
+
 
 class SingleTiffAcquisitionModel(SingleBaseAcquisitionModel):
     """Acquisition model for custom single-image TIFF datasets.
@@ -58,6 +65,11 @@ class SingleTiffAcquisitionModel(SingleBaseAcquisitionModel):
     The ``image_name`` field (inherited from ``SingleBaseAcquisitionModel``)
     controls the output OME-Zarr image name; it defaults to the directory or
     file name when not set.
+    """
+
+    advanced: AcquisitionOptions = Field(default_factory=AcquisitionOptions)
+    """
+    Advanced acquisition options.
     """
 
 

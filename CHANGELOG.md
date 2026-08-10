@@ -28,6 +28,8 @@ Migration to `ome-zarr-converters-tools` v1.
   `pixelsize` → `xy_pixel_size`, `start_z_coo`/`start_t_coo` → `start_z_space`/`start_t_space`
   (and any other `*_coo` → `*_space`). Existing user `acquisition_details.toml` files must
   be updated. See `docs/converters/custom_tiff.md`.
+- **`Advanced` is now the last acquisition field** in all seven converters instead of the
+  second, so the form reads `Path → Plate Name → Acquisition Id → … → Advanced`.
 
 ### Fix
 - All converters: strip leading and trailing whitespace from channel labels and

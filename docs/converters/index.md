@@ -14,12 +14,12 @@ All init tasks accept the following parameters:
 
 ## Acquisition Parameters
 
-Every acquisition object shares these base fields:
+Every acquisition object starts with `Path` and ends with `Advanced`, whatever converter-specific fields come in between:
 
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `Path` | `str` | *required* | Path to the raw acquisition directory or file. |
-| `Advanced` | `AcquisitionOptions` | `{}` | Advanced options including `Condition Table Path` and acquisition detail overrides. |
+| `Advanced` | `AcquisitionOptions` | `{}` | Advanced options including `Condition Table Path` and acquisition detail overrides. See [Acquisition Options (Advanced)](#acquisition-options-advanced) below. |
 
 ### HCS (plate) acquisitions
 

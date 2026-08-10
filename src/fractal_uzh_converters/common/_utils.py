@@ -1,12 +1,11 @@
 """Common utilities for fractal UZH converters."""
 
 import logging
-from typing import Protocol, TypeVar
+from typing import TYPE_CHECKING, Protocol, TypeVar
 
 import polars
 from fsspec.core import split_protocol
 from ome_zarr_converters_tools import (
-    AcquisitionOptions,
     AttributeType,
     ConverterOptions,
     ImageInPlate,
@@ -14,6 +13,9 @@ from ome_zarr_converters_tools import (
     join_url_paths,
 )
 from pydantic import BaseModel, Field
+
+if TYPE_CHECKING:
+    from ome_zarr_converters_tools import AcquisitionOptions
 
 logger = logging.getLogger("common_converters_compute_task")
 
@@ -63,10 +65,16 @@ class BaseAcquisitionModel(BaseModel):
     """
     Path to the acquisition directory or file.
     """
-    advanced: AcquisitionOptions = Field(default_factory=AcquisitionOptions)
-    """
-    Advanced acquisition options.
-    """
+
+    if TYPE_CHECKING:
+        # Each leaf model declares `advanced` itself, as its last field, so that
+        # it renders last in the Fractal form — pydantic keeps a redeclared
+        # field in the base's slot, so declaring it here would pin it to slot
+        # #2 everywhere. This block never executes, so no pydantic field is
+        # created; it only tells the type checker that every acquisition model
+        # has the attribute. The default mirrors the leaves' `default_factory`,
+        # so the type checker does not read it as a required argument either.
+        advanced: AcquisitionOptions = AcquisitionOptions()
 
     def get_condition_table(self) -> polars.DataFrame | None:
         """Get the path to the condition table if it exists."""

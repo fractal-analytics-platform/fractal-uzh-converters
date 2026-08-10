@@ -9,6 +9,7 @@ import polars
 from ome_types import from_xml
 from ome_zarr_converters_tools import (
     AcquisitionDetails,
+    AcquisitionOptions,
     ChannelInfo,
     ConverterOptions,
     DefaultImageLoader,
@@ -20,7 +21,7 @@ from ome_zarr_converters_tools import (
     join_url_paths,
     tiles_aggregation_pipeline,
 )
-from pydantic import field_validator
+from pydantic import Field, field_validator
 
 from fractal_uzh_converters.common import (
     STANDARD_ROWS_NAMES,
@@ -64,6 +65,10 @@ class ScanRAcquisitionModel(HCSBaseAcquisitionModel):
 
     layout: AVAILABLE_PLATE_LAYOUTS = "96-well"
     """Plate layout type."""
+    advanced: AcquisitionOptions = Field(default_factory=AcquisitionOptions)
+    """
+    Advanced acquisition options.
+    """
 
     @field_validator("path", mode="before")
     def validate_path(cls, v):

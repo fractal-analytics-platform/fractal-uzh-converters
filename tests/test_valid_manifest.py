@@ -3,7 +3,50 @@ import json
 import requests
 from jsonschema import validate
 
-from . import MANIFEST
+from . import MANIFEST, TASK_LIST
+
+# The Fractal form renders the acquisition fields in schema order, so the order
+# is part of the task's public surface. It is also fragile: pydantic keeps a
+# redeclared field in the base class's slot, so moving `advanced` back onto
+# `BaseAcquisitionModel` would silently pull it up to slot #2 in all seven
+# models at once, even though each one declares it last.
+EXPECTED_ACQUISITION_FIELD_ORDER = {
+    "ScanRAcquisitionModel": [
+        "path",
+        "plate_name",
+        "acquisition_id",
+        "layout",
+        "advanced",
+    ],
+    "CellVoyagerAcquisitionModel": [
+        "path",
+        "plate_name",
+        "acquisition_id",
+        "image_extension",
+        "advanced",
+    ],
+    "CQ3KAcquisitionModel": ["path", "plate_name", "acquisition_id", "advanced"],
+    "OperettaAcquisitionModel": ["path", "plate_name", "acquisition_id", "advanced"],
+    "MDImageXpressHCSaiAcquisitionModel": [
+        "path",
+        "plate_name",
+        "acquisition_id",
+        "advanced",
+    ],
+    "HcsTiffAcquisitionModel": ["path", "plate_name", "acquisition_id", "advanced"],
+    "SingleTiffAcquisitionModel": ["path", "image_name", "advanced"],
+}
+
+
+def test_acquisition_field_order():
+    """`advanced` must be the last field of every acquisition model."""
+    found = {
+        name: list(schema["properties"])
+        for task in TASK_LIST
+        for name, schema in task["args_schema_non_parallel"]["$defs"].items()
+        if name.endswith("AcquisitionModel")
+    }
+    assert found == EXPECTED_ACQUISITION_FIELD_ORDER
 
 
 def test_valid_manifest(tmp_path):

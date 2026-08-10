@@ -1082,24 +1082,6 @@
                 "title": "Path",
                 "type": "string"
               },
-              "advanced": {
-                "$ref": "#/$defs/AcquisitionOptions",
-                "default": {
-                  "channels": null,
-                  "pixel_info": null,
-                  "condition_table_path": null,
-                  "axes": null,
-                  "data_type": "autodetect",
-                  "stage_orientation": {
-                    "flip_x": false,
-                    "flip_y": false,
-                    "swap_xy": false
-                  },
-                  "filters": []
-                },
-                "description": "Advanced acquisition options.",
-                "title": "Advanced"
-              },
               "plate_name": {
                 "anyOf": [
                   {
@@ -1131,6 +1113,24 @@
                 ],
                 "title": "Layout",
                 "type": "string"
+              },
+              "advanced": {
+                "$ref": "#/$defs/AcquisitionOptions",
+                "default": {
+                  "channels": null,
+                  "pixel_info": null,
+                  "condition_table_path": null,
+                  "axes": null,
+                  "data_type": "autodetect",
+                  "stage_orientation": {
+                    "flip_x": false,
+                    "flip_y": false,
+                    "swap_xy": false
+                  },
+                  "filters": []
+                },
+                "description": "Advanced acquisition options.",
+                "title": "Advanced"
               }
             },
             "required": [
@@ -2505,25 +2505,6 @@
                 "title": "Path",
                 "type": "string"
               },
-              "advanced": {
-                "$ref": "#/$defs/CellVoyagerAcquisitionOptions",
-                "default": {
-                  "channels": null,
-                  "pixel_info": null,
-                  "condition_table_path": null,
-                  "axes": null,
-                  "data_type": "autodetect",
-                  "stage_orientation": {
-                    "flip_x": false,
-                    "flip_y": false,
-                    "swap_xy": false
-                  },
-                  "filters": [],
-                  "z_processing": null
-                },
-                "description": "Advanced acquisition options.",
-                "title": "Advanced"
-              },
               "plate_name": {
                 "anyOf": [
                   {
@@ -2553,6 +2534,25 @@
                 ],
                 "title": "Image Extension",
                 "type": "string"
+              },
+              "advanced": {
+                "$ref": "#/$defs/CellVoyagerAcquisitionOptions",
+                "default": {
+                  "channels": null,
+                  "pixel_info": null,
+                  "condition_table_path": null,
+                  "axes": null,
+                  "data_type": "autodetect",
+                  "stage_orientation": {
+                    "flip_x": false,
+                    "flip_y": false,
+                    "swap_xy": false
+                  },
+                  "filters": [],
+                  "z_processing": null
+                },
+                "description": "Advanced acquisition options.",
+                "title": "Advanced"
               }
             },
             "required": [
@@ -4860,25 +4860,6 @@
                 "title": "Path",
                 "type": "string"
               },
-              "advanced": {
-                "$ref": "#/$defs/CQ3KAcquisitionOptions",
-                "default": {
-                  "channels": null,
-                  "pixel_info": null,
-                  "condition_table_path": null,
-                  "axes": null,
-                  "data_type": "autodetect",
-                  "stage_orientation": {
-                    "flip_x": false,
-                    "flip_y": false,
-                    "swap_xy": false
-                  },
-                  "filters": [],
-                  "z_processing": null
-                },
-                "description": "Advanced acquisition options.",
-                "title": "Advanced"
-              },
               "plate_name": {
                 "anyOf": [
                   {
@@ -4898,6 +4879,25 @@
                 "minimum": 0,
                 "title": "Acquisition Id",
                 "type": "integer"
+              },
+              "advanced": {
+                "$ref": "#/$defs/CQ3KAcquisitionOptions",
+                "default": {
+                  "channels": null,
+                  "pixel_info": null,
+                  "condition_table_path": null,
+                  "axes": null,
+                  "data_type": "autodetect",
+                  "stage_orientation": {
+                    "flip_x": false,
+                    "flip_y": false,
+                    "swap_xy": false
+                  },
+                  "filters": [],
+                  "z_processing": null
+                },
+                "description": "Advanced acquisition options.",
+                "title": "Advanced"
               }
             },
             "required": [
@@ -7919,24 +7919,6 @@
                 "title": "Path",
                 "type": "string"
               },
-              "advanced": {
-                "$ref": "#/$defs/AcquisitionOptions",
-                "default": {
-                  "channels": null,
-                  "pixel_info": null,
-                  "condition_table_path": null,
-                  "axes": null,
-                  "data_type": "autodetect",
-                  "stage_orientation": {
-                    "flip_x": false,
-                    "flip_y": false,
-                    "swap_xy": false
-                  },
-                  "filters": []
-                },
-                "description": "Advanced acquisition options.",
-                "title": "Advanced"
-              },
               "plate_name": {
                 "anyOf": [
                   {
@@ -7956,6 +7938,24 @@
                 "minimum": 0,
                 "title": "Acquisition Id",
                 "type": "integer"
+              },
+              "advanced": {
+                "$ref": "#/$defs/AcquisitionOptions",
+                "default": {
+                  "channels": null,
+                  "pixel_info": null,
+                  "condition_table_path": null,
+                  "axes": null,
+                  "data_type": "autodetect",
+                  "stage_orientation": {
+                    "flip_x": false,
+                    "flip_y": false,
+                    "swap_xy": false
+                  },
+                  "filters": []
+                },
+                "description": "Advanced acquisition options.",
+                "title": "Advanced"
               }
             },
             "required": [
@@ -10062,26 +10062,6 @@
                 "title": "Path",
                 "type": "string"
               },
-              "advanced": {
-                "$ref": "#/$defs/MDAcquisitionOptions",
-                "default": {
-                  "channels": null,
-                  "pixel_info": null,
-                  "condition_table_path": null,
-                  "axes": null,
-                  "data_type": "autodetect",
-                  "stage_orientation": {
-                    "flip_x": false,
-                    "flip_y": false,
-                    "swap_xy": false
-                  },
-                  "filters": [],
-                  "convert_only_projections": false,
-                  "convert_montages": false
-                },
-                "description": "Advanced acquisition options.",
-                "title": "Advanced"
-              },
               "plate_name": {
                 "anyOf": [
                   {
@@ -10101,6 +10081,26 @@
                 "minimum": 0,
                 "title": "Acquisition Id",
                 "type": "integer"
+              },
+              "advanced": {
+                "$ref": "#/$defs/MDAcquisitionOptions",
+                "default": {
+                  "channels": null,
+                  "pixel_info": null,
+                  "condition_table_path": null,
+                  "axes": null,
+                  "data_type": "autodetect",
+                  "stage_orientation": {
+                    "flip_x": false,
+                    "flip_y": false,
+                    "swap_xy": false
+                  },
+                  "filters": [],
+                  "convert_only_projections": false,
+                  "convert_montages": false
+                },
+                "description": "Advanced acquisition options.",
+                "title": "Advanced"
               }
             },
             "required": [
@@ -12293,24 +12293,6 @@
                 "title": "Path",
                 "type": "string"
               },
-              "advanced": {
-                "$ref": "#/$defs/AcquisitionOptions",
-                "default": {
-                  "channels": null,
-                  "pixel_info": null,
-                  "condition_table_path": null,
-                  "axes": null,
-                  "data_type": "autodetect",
-                  "stage_orientation": {
-                    "flip_x": false,
-                    "flip_y": false,
-                    "swap_xy": false
-                  },
-                  "filters": []
-                },
-                "description": "Advanced acquisition options.",
-                "title": "Advanced"
-              },
               "plate_name": {
                 "anyOf": [
                   {
@@ -12330,6 +12312,24 @@
                 "minimum": 0,
                 "title": "Acquisition Id",
                 "type": "integer"
+              },
+              "advanced": {
+                "$ref": "#/$defs/AcquisitionOptions",
+                "default": {
+                  "channels": null,
+                  "pixel_info": null,
+                  "condition_table_path": null,
+                  "axes": null,
+                  "data_type": "autodetect",
+                  "stage_orientation": {
+                    "flip_x": false,
+                    "flip_y": false,
+                    "swap_xy": false
+                  },
+                  "filters": []
+                },
+                "description": "Advanced acquisition options.",
+                "title": "Advanced"
               }
             },
             "required": [
@@ -15000,6 +15000,19 @@
                 "title": "Path",
                 "type": "string"
               },
+              "image_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Optional custom name for the output OME-Zarr image. If not provided, the\nname will be derived from the acquisition directory or file name.",
+                "title": "Image Name"
+              },
               "advanced": {
                 "$ref": "#/$defs/AcquisitionOptions",
                 "default": {
@@ -15017,19 +15030,6 @@
                 },
                 "description": "Advanced acquisition options.",
                 "title": "Advanced"
-              },
-              "image_name": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "description": "Optional custom name for the output OME-Zarr image. If not provided, the\nname will be derived from the acquisition directory or file name.",
-                "title": "Image Name"
               }
             },
             "required": [
