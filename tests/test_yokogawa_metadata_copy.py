@@ -14,15 +14,15 @@ from pathlib import Path
 import pytest
 from ome_zarr_converters_tools import SingleImage, join_url_paths
 
-from fractal_uzh_converters.cellvoyager import convert_cellvoyager
-from fractal_uzh_converters.common import _source_metadata
-from fractal_uzh_converters.common._source_metadata import (
+from fractal_uzh_converters.common import plate_urls_for_images
+from fractal_uzh_converters.yokogawa import _source_metadata
+from fractal_uzh_converters.yokogawa._source_metadata import (
     METADATA_DIR_NAME,
     copy_source_metadata,
-    plate_urls_for_images,
 )
-from fractal_uzh_converters.cq3k import convert_cq3k
-from fractal_uzh_converters.cq3k._utils import (
+from fractal_uzh_converters.yokogawa.cellvoyager import convert_cellvoyager
+from fractal_uzh_converters.yokogawa.cq3k import convert_cq3k
+from fractal_uzh_converters.yokogawa.cq3k._utils import (
     CQ3KAcquisitionModel,
     parse_cq3k_metadata,
 )

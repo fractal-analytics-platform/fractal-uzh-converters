@@ -23,15 +23,15 @@ from pathlib import Path
 
 import pytest
 
-from fractal_uzh_converters.cellvoyager._utils import (
-    CellVoyagerAcquisitionModel,
-    parse_cellvoyager_metadata,
-)
-from fractal_uzh_converters.common import (
+from fractal_uzh_converters.yokogawa._channels import (
     ChannelGeometry,
     warn_on_channel_geometry_mismatch,
 )
-from fractal_uzh_converters.cq3k._utils import (
+from fractal_uzh_converters.yokogawa.cellvoyager._utils import (
+    CellVoyagerAcquisitionModel,
+    parse_cellvoyager_metadata,
+)
+from fractal_uzh_converters.yokogawa.cq3k._utils import (
     CQ3KAcquisitionModel,
     parse_cq3k_metadata,
 )

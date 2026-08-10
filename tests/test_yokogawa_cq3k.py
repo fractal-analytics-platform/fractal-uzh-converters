@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 from ome_zarr_converters_tools.testing import run_converter_test
 
-from fractal_uzh_converters.cq3k import convert_cq3k
+from fractal_uzh_converters.yokogawa.cq3k import convert_cq3k
 
 from .utils import DATA_DIR
 

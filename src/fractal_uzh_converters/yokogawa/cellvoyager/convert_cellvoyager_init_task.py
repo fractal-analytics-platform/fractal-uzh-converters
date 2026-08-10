@@ -9,14 +9,14 @@ from ome_zarr_converters_tools import (
 )
 from pydantic import validate_call
 
-from fractal_uzh_converters.cellvoyager._utils import (
-    CellVoyagerAcquisitionModel,
-    parse_cellvoyager_metadata,
-)
 from fractal_uzh_converters.common import (
-    copy_source_metadata,
     parse_acquisitions_grouped,
     plate_urls_for_images,
+)
+from fractal_uzh_converters.yokogawa._source_metadata import copy_source_metadata
+from fractal_uzh_converters.yokogawa.cellvoyager._utils import (
+    CellVoyagerAcquisitionModel,
+    parse_cellvoyager_metadata,
 )
 
 logger = logging.getLogger("convert_cellvoyager_task")

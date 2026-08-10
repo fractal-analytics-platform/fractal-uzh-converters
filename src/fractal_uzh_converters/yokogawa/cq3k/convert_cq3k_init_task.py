@@ -10,11 +10,11 @@ from ome_zarr_converters_tools import (
 from pydantic import validate_call
 
 from fractal_uzh_converters.common import (
-    copy_source_metadata,
     parse_acquisitions_grouped,
     plate_urls_for_images,
 )
-from fractal_uzh_converters.cq3k._utils import (
+from fractal_uzh_converters.yokogawa._source_metadata import copy_source_metadata
+from fractal_uzh_converters.yokogawa.cq3k._utils import (
     CQ3KAcquisitionModel,
     parse_cq3k_metadata,
 )

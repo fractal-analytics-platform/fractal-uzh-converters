@@ -13,9 +13,9 @@ The extended tests call the public converter API function (`api_fn=`), not the i
 | Instrument | Converter API function | data-extended subfolder | Extended test file | Test function name |
 |---|---|---|---|---|
 | Evident ScanR | `from fractal_uzh_converters.scanr import convert_scanr` | `Evident-scanR/` | `test_evident_scanr_extended.py` | `test_scanr_extended` |
-| Yokogawa CQ3K | `from fractal_uzh_converters.cq3k import convert_cq3k` | `Yokogawa-CQ3K/` | `test_yokogawa_cq3k_extended.py` | `test_cq3k_extended` |
+| Yokogawa CQ3K | `from fractal_uzh_converters.yokogawa.cq3k import convert_cq3k` | `Yokogawa-CQ3K/` | `test_yokogawa_cq3k_extended.py` | `test_cq3k_extended` |
 | Revvity Operetta | `from fractal_uzh_converters.operetta import convert_operetta` | `Revvity-Operetta/` | `test_revvity_operetta_extended.py` | `test_operetta_extended` |
-| Yokogawa CellVoyager | `from fractal_uzh_converters.cellvoyager import convert_cellvoyager` | `Yokogawa-CellVoyager/` | `test_yokogawa_cellvoyager_extended.py` | `test_cellvoyager_extended` |
+| Yokogawa CellVoyager | `from fractal_uzh_converters.yokogawa.cellvoyager import convert_cellvoyager` | `Yokogawa-CellVoyager/` | `test_yokogawa_cellvoyager_extended.py` | `test_cellvoyager_extended` |
 | Molecular Devices ImageXpress | `from fractal_uzh_converters.imagexpress_hcs import convert_imagexpress_hcs` | `MolecularDevices-ImageXpressHCSai/` | `test_molecular_devices_imagexpress_extended.py` | `test_imagexpress_hcs_extended` |
 
 ---

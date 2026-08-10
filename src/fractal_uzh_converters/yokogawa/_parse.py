@@ -1,13 +1,24 @@
-"""Utility functions for Yokogawa CQ3K data."""
+"""The shared Yokogawa `.mlf`/`.mrf` parser.
+
+One implementation for both instruments. The CQ3K shape is the general one — an
+acquisition is split into one plate per `bts:ZImageProcessing` kind — and a
+CellVoyager acquisition, which the converter does not split, collapses to the
+single `z_type=None` plate.
+
+The two genuine per-instrument differences are parameters of
+`parse_yokogawa_metadata`: `filename_transform`, because a CellVoyager `.mlf`
+always names `.tif` even when the files on disk are `.png`, and
+`split_z_processing`.
+"""
 
 import logging
-from typing import Annotated, Any, Literal
+from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 import xmltodict
 from ome_zarr_converters_tools import (
     AcquisitionDetails,
-    AcquisitionOptions,
     AttributeType,
     ChannelInfo,
     ConverterOptions,
@@ -15,199 +26,41 @@ from ome_zarr_converters_tools import (
     ImageInPlate,
     Tile,
     TiledImage,
-    UserFacingModel,
     default_axes_builder,
     filesystem_for_url,
     join_url_paths,
     tiles_aggregation_pipeline,
 )
-from pydantic import BaseModel, ConfigDict, Field
-from pydantic.alias_generators import to_pascal
 
 from fractal_uzh_converters.common import (
     STANDARD_ROWS_NAMES,
-    ChannelGeometry,
     HCSBaseAcquisitionModel,
+    get_attributes_from_condition_table,
+)
+from fractal_uzh_converters.yokogawa._channels import (
+    ChannelGeometry,
     TimeIndex,
     apply_channel_overrides,
     build_time_index,
-    get_attributes_from_condition_table,
     max_acquired_channel,
     read_mes_channels,
     resolve_channels,
     warn_on_channel_geometry_mismatch,
 )
+from fractal_uzh_converters.yokogawa._records import (
+    ImageMeasurementRecord,
+    MeasurementChannel,
+    MeasurementData,
+    MeasurementDetail,
+)
+from fractal_uzh_converters.yokogawa._z_processing import (
+    ZProcessingSelection,
+    _plate_name,
+    _select_z_processing,
+    _z_processing_token,
+)
 
 logger = logging.getLogger(__name__)
-
-
-######################################################################
-#
-# Acquisition Input Model
-#
-######################################################################
-
-
-class ZProcessingSelection(UserFacingModel):
-    """Which Z-image processing outputs to convert."""
-
-    z_slices: bool = Field(default=True, title="Z slices")
-    """Convert the raw Z stack."""
-    mip: bool = Field(default=False, title="MIP")
-    """Convert the maximum intensity projection."""
-    min_ip: bool = Field(default=False, title="MinIP")
-    """Convert the minimum intensity projection."""
-    sip: bool = Field(default=False, title="SIP")
-    """Convert the sum intensity projection."""
-
-
-class CQ3KAcquisitionOptions(AcquisitionOptions):
-    """Acquisition options for the CQ3K converter."""
-
-    z_processing: ZProcessingSelection | None = Field(
-        default=None, title="Z Processing"
-    )
-    """
-    Which Z-image processing outputs to convert, each written as its own plate.
-    Leave unset to convert every one the acquisition contains.
-    """
-
-
-class CQ3KAcquisitionModel(HCSBaseAcquisitionModel):
-    """Acquisition details for the CQ3K microscope data."""
-
-    advanced: CQ3KAcquisitionOptions = Field(default_factory=CQ3KAcquisitionOptions)
-    """
-    Advanced acquisition options.
-    """
-
-
-######################################################################
-#
-# Pydantic models for parsing CQ3K metadata
-# are adapted from https://github.com/fmi-faim/cellvoyager-types
-#
-######################################################################
-
-
-class Base(BaseModel):
-    """Base model with common configuration."""
-
-    model_config = ConfigDict(
-        alias_generator=to_pascal,
-        # `ignore`, not `forbid`: a firmware update adding a single `bts:` attribute
-        # would otherwise be a hard parse failure. Matches CellVoyager, whose `.mrf`
-        # already carries fields these models do not declare.
-        extra="ignore",
-    )
-
-
-class MeasurementRecordBase(Base):
-    """Base class for measurement records."""
-
-    time: str
-    column: int
-    row: int
-    time_point: int
-    timeline_index: int
-    x: float
-    y: float
-    value: str
-
-
-class ImageMeasurementRecord(MeasurementRecordBase):
-    """Image measurement record."""
-
-    type: Literal["IMG"]
-    field_index: int
-    tile_x_index: int | None = None
-    tile_y_index: int | None = None
-    z_index: int
-    z_image_processing: str | None = None
-    z_top: float | None = None
-    z_bottom: float | None = None
-    action_index: int
-    action: str
-    z: float
-    ch: int
-    partial_tile_index: int | None = None
-
-
-class ErrorMeasurementRecord(MeasurementRecordBase):
-    """Error measurement record.
-
-    An autofocus failure carries no `bts:FieldIndex`, which is why that field
-    sits on `ImageMeasurementRecord` rather than the base (#41). The attributes
-    an ERR record does carry beyond the base set — `bts:PartialTileIndex` — are
-    never read, so `extra="ignore"` absorbs them and they stay unmodelled.
-    """
-
-    type: Literal["ERR"]
-
-
-class MeasurementData(Base):
-    """Measurement data containing image and error records."""
-
-    xmlns: Annotated[dict, Field(alias="xmlns")]
-    version: Literal["1.0"]
-    # `xmltodict` collapses a lone `<bts:MeasurementRecord>` to a bare dict, so a
-    # single-record acquisition has to be accepted here and normalised by the caller.
-    measurement_record: (
-        list[ImageMeasurementRecord | ErrorMeasurementRecord]
-        | ImageMeasurementRecord
-        | ErrorMeasurementRecord
-        | None
-    ) = None
-
-
-class MeasurementSamplePlate(Base):
-    """Measurement sample plate details."""
-
-    name: str
-    well_plate_file_name: str
-    well_plate_product_file_name: str
-
-
-class MeasurementChannel(Base):
-    """Measurement channel details."""
-
-    ch: int
-    horizontal_pixel_dimension: float
-    vertical_pixel_dimension: float
-    camera_number: int
-    input_bit_depth: int
-    input_level: int
-    horizontal_pixels: int
-    vertical_pixels: int
-    filter_wheel_position: int
-    filter_position: int
-    shading_correction_source: str
-    objective_magnification_ratio: float
-    original_horizontal_pixels: int
-    original_vertical_pixels: int
-
-
-class MeasurementDetail(Base):
-    """Measurement detail metadata."""
-
-    xmlns: Annotated[dict, Field(alias="xmlns")]
-    version: Literal["1.0"]
-    operator_name: str
-    title: str
-    application: str
-    begin_time: str
-    end_time: str
-    measurement_setting_file_name: str
-    column_count: int
-    row_count: int
-    time_point_count: int
-    field_count: int
-    z_count: int
-    target_system: str
-    release_number: str
-    status: str
-    measurement_sample_plate: MeasurementSamplePlate
-    measurement_channel: list[MeasurementChannel] | MeasurementChannel
 
 
 ######################################################################
@@ -248,7 +101,7 @@ def _load_models(path: str) -> tuple[MeasurementData, MeasurementDetail]:
 
 ######################################################################
 #
-# Helper functions for building tiles (following ScanR pattern)
+# Helper functions for building tiles
 #
 ######################################################################
 
@@ -289,135 +142,15 @@ def _get_z_spacing(images: list[ImageMeasurementRecord]) -> float:
     return float(np.mean(delta_z))
 
 
-#: `bts:ZImageProcessing` values, mapped to the conventional imaging abbreviations.
-#: Anything else is used verbatim, with a warning.
-_Z_PROCESSING_SUFFIXES = {"Maximum": "MIP", "Minimum": "MinIP", "Sum": "SIP"}
-
-#: The token of the raw-slice plate, which carries no name suffix.
-_Z_SLICES = "Z slices"
-
-#: `ZProcessingSelection` field -> the token it selects. Also the set of tokens a
-#: selection is able to name at all.
-_Z_PROCESSING_TOKENS = {
-    "z_slices": _Z_SLICES,
-    "mip": "MIP",
-    "min_ip": "MinIP",
-    "sip": "SIP",
-}
-
-
-def _z_processing_token(z_type: str | None) -> str:
-    """The selection token for one `bts:ZImageProcessing` value.
-
-    Doubles as the plate name suffix. Resolve it once per distinct `z_type`: an
-    unrecognised value warns here, and `_build_tiles` runs per field of view.
-    """
-    if z_type is None:
-        return _Z_SLICES
-    token = _Z_PROCESSING_SUFFIXES.get(z_type)
-    if token is None:
-        logger.warning(
-            f"Unknown z image processing type '{z_type}'. Using it verbatim as the "
-            "plate name suffix."
-        )
-        token = z_type
-    return token
-
-
-def _select_z_processing(
-    *,
-    plates_tokens: dict[str | None, str],
-    selection: ZProcessingSelection | None,
-    acquisition_dir: str,
-) -> set[str | None]:
-    """The `z_image_processing` groups to convert, given the user's selection.
-
-    No selection keeps everything. Otherwise a selected kind the acquisition does not
-    contain is a warning rather than an error, so that one selection can be applied to
-    a batch of acquisitions; but a selection matching *nothing* raises, since the
-    alternative is an empty output whose cause only surfaces much later, from the
-    library, without naming the option responsible.
-
-    Args:
-        plates_tokens: `{z_image_processing: token}` for this acquisition.
-        selection: The user's `advanced.z_processing`, or `None` for all of them.
-        acquisition_dir: Named in the errors, since a batch fails one acquisition at
-            a time.
-
-    Returns:
-        The `z_image_processing` values to keep.
-
-    Raises:
-        ValueError: If nothing is enabled, or if the selection matches none of the
-            parsed plates. The two have different fixes, so they are reported apart.
-    """
-    if selection is None:
-        return set(plates_tokens)
-
-    selected = {
-        token
-        for field, token in _Z_PROCESSING_TOKENS.items()
-        if getattr(selection, field)
-    }
-    if not selected:
-        raise ValueError(
-            "`advanced.z_processing` enables nothing, so there is nothing to convert "
-            f"in {acquisition_dir}. Enable at least one output, or leave the option "
-            "unset to convert everything the acquisition contains."
-        )
-
-    available = set(plates_tokens.values())
-    kept = {z_type for z_type, token in plates_tokens.items() if token in selected}
-    if not kept:
-        raise ValueError(
-            f"`advanced.z_processing` enables {sorted(selected)} but "
-            f"{acquisition_dir} contains only {sorted(available)}. Clear the option "
-            "to convert everything the acquisition contains."
-        )
-
-    missing = sorted(selected - available)
-    if missing:
-        logger.warning(
-            f"`advanced.z_processing` enables {missing}, which {acquisition_dir} "
-            "does not contain. Converting the rest of the selection."
-        )
-
-    # An unrecognised `bts:ZImageProcessing` value keeps its raw string as the token,
-    # so no field of `ZProcessingSelection` can name it.
-    unnameable = sorted(
-        token
-        for z_type, token in plates_tokens.items()
-        if z_type not in kept and token not in _Z_PROCESSING_TOKENS.values()
-    )
-    if unnameable:
-        logger.warning(
-            f"Skipping the unrecognised z image processing type(s) {unnameable}, "
-            "which `advanced.z_processing` cannot name. Use a `Path Regex Filter` on "
-            "the plate name to select them."
-        )
-    return kept
-
-
-def _plate_name(base_name: str, token: str) -> str:
-    """Plate name for one `z_image_processing` group.
-
-    Each projection algorithm is written as its own plate; the raw-slice plate
-    carries no suffix and can coexist with them.
-    """
-    if token == _Z_SLICES:
-        return base_name
-    return f"{base_name}_{token}"
-
-
 def build_acquisition_details(
     images: list[ImageMeasurementRecord],
     detail: MeasurementDetail,
-    acquisition_model: CQ3KAcquisitionModel,
+    acquisition_model: HCSBaseAcquisitionModel,
     channels: list[ChannelInfo],
     max_acquired_ch: int,
     time_index: TimeIndex,
 ) -> AcquisitionDetails:
-    """Build AcquisitionDetails from CQ3K metadata.
+    """Build AcquisitionDetails from the Yokogawa metadata.
 
     Call this once per plate (i.e. per `z_image_processing` group) with all of
     that plate's image records, never per field of view: `TiledImage.add_tile`
@@ -485,7 +218,7 @@ def _build_tiles(
     images: list[ImageMeasurementRecord],
     data_dir: str,
     detail: MeasurementDetail,
-    acquisition_model: CQ3KAcquisitionModel,
+    acquisition_model: HCSBaseAcquisitionModel,
     acquisition_details: AcquisitionDetails,
     time_index: TimeIndex,
     row: str,
@@ -493,6 +226,7 @@ def _build_tiles(
     fov_idx: int,
     plate_name: str,
     attributes: dict[str, AttributeType],
+    filename_transform: Callable[[str], str],
 ) -> list[Tile]:
     """Build individual Tile objects for each image record."""
     first_channel = _measurement_channels(detail)[0]
@@ -511,8 +245,8 @@ def _build_tiles(
 
     tiles = []
     for img in images:
-        tiff_path = join_url_paths(data_dir, img.value)
-        # CQ3k stage is in "standard" cartesian coordinates, but
+        image_path = join_url_paths(data_dir, filename_transform(img.value))
+        # The Yokogawa stage is in "standard" cartesian coordinates, but
         # for images we want to set the origin (as many viewers do) in the top-left
         # corner, so we need to invert the y position
         # This is equivalent to flipping the image along the y axis
@@ -535,7 +269,7 @@ def _build_tiles(
             ),
             length_t=1,
             collection=image_in_plate,
-            image_loader=DefaultImageLoader(file_path=tiff_path),
+            image_loader=DefaultImageLoader(file_path=image_path),
             acquisition_details=acquisition_details,
             attributes=attributes,
         )
@@ -551,16 +285,26 @@ def _build_tiles(
 ######################################################################
 
 
-def parse_cq3k_metadata(
+def parse_yokogawa_metadata(
     *,
-    acquisition_model: CQ3KAcquisitionModel,
+    acquisition_model: HCSBaseAcquisitionModel,
     converter_options: ConverterOptions,
+    z_selection: ZProcessingSelection | None = None,
+    split_z_processing: bool = True,
+    filename_transform: Callable[[str], str] = lambda file_name: file_name,
 ) -> list[TiledImage]:
-    """Parse CQ3K metadata and return a list of TiledImages.
+    """Parse a Yokogawa acquisition and return a list of TiledImages.
 
     Args:
         acquisition_model: Acquisition input model containing path and options.
         converter_options: Converter options for tile processing.
+        z_selection: Which `bts:ZImageProcessing` kinds to convert, or `None` for
+            all of them. Ignored when `split_z_processing` is False.
+        split_z_processing: Write one plate per `bts:ZImageProcessing` kind. When
+            False every record lands in a single unsuffixed plate, whatever the
+            attribute says.
+        filename_transform: Applied to `bts:MeasurementRecord`'s file name before
+            it is resolved against the acquisition directory.
 
     Returns:
         List of TiledImage objects ready for conversion.
@@ -569,7 +313,7 @@ def parse_cq3k_metadata(
     data, detail = _load_models(path=acquisition_dir)
     condition_table = acquisition_model.get_condition_table()
 
-    # Once per acquisition: `_build_acquisition_details` runs per plate and
+    # Once per acquisition: `build_acquisition_details` runs per plate and
     # `_build_tiles` per field of view, so neither is the right place to warn from.
     warn_on_channel_geometry_mismatch(
         geometries=_channel_geometries(detail),
@@ -609,7 +353,7 @@ def parse_cq3k_metadata(
     plates_records: dict[str | None, list[ImageMeasurementRecord]] = {}
 
     for record in all_image_records:
-        z_type = record.z_image_processing
+        z_type = record.z_image_processing if split_z_processing else None
         row = STANDARD_ROWS_NAMES[record.row - 1]
         column = record.column
         fov_idx = record.field_index
@@ -630,7 +374,7 @@ def parse_cq3k_metadata(
     plates_tokens = {z_type: _z_processing_token(z_type) for z_type in plates_records}
     kept = _select_z_processing(
         plates_tokens=plates_tokens,
-        selection=acquisition_model.advanced.z_processing,
+        selection=z_selection if split_z_processing else None,
         acquisition_dir=acquisition_dir,
     )
     plates_records = {
@@ -719,6 +463,7 @@ def parse_cq3k_metadata(
             fov_idx=fov_idx,
             plate_name=plates_names[z_type],
             attributes=attributes,
+            filename_transform=filename_transform,
         )
         all_tiles.extend(_tiles)
 

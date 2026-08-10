@@ -44,6 +44,9 @@ Migration to `ome-zarr-converters-tools` v1.
   base. Such records are skipped, with one warning per acquisition (#41).
 
 ### Chores
+- Unify the two Yokogawa converters into a `yokogawa/` package with one shared parser and
+  thin `cq3k`/`cellvoyager` layers; `fractal_uzh_converters.{cq3k,cellvoyager}` move to
+  `fractal_uzh_converters.yokogawa.{cq3k,cellvoyager}`, package-root names are unchanged.
 - Bump `ome-zarr-converters-tools` to `>=1.0.2` for its channel-metadata compaction fix,
   and drop the `ngff_version=` argument it deprecates from every init task.
 - Replace the Yokogawa CQ3K test data — both the in-repo fixture and the extended

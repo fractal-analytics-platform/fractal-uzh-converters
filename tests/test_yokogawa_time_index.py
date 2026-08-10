@@ -26,11 +26,10 @@ from pathlib import Path
 import pytest
 from ome_zarr_converters_tools.testing import build_snapshot
 
-from fractal_uzh_converters.cellvoyager import _utils as cellvoyager_utils
-from fractal_uzh_converters.cellvoyager import convert_cellvoyager
-from fractal_uzh_converters.common import build_time_index
-from fractal_uzh_converters.cq3k import _utils as cq3k_utils
-from fractal_uzh_converters.cq3k import convert_cq3k
+from fractal_uzh_converters.yokogawa import _parse as yokogawa_parse
+from fractal_uzh_converters.yokogawa._channels import build_time_index
+from fractal_uzh_converters.yokogawa.cellvoyager import convert_cellvoyager
+from fractal_uzh_converters.yokogawa.cq3k import convert_cq3k
 
 from .utils import DATA_DIR
 
@@ -96,31 +95,33 @@ def test_no_records_is_not_a_time_series():
 ######################################################################
 
 
-def _capture_tiles(monkeypatch, module) -> list:
-    """Collect every Tile `module._build_tiles` returns.
+def _capture_tiles(monkeypatch) -> list:
+    """Collect every Tile the shared parser's `_build_tiles` returns.
 
     The tiles are the only place `start_t` survives on a `czyx` plate: `to_roi`
     drops it, so it cannot be observed on the TiledImage or in a snapshot.
+
+    Patched on `yokogawa/_parse.py`, which both converters call into — patching
+    a re-export on either instrument package would not intercept.
     """
     tiles: list = []
-    original = module._build_tiles
+    original = yokogawa_parse._build_tiles
 
     def _spy(**kwargs):
         built = original(**kwargs)
         tiles.extend(built)
         return built
 
-    monkeypatch.setattr(module, "_build_tiles", _spy)
+    monkeypatch.setattr(yokogawa_parse, "_build_tiles", _spy)
     return tiles
 
 
 @pytest.mark.parametrize(
-    "fixture, module, api_fn, acquisition_kwargs",
+    "fixture, api_fn, acquisition_kwargs",
     [
-        pytest.param(CQ3K_FIXTURE, cq3k_utils, convert_cq3k, {}, id="cq3k"),
+        pytest.param(CQ3K_FIXTURE, convert_cq3k, {}, id="cq3k"),
         pytest.param(
             CELLVOYAGER_FIXTURE,
-            cellvoyager_utils,
             convert_cellvoyager,
             # The in-repo CellVoyager fixture ships `.png`, not `.tif`.
             {"image_extension": ".png"},
@@ -133,7 +134,6 @@ def test_single_time_point_starts_at_frame_zero(
     monkeypatch,
     converter_options,
     fixture: Path,
-    module,
     api_fn,
     acquisition_kwargs: dict,
 ):
@@ -144,7 +144,7 @@ def test_single_time_point_starts_at_frame_zero(
     """
     zarr_dir = tmp_path / "output"
     zarr_dir.mkdir()
-    tiles = _capture_tiles(monkeypatch, module)
+    tiles = _capture_tiles(monkeypatch)
 
     api_fn(
         zarr_dir=str(zarr_dir),

@@ -9,7 +9,9 @@ from ome_zarr_converters_tools import (
     AcquisitionOptions,
     AttributeType,
     ConverterOptions,
+    ImageInPlate,
     TiledImage,
+    join_url_paths,
 )
 from pydantic import BaseModel, Field
 
@@ -197,6 +199,32 @@ def parse_acquisitions(
         converter_options=converter_options,
     )
     return [tiled_image for _, images in grouped for tiled_image in images]
+
+
+def plate_urls_for_images(
+    *, zarr_dir: str, tiled_images: list[TiledImage]
+) -> list[str]:
+    """Absolute URLs of the distinct plates `tiled_images` were written into.
+
+    `ImageInPlate.plate_path()` is relative to `zarr_dir`, so it is joined here
+    the same way the library's own plate setup does it. One acquisition can
+    produce several plates — a Yokogawa acquisition yields one per projection
+    algorithm — and each of them gets its own copy of the metadata.
+
+    Args:
+        zarr_dir: Directory the plates were written into.
+        tiled_images: Images of a single acquisition.
+
+    Returns:
+        Sorted, deduplicated plate URLs. Empty for collections that are not
+        plates, which carry no `plate_path`.
+    """
+    plate_paths = {
+        image.collection.plate_path()
+        for image in tiled_images
+        if isinstance(image.collection, ImageInPlate)
+    }
+    return sorted(join_url_paths(zarr_dir, path) for path in plate_paths)
 
 
 def get_attributes_from_condition_table(

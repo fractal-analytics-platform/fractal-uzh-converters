@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 from ome_zarr_converters_tools.testing import run_converter_test
 
-from fractal_uzh_converters.cellvoyager import convert_cellvoyager
+from fractal_uzh_converters.yokogawa.cellvoyager import convert_cellvoyager
 
 from .utils import DATA_DIR
 

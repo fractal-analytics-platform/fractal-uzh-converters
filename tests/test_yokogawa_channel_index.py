@@ -15,15 +15,14 @@ from pathlib import Path
 
 import pytest
 
-from fractal_uzh_converters.cellvoyager import _utils as cellvoyager_utils
-from fractal_uzh_converters.cellvoyager import convert_cellvoyager
-from fractal_uzh_converters.cellvoyager._utils import (
+from fractal_uzh_converters.yokogawa import _parse as yokogawa_parse
+from fractal_uzh_converters.yokogawa.cellvoyager import convert_cellvoyager
+from fractal_uzh_converters.yokogawa.cellvoyager._utils import (
     CellVoyagerAcquisitionModel,
     parse_cellvoyager_metadata,
 )
-from fractal_uzh_converters.cq3k import _utils as cq3k_utils
-from fractal_uzh_converters.cq3k import convert_cq3k
-from fractal_uzh_converters.cq3k._utils import (
+from fractal_uzh_converters.yokogawa.cq3k import convert_cq3k
+from fractal_uzh_converters.yokogawa.cq3k._utils import (
     CQ3KAcquisitionModel,
     parse_cq3k_metadata,
 )
@@ -40,16 +39,20 @@ CELLVOYAGER_EXTENDED_RAW_DIR = EXTENDED_DATA_DIR / "Yokogawa-CellVoyager" / "raw
 _SINGLE_CHANNEL_OVERRIDE = [{"channel_label": "DAPI", "wavelength_id": "A01_C01"}]
 
 
-def _count_acquisition_details_calls(monkeypatch, module) -> list:
-    """Record every `build_acquisition_details` call made by `module`."""
+def _count_acquisition_details_calls(monkeypatch) -> list:
+    """Record every `build_acquisition_details` call of the shared parser.
+
+    Patched on `yokogawa/_parse.py`, which both converters call into — patching
+    a re-export on either instrument package would not intercept.
+    """
     calls: list = []
-    original = module.build_acquisition_details
+    original = yokogawa_parse.build_acquisition_details
 
     def _spy(**kwargs):
         calls.append(kwargs)
         return original(**kwargs)
 
-    monkeypatch.setattr(module, "build_acquisition_details", _spy)
+    monkeypatch.setattr(yokogawa_parse, "build_acquisition_details", _spy)
     return calls
 
 
@@ -104,7 +107,7 @@ def test_cellvoyager_channel_override(tmp_path: Path, converter_options):
 
 def test_cq3k_builds_one_acquisition_details_per_plate(monkeypatch, converter_options):
     """AcquisitionDetails is built per plate, not per (well, field of view)."""
-    calls = _count_acquisition_details_calls(monkeypatch, cq3k_utils)
+    calls = _count_acquisition_details_calls(monkeypatch)
 
     parse_cq3k_metadata(
         acquisition_model=CQ3KAcquisitionModel(
@@ -131,7 +134,7 @@ _FIVE_CHANNEL_OVERRIDE = [
 @pytest.mark.extended
 def test_cq3k_acquisition_details_are_plate_scoped(monkeypatch, converter_options):
     """Multi-field wells merge without an AcquisitionDetails mismatch."""
-    calls = _count_acquisition_details_calls(monkeypatch, cq3k_utils)
+    calls = _count_acquisition_details_calls(monkeypatch)
     acquisition_model = CQ3KAcquisitionModel(
         path=str(CQ3K_EXTENDED_RAW_DIR / "hcs_3w2p4c1z1t_Channels_MIP_MinIP"),
         acquisition_id=0,
@@ -157,7 +160,7 @@ def test_cellvoyager_acquisition_details_are_acquisition_scoped(
     monkeypatch, converter_options
 ):
     """Multi-field wells merge without an AcquisitionDetails mismatch."""
-    calls = _count_acquisition_details_calls(monkeypatch, cellvoyager_utils)
+    calls = _count_acquisition_details_calls(monkeypatch)
     acquisition_model = CellVoyagerAcquisitionModel(
         path=str(CELLVOYAGER_EXTENDED_RAW_DIR / "hcs_2w2p3c9z1t_PartialTile"),
         acquisition_id=0,

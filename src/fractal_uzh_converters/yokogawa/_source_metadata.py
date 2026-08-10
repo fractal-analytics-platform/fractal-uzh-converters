@@ -13,15 +13,13 @@ already written its images.
 import logging
 
 from ome_zarr_converters_tools import (
-    ImageInPlate,
-    TiledImage,
     filesystem_for_url,
     join_url_paths,
 )
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_pascal
 
-from fractal_uzh_converters.common._yokogawa import _parse_bts_xml
+from fractal_uzh_converters.yokogawa._channels import _parse_bts_xml
 
 logger = logging.getLogger(__name__)
 
@@ -45,10 +43,9 @@ _MAX_COLLISION_VARIANTS = 10
 class _MrfNamesBase(BaseModel):
     """Base for the trimmed `.mrf` view used to discover file names.
 
-    Deliberately *not* the converters' `MeasurementDetail`: those pin a dozen
-    required fields and `cq3k` still uses `extra="forbid"`, so a `.mrf` this
-    module cannot fully validate would cost the two fixed-name copies as well.
-    Here every field is optional and unknown ones are ignored — a `.mrf` that
+    Deliberately *not* the converters' `MeasurementDetail`, which pins a dozen
+    required fields: a `.mrf` this module cannot fully validate would cost the
+    two fixed-name copies as well. Here every field is optional — a `.mrf` that
     names no `.wpi` simply yields one file fewer.
     """
 
@@ -124,32 +121,6 @@ def _source_file_names(acquisition_dir: str) -> list[str]:
 # Copying
 #
 ######################################################################
-
-
-def plate_urls_for_images(
-    *, zarr_dir: str, tiled_images: list[TiledImage]
-) -> list[str]:
-    """Absolute URLs of the distinct plates `tiled_images` were written into.
-
-    `ImageInPlate.plate_path()` is relative to `zarr_dir`, so it is joined here
-    the same way the library's own plate setup does it. One acquisition can
-    produce several plates — a CQ3K acquisition yields one per projection
-    algorithm — and each of them gets its own copy of the metadata.
-
-    Args:
-        zarr_dir: Directory the plates were written into.
-        tiled_images: Images of a single acquisition.
-
-    Returns:
-        Sorted, deduplicated plate URLs. Empty for collections that are not
-        plates, which carry no `plate_path`.
-    """
-    plate_paths = {
-        image.collection.plate_path()
-        for image in tiled_images
-        if isinstance(image.collection, ImageInPlate)
-    }
-    return sorted(join_url_paths(zarr_dir, path) for path in plate_paths)
 
 
 def _split_name(file_name: str) -> tuple[str, str]:

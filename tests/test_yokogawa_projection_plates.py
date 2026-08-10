@@ -14,11 +14,13 @@ from pathlib import Path
 
 import pytest
 
-from fractal_uzh_converters.cq3k import convert_cq3k
-from fractal_uzh_converters.cq3k._utils import (
-    CQ3KAcquisitionModel,
+from fractal_uzh_converters.yokogawa._z_processing import (
     _plate_name,
     _z_processing_token,
+)
+from fractal_uzh_converters.yokogawa.cq3k import convert_cq3k
+from fractal_uzh_converters.yokogawa.cq3k._utils import (
+    CQ3KAcquisitionModel,
     parse_cq3k_metadata,
 )
 

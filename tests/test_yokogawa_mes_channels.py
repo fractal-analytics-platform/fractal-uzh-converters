@@ -1,8 +1,7 @@
 """Tests for the Yokogawa `.mes` reader and channel resolution.
 
-`common/_yokogawa.py` is not wired into either converter yet — these cover it
-directly, so the behaviour is pinned before the wiring rewrites every Yokogawa
-snapshot.
+These cover `yokogawa/_channels.py` directly rather than through a conversion,
+so the resolution rules stay pinned independently of the snapshots.
 
 The `.mes` file supplies the human-readable channel targets that the `.mlf`/`.mrf`
 pair lacks. The resolved list spans the full instrument channel range, not the
@@ -18,7 +17,7 @@ from xml.parsers.expat import ExpatError
 import pytest
 from ome_zarr_converters_tools import ChannelInfo, ChannelInfoUI, join_url_paths
 
-from fractal_uzh_converters.common._yokogawa import (
+from fractal_uzh_converters.yokogawa._channels import (
     MesChannel,
     _actions_by_channel,
     _dedup_labels,
@@ -101,7 +100,7 @@ class TestReadMesChannels:
         Sibling acquisitions can share a directory, and two acquisitions can
         carry the same `.mes` basename with different content.
         """
-        from fractal_uzh_converters.cq3k._utils import _load_models
+        from fractal_uzh_converters.yokogawa._parse import _load_models
 
         _, mrf = _load_models(str(CQ3K_FIXTURE))
         assert mrf.measurement_setting_file_name == "MeasurementProtocol.mes"
@@ -436,7 +435,7 @@ class TestResolveChannels:
         `join_url_paths`, which normalises to forward slashes — on Windows that
         differs from `str(tmp_path / name)`.
         """
-        from fractal_uzh_converters.common import _yokogawa
+        from fractal_uzh_converters.yokogawa import _channels as _yokogawa
 
         urls = []
         original = _yokogawa.filesystem_for_url
@@ -572,12 +571,12 @@ class TestApplyChannelOverrides:
 # ---------------------------------------------------------------------------
 
 
-def _resolve_acquisition(kind: str, acquisition_dir: Path) -> list[ChannelInfo]:
-    """Resolve one acquisition's channels straight from its own metadata."""
-    if kind == "cq3k":
-        from fractal_uzh_converters.cq3k._utils import _load_models
-    else:
-        from fractal_uzh_converters.cellvoyager._utils import _load_models
+def _resolve_acquisition(acquisition_dir: Path) -> list[ChannelInfo]:
+    """Resolve one acquisition's channels straight from its own metadata.
+
+    Both instruments load through the same `_load_models`.
+    """
+    from fractal_uzh_converters.yokogawa._parse import _load_models
 
     mlf, mrf = _load_models(str(acquisition_dir))
     records = mlf.measurement_record or []
@@ -636,7 +635,7 @@ _ALL_ACQUISITIONS = [("cq3k", name) for name in _CQ3K_ACQUISITIONS] + [
 def test_resolution_invariants_hold_on_every_acquisition(kind, name):
     """Labels and wavelength ids are unique and colours are well formed."""
     raw_dir = CQ3K_EXTENDED_RAW_DIR if kind == "cq3k" else CELLVOYAGER_EXTENDED_RAW_DIR
-    resolved = _resolve_acquisition(kind, raw_dir / name)
+    resolved = _resolve_acquisition(raw_dir / name)
 
     labels = [channel.channel_label for channel in resolved]
     wavelength_ids = [channel.wavelength_id for channel in resolved]
@@ -694,7 +693,7 @@ def test_resolution_invariants_hold_on_every_acquisition(kind, name):
 def test_resolved_channels_match_the_protocol(kind, name, labels, wavelength_ids):
     """Exact expectations, so a regression cannot hide in a snapshot diff."""
     raw_dir = CQ3K_EXTENDED_RAW_DIR if kind == "cq3k" else CELLVOYAGER_EXTENDED_RAW_DIR
-    resolved = _resolve_acquisition(kind, raw_dir / name)
+    resolved = _resolve_acquisition(raw_dir / name)
 
     assert [channel.channel_label for channel in resolved] == labels
     assert [channel.wavelength_id for channel in resolved] == wavelength_ids
@@ -704,7 +703,7 @@ def test_resolved_channels_match_the_protocol(kind, name, labels, wavelength_ids
 def test_cq3k_colors_come_from_the_protocol():
     """CQ3K `bts:Color` values survive as `#RRGGBB`, alpha stripped."""
     resolved = _resolve_acquisition(
-        "cq3k", CQ3K_EXTENDED_RAW_DIR / "hcs_3w2p4c1z1t_Channels_MIP_MinIP"
+        CQ3K_EXTENDED_RAW_DIR / "hcs_3w2p4c1z1t_Channels_MIP_MinIP"
     )
 
     assert [channel.color for channel in resolved] == [
@@ -730,7 +729,6 @@ def test_cq3k_colors_come_from_the_protocol():
 def test_per_well_channel_subsets(well_channels, expected):
     """What `reindex_channels` will prune each well down to at compute time."""
     resolved = _resolve_acquisition(
-        "cellvoyager",
         CELLVOYAGER_EXTENDED_RAW_DIR / "hcs_3w2p2c9z1t_TimelinesSharedChannel",
     )
     assert [resolved[ch - 1].channel_label for ch in well_channels] == expected
@@ -743,11 +741,10 @@ def test_same_mes_basename_resolves_per_acquisition():
     This is what a `*.mes` glob would get wrong.
     """
     duplicate = _resolve_acquisition(
-        "cellvoyager",
         CELLVOYAGER_EXTENDED_RAW_DIR / "hcs_2w2p3c9z1t_PartialTile_DuplicateTargets",
     )
     unique = _resolve_acquisition(
-        "cellvoyager", CELLVOYAGER_EXTENDED_RAW_DIR / "hcs_2w2p3c9z1t_PartialTile"
+        CELLVOYAGER_EXTENDED_RAW_DIR / "hcs_2w2p3c9z1t_PartialTile"
     )
 
     assert [c.channel_label for c in duplicate] == [

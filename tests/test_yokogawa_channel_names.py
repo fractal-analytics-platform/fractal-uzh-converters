@@ -16,12 +16,12 @@ from pathlib import Path
 
 import pytest
 
-from fractal_uzh_converters.cellvoyager import convert_cellvoyager
-from fractal_uzh_converters.cellvoyager._utils import (
+from fractal_uzh_converters.yokogawa.cellvoyager import convert_cellvoyager
+from fractal_uzh_converters.yokogawa.cellvoyager._utils import (
     CellVoyagerAcquisitionModel,
     parse_cellvoyager_metadata,
 )
-from fractal_uzh_converters.cq3k import convert_cq3k
+from fractal_uzh_converters.yokogawa.cq3k import convert_cq3k
 
 from .utils import DATA_DIR, EXTENDED_DATA_DIR, channel_metadata
 

@@ -1,11 +1,11 @@
-"""Shared helpers for the Yokogawa BTS metadata schema.
+"""Channel metadata for the Yokogawa BTS schema.
 
-Both Yokogawa converters (`cellvoyager/` for CV7k/CV8k, `cq3k/` for CQ3000/CQ3K)
-read the same `.mlf`/`.mrf`/`.mes` XML schema, but the `.mlf`/`.mrf` models are
-deliberately duplicated per converter. Only *new* shared code lives here: the
-`.mes` (MeasurementProtocol) channel list, the channel-naming rules that turn it
-into `ChannelInfo` metadata, the `.mrf` channel-geometry consistency check and
-the `.mlf` time-index normalisation.
+Both Yokogawa instruments (`cellvoyager/` for CV7k/CV8k, `cq3k/` for
+CQ3000/CQ3K) read the same `.mlf`/`.mrf`/`.mes` XML schema. This module covers
+the `.mes` (MeasurementProtocol) channel list, the channel-naming rules that
+turn it into `ChannelInfo` metadata, the `.mrf` channel-geometry consistency
+check and the `.mlf` time-index normalisation; the `.mlf`/`.mrf` models
+themselves live in `_records.py` and the parser in `_parse.py`.
 
 The `.mes` file carries the acquisition protocol, including the human-readable
 channel targets that the `.mlf`/`.mrf` pair lacks. Without it every output is
