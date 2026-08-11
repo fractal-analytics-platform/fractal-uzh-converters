@@ -67,6 +67,9 @@ Migration to `ome-zarr-converters-tools` v1.
   being redistributable; add an extended CellVoyager suite and rename the Yokogawa
   extended datasets to the canonical `hcs_…` convention.
 - Tests: rename the stale `init_task_kwargs` parametrize variable to `api_kwargs`.
+- Tests: register the `ConverterWarning` ignore from `conftest.py` instead of the pytest
+  ini, which imported the package before coverage started and under-reported coverage by
+  ~37 points.
 
 ### Documentation
 - Document Yokogawa channel handling: where the labels come from, and that an

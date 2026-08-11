@@ -1,9 +1,13 @@
 import json
+import tomllib
+from pathlib import Path
 
 import requests
 from jsonschema import validate
 
 from . import MANIFEST, TASK_LIST
+
+PYPROJECT = Path(__file__).parent.parent / "pyproject.toml"
 
 # The Fractal form renders the acquisition fields in schema order, so the order
 # is part of the task's public surface. It is also fragile: pydantic keeps a
@@ -57,6 +61,22 @@ def test_acquisition_field_order():
         if name.endswith("AcquisitionModel")
     }
     assert found == EXPECTED_ACQUISITION_FIELD_ORDER
+
+
+def test_ini_filterwarnings_do_not_name_the_package():
+    """No ini warning filter may name a `fractal_uzh_converters` category.
+
+    pytest resolves a filter's category by importing the module naming it, from
+    a hookwrapper that runs before pytest-cov starts coverage. Naming one of our
+    own categories there imports the package unmeasured and reports every
+    module-level statement as a miss (~37 coverage points), while the suite
+    stays green — so only Codecov notices. `tests/conftest.py` registers such
+    filters from `pytest_configure` instead.
+    """
+    with PYPROJECT.open("rb") as f:
+        pyproject = tomllib.load(f)
+    filters = pyproject["tool"]["pytest"]["ini_options"]["filterwarnings"]
+    assert [f for f in filters if "fractal_uzh_converters" in f] == []
 
 
 def test_valid_manifest(tmp_path):
