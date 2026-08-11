@@ -26,6 +26,8 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from fractal_uzh_converters.common import (
     STANDARD_ROWS_NAMES,
     HCSBaseAcquisitionModel,
+    ZProcessingSelection,
+    clean_channel_string,
     get_attributes_from_condition_table,
 )
 
@@ -39,13 +41,16 @@ logger = logging.getLogger(__name__)
 ######################################################################
 
 
+class MDZProcessingSelection(ZProcessingSelection):
+    """Which Z-image processing outputs to convert."""
+
+    mip: bool = Field(default=False, title="MIP")
+    """Convert the projections, which MD writes to the `experiment` directory."""
+
+
 class MDAcquisitionOptions(AcquisitionOptions):
     """Acquisition options for conversion."""
 
-    convert_only_projections: bool = Field(default=False)
-    """
-    If True, only convert projection images, if available.
-    """
     convert_montages: bool = Field(default=False)
     """
     If True, convert montaged / stitched images, if available.
@@ -55,6 +60,13 @@ class MDAcquisitionOptions(AcquisitionOptions):
 class MDImageXpressHCSaiAcquisitionModel(HCSBaseAcquisitionModel):
     """Acquisition details for the MD ImageXpress HCS.ai microscope data."""
 
+    z_processing: MDZProcessingSelection | None = Field(
+        default=None, title="Z Processing"
+    )
+    """
+    Which Z-image processing outputs to convert. Leave unset to convert the raw
+    images, preferring a Z stack when the acquisition holds one.
+    """
     advanced: MDAcquisitionOptions = Field(default_factory=MDAcquisitionOptions)
     """
     Advanced acquisition options.
@@ -424,10 +436,15 @@ def _build_acquisition_details(
             raise ValueError(
                 f"Channel index mismatch: expected {len(channels)}, got {wl.index}"
             )
+        wavelength_id = str(int(wl.emission_filter.wavelength))
         channels.append(
             ChannelInfo(
-                channel_label=wl.emission_filter.name,
-                wavelength_id=str(int(wl.emission_filter.wavelength)),
+                # The wavelength is a required numeric field, so its id is never
+                # blank and serves as the fallback for an unnamed filter.
+                channel_label=(
+                    clean_channel_string(wl.emission_filter.name) or wavelength_id
+                ),
+                wavelength_id=wavelength_id,
             )
         )
     acq = AcquisitionDetails(
@@ -501,6 +518,48 @@ def _build_tiles(
 ######################################################################
 
 
+def _only_projections(
+    selection: MDZProcessingSelection | None, acquisition_dir: str
+) -> bool:
+    """Whether to read `experiment` instead of preferring `experiment_z_stack`.
+
+    MD reads one source directory per acquisition and writes one unsuffixed plate,
+    so unlike Yokogawa it cannot convert `Raw` and `MIP` in the same run. The two
+    invalid combinations are rejected here rather than in a validator so the
+    message can name the acquisition, a batch failing one at a time.
+
+    Args:
+        selection: The user's `z_processing`, or `None` for the default.
+        acquisition_dir: Named in the errors.
+
+    Returns:
+        True to read the projections, False for the raw images.
+
+    Raises:
+        ValueError: If the selection enables nothing, or both kinds at once.
+    """
+    if selection is None:
+        return False
+    if not selection.raw and not selection.mip:
+        raise ValueError(
+            "`z_processing` enables nothing, so there is nothing to convert in "
+            f"{acquisition_dir}. Enable `Raw` or `MIP`, or leave the option unset "
+            "to convert the raw images."
+        )
+    if selection.raw and selection.mip:
+        raise ValueError(
+            "`z_processing` enables both `Raw` and `MIP`, but ImageXpress reads a "
+            f"single source directory per acquisition, so {acquisition_dir} cannot "
+            "produce both in one run. Enable one of them, and convert the "
+            "acquisition twice if you need both."
+        )
+    # `MIP` only means "read `experiment`". That directory holds the projections
+    # of an acquisition that also has `experiment_z_stack`, but it is equally the
+    # raw data of one that does not — nothing in the metadata distinguishes them,
+    # and reading it either way is what this option has always done.
+    return selection.mip
+
+
 def parse_md_metadata(
     *,
     acquisition_model: MDImageXpressHCSaiAcquisitionModel,
@@ -516,6 +575,7 @@ def parse_md_metadata(
         List of TiledImage objects ready for conversion.
     """
     root_dir = acquisition_model.path
+    only_projections = _only_projections(acquisition_model.z_processing, root_dir)
 
     # Discover available experiment directories
     available_dirs = {
@@ -541,7 +601,7 @@ def parse_md_metadata(
                 "Hint: Disable the 'convert_montages' option."
             )
         experiment_dir = available_dirs["montage"][0]
-    elif not acquisition_model.advanced.convert_only_projections:
+    elif not only_projections:
         if available_dirs["z_stack"]:
             experiment_dir = available_dirs["z_stack"][0]
         elif available_dirs["standard"]:
@@ -558,7 +618,7 @@ def parse_md_metadata(
             raise FileNotFoundError(
                 f"No 'experiment' folder found in {root_dir} for projections. "
                 f"Available folders: {available}. "
-                "Hint: Disable the 'convert_only_projections' option."
+                "Hint: enable `Raw` in `Z Processing`, or leave the option unset."
             )
         experiment_dir = available_dirs["standard"][0]
 
@@ -590,15 +650,11 @@ def parse_md_metadata(
     is_z_stack = len({r.z_index for r in records}) > 1
 
     # Check if data is compatible with projection and montage conversion options
-    if (
-        acquisition_model.advanced.convert_only_projections
-        and acquisition_model.advanced.convert_montages
-        and is_z_stack
-    ):
+    if only_projections and acquisition_model.advanced.convert_montages and is_z_stack:
         raise ValueError(
-            "Both convert_only_projections and convert_montages are True, but the "
-            "montage-data is a z-stack. "
-            "Hint: Set either convert_only_projections or convert_montages to False."
+            "`z_processing` enables `MIP` and `Advanced` -> `Convert Montages` is "
+            "on, but the montage data is a z-stack. "
+            "Hint: enable `Raw` in `Z Processing`, or turn off `Convert Montages`."
         )
 
     # Group records by well + FOV

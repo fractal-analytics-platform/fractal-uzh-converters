@@ -41,9 +41,10 @@ from fractal_uzh_converters import (
     CQ3KAcquisitionModel,
     CellVoyagerAcquisitionModel,
     MDImageXpressHCSaiAcquisitionModel,
-    MDAcquisitionOptions,
     HcsTiffAcquisitionModel,
     SingleTiffAcquisitionModel,
+    # Converter-specific advanced options
+    MDAcquisitionOptions,
 )
 ```
 

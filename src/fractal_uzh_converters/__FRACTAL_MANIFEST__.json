@@ -1082,24 +1082,6 @@
                 "title": "Path",
                 "type": "string"
               },
-              "advanced": {
-                "$ref": "#/$defs/AcquisitionOptions",
-                "default": {
-                  "channels": null,
-                  "pixel_info": null,
-                  "condition_table_path": null,
-                  "axes": null,
-                  "data_type": "autodetect",
-                  "stage_orientation": {
-                    "flip_x": false,
-                    "flip_y": false,
-                    "swap_xy": false
-                  },
-                  "filters": []
-                },
-                "description": "Advanced acquisition options.",
-                "title": "Advanced"
-              },
               "plate_name": {
                 "anyOf": [
                   {
@@ -1131,6 +1113,24 @@
                 ],
                 "title": "Layout",
                 "type": "string"
+              },
+              "advanced": {
+                "$ref": "#/$defs/AcquisitionOptions",
+                "default": {
+                  "channels": null,
+                  "pixel_info": null,
+                  "condition_table_path": null,
+                  "axes": null,
+                  "data_type": "autodetect",
+                  "stage_orientation": {
+                    "flip_x": false,
+                    "flip_y": false,
+                    "swap_xy": false
+                  },
+                  "filters": []
+                },
+                "description": "Advanced acquisition options.",
+                "title": "Advanced"
               }
             },
             "required": [
@@ -2321,9 +2321,9 @@
         "CellVoyager",
         "Plate converter"
       ],
-      "docs_info": "### Purpose\n\n- Convert images acquired with a Yokogawa CellVoyager microscope to an OME-Zarr Plate.\n\n### Outputs\n\n- An OME-Zarr Plate.\n\n### Limitations\n\n- This task has been tested on a limited set of acquisitions. It may not work on all Yokogawa CellVoyager acquisitions.\n- Unlike the CQ3K converter, this task does not support Z-image processing types (e.g., `focus`, `maximum_projection`).\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\nmy_acquisition/\n\u251c\u2500\u2500 MeasurementData.mlf      # Image measurement records (required)\n\u251c\u2500\u2500 MeasurementDetail.mrf    # Acquisition details and channel info (required)\n\u251c\u2500\u2500 image_001.png\n\u2514\u2500\u2500 ...\n```\n\nThe image file paths are referenced inside `MeasurementData.mlf` (with `.tif` extension) and can be in subdirectories relative to the acquisition directory. The actual files may use `.png` or `.tif` extension \u2014 select the matching extension via the `image_extension` parameter.\n",
+      "docs_info": "### Purpose\n\n- Convert images acquired with a Yokogawa CellVoyager microscope to an OME-Zarr Plate.\n\n### Outputs\n\n- An OME-Zarr Plate.\n- One plate per Z-image processing type. Projections are suffixed `_MIP` (`Maximum`), `_MinIP` (`Minimum`) or `_SIP` (`Sum`), and coexist with the unsuffixed plate holding the raw Z slices. Channel labels are the same across all of them. Most acquisitions carry no `bts:ZImageProcessing` and produce the single unsuffixed plate.\n- `Z Processing` is one switch per output. Leave it unset to convert all of them; otherwise only `Raw` is on by default, so enabling a projection adds to the raw stack rather than replacing it. An enabled kind the acquisition does not contain is a warning; enabling nothing, or nothing that the acquisition contains, is an error.\n\n### Channels\n\n- Channel labels, colors and wavelength ids (`A{action}_C{channel}`) are read from the acquisition's `.mes` protocol file, whose name is recorded in the `.mrf`. Without a `.mes`, the label is the wavelength id.\n- To override them, `Advanced` \u2192 `Channels` is ordered by the **instrument channel number**: element 0 is `Ch1`, element 1 is `Ch2`, over the full range the protocol declares \u2014 not one entry per channel visible in the output. It must be at least as long as the highest channel the acquisition uses; the error names that number if it is too short.\n- One list covers the whole acquisition, projection plates included: each projection algorithm carries its own channel numbers, so the entries are split across plates rather than repeated in each.\n\n### Metadata\n\n- The acquisition's five plate-level vendor files are copied verbatim into `<plate>.zarr/metadata/`: the `.mlf` and `.mrf` under their fixed names, the `.mes`, `.wpi` and `.wpp` under the names recorded in the `.mrf`.\n- Every plate the acquisition produced gets a copy, projection plates included. A file the acquisition does not ship is only a warning \u2014 CV8000 acquisitions routinely name a `.wpi` that was never written \u2014 and a name already taken by another acquisition becomes `<stem>_acq{id}<ext>` instead of overwriting.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\nmy_acquisition/\n\u251c\u2500\u2500 MeasurementData.mlf      # Image measurement records (required)\n\u251c\u2500\u2500 MeasurementDetail.mrf    # Acquisition details and channel info (required)\n\u251c\u2500\u2500 protocol.mes             # Acquisition protocol (optional, sets channel names)\n\u251c\u2500\u2500 plate.wpi                # Plate definition (optional)\n\u251c\u2500\u2500 plate.wpp                # Plate product (optional)\n\u251c\u2500\u2500 image_001.png\n\u2514\u2500\u2500 ...\n```\n\nThe image file paths are referenced inside `MeasurementData.mlf` (with `.tif` extension) and can be in subdirectories relative to the acquisition directory. The actual files may use `.png` or `.tif` extension \u2014 select the matching extension via the `image_extension` parameter. The `.mes`, `.wpi` and `.wpp` filenames vary per acquisition and are read out of the `.mrf` \u2014 the names above are only examples.\n",
       "type": "converter_compound",
-      "executable_non_parallel": "cellvoyager/convert_cellvoyager_init_task.py",
+      "executable_non_parallel": "yokogawa/cellvoyager/convert_cellvoyager_init_task.py",
       "executable_parallel": "common/image_in_plate_compute_task.py",
       "meta_non_parallel": {
         "cpus_per_task": 1,
@@ -2631,24 +2631,6 @@
                 "title": "Path",
                 "type": "string"
               },
-              "advanced": {
-                "$ref": "#/$defs/AcquisitionOptions",
-                "default": {
-                  "channels": null,
-                  "pixel_info": null,
-                  "condition_table_path": null,
-                  "axes": null,
-                  "data_type": "autodetect",
-                  "stage_orientation": {
-                    "flip_x": false,
-                    "flip_y": false,
-                    "swap_xy": false
-                  },
-                  "filters": []
-                },
-                "description": "Advanced acquisition options.",
-                "title": "Advanced"
-              },
               "plate_name": {
                 "anyOf": [
                   {
@@ -2678,6 +2660,37 @@
                 ],
                 "title": "Image Extension",
                 "type": "string"
+              },
+              "z_processing": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/YokogawaZProcessingSelection"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Which Z-image processing outputs to convert, each written as its own plate.\nLeave unset to convert every one the acquisition contains.",
+                "title": "Z Processing"
+              },
+              "advanced": {
+                "$ref": "#/$defs/AcquisitionOptions",
+                "default": {
+                  "channels": null,
+                  "pixel_info": null,
+                  "condition_table_path": null,
+                  "axes": null,
+                  "data_type": "autodetect",
+                  "stage_orientation": {
+                    "flip_x": false,
+                    "flip_y": false,
+                    "swap_xy": false
+                  },
+                  "filters": []
+                },
+                "description": "Advanced acquisition options.",
+                "title": "Advanced"
               }
             },
             "required": [
@@ -3743,6 +3756,38 @@
             "title": "WriterMode",
             "type": "string"
           },
+          "YokogawaZProcessingSelection": {
+            "additionalProperties": false,
+            "description": "Which Z-image processing outputs to convert.",
+            "properties": {
+              "raw": {
+                "default": true,
+                "description": "Convert the unprocessed images.",
+                "title": "Raw",
+                "type": "boolean"
+              },
+              "mip": {
+                "default": false,
+                "description": "Convert the maximum intensity projection.",
+                "title": "MIP",
+                "type": "boolean"
+              },
+              "min_ip": {
+                "default": false,
+                "description": "Convert the minimum intensity projection.",
+                "title": "MinIP",
+                "type": "boolean"
+              },
+              "sip": {
+                "default": false,
+                "description": "Convert the sum intensity projection.",
+                "title": "SIP",
+                "type": "boolean"
+              }
+            },
+            "title": "Z Processing Selection",
+            "type": "object"
+          },
           "ZRangeFilter": {
             "additionalProperties": false,
             "description": "Keep only tiles whose starting Z position lies within a range.",
@@ -4630,9 +4675,9 @@
         "CQ3K",
         "Plate converter"
       ],
-      "docs_info": "### Purpose\n\n- Convert images acquired with a Yokogawa CQ3K / CellVoyager microscope to an OME-Zarr Plate.\n\n### Outputs\n\n- An OME-Zarr Plate.\n- If the acquisition contains multiple Z-image processing types (e.g., `focus`, `maximum_projection`), a separate plate is created for each type.\n\n### Limitations\n\n- This task has been tested on a limited set of acquisitions. It may not work on all Yokogawa CQ3K acquisitions.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\nmy_acquisition/\n\u251c\u2500\u2500 MeasurementData.mlf      # Image measurement records (required)\n\u251c\u2500\u2500 MeasurementDetail.mrf    # Acquisition details and channel info (required)\n\u2514\u2500\u2500 <subdirectories>/\n    \u251c\u2500\u2500 image_001.tif\n    \u2514\u2500\u2500 ...\n```\n\nThe TIFF file paths are referenced inside `MeasurementData.mlf` and can be in subdirectories relative to the acquisition directory.\n",
+      "docs_info": "### Purpose\n\n- Convert images acquired with a Yokogawa CQ3K microscope to an OME-Zarr Plate.\n\n### Outputs\n\n- An OME-Zarr Plate.\n- One plate per Z-image processing type. Projections are suffixed `_MIP` (`Maximum`), `_MinIP` (`Minimum`) or `_SIP` (`Sum`), and coexist with the unsuffixed plate holding the raw Z slices. Channel labels are the same across all of them.\n- `Z Processing` is one switch per output. Leave it unset to convert all of them; otherwise only `Raw` is on by default, so enabling a projection adds to the raw stack rather than replacing it. An enabled kind the acquisition does not contain is a warning; enabling nothing, or nothing that the acquisition contains, is an error.\n\n### Channels\n\n- Channel labels, colors and wavelength ids (`A{action}_C{channel}`) are read from the acquisition's `.mes` protocol file, whose name is recorded in the `.mrf`. Without a `.mes`, the label is the wavelength id.\n- To override them, `Advanced` \u2192 `Channels` is ordered by the **instrument channel number**: element 0 is `Ch1`, element 1 is `Ch2`, over the full range the protocol declares \u2014 not one entry per channel visible in the output. It must be at least as long as the highest channel the acquisition uses; the error names that number if it is too short.\n- One list covers the whole acquisition, projection plates included: each projection algorithm carries its own channel numbers, so the entries are split across plates rather than repeated in each.\n\n### Metadata\n\n- The acquisition's five plate-level vendor files are copied verbatim into `<plate>.zarr/metadata/`: the `.mlf` and `.mrf` under their fixed names, the `.mes`, `.wpi` and `.wpp` under the names recorded in the `.mrf`.\n- Every plate the acquisition produced gets a copy, projection plates included. A file the acquisition does not ship is only a warning, and a name already taken by another acquisition becomes `<stem>_acq{id}<ext>` instead of overwriting.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\nmy_acquisition/\n\u251c\u2500\u2500 MeasurementData.mlf         # Image measurement records (required)\n\u251c\u2500\u2500 MeasurementDetail.mrf       # Acquisition details and channel info (required)\n\u251c\u2500\u2500 MeasurementProtocol.mes     # Acquisition protocol (optional, sets channel names)\n\u251c\u2500\u2500 NoPlateID.wpi               # Plate definition (optional)\n\u251c\u2500\u2500 10_Greiner_\u03bcClear.wpp       # Plate product (optional)\n\u2514\u2500\u2500 <subdirectories>/\n    \u251c\u2500\u2500 image_001.tif\n    \u2514\u2500\u2500 ...\n```\n\nThe TIFF file paths are referenced inside `MeasurementData.mlf` and can be in subdirectories relative to the acquisition directory. The `.mes`, `.wpi` and `.wpp` filenames vary per acquisition and are read out of the `.mrf` \u2014 the names above are only examples.\n",
       "type": "converter_compound",
-      "executable_non_parallel": "cq3k/convert_cq3k_init_task.py",
+      "executable_non_parallel": "yokogawa/cq3k/convert_cq3k_init_task.py",
       "executable_parallel": "common/image_in_plate_compute_task.py",
       "meta_non_parallel": {
         "cpus_per_task": 1,
@@ -4940,24 +4985,6 @@
                 "title": "Path",
                 "type": "string"
               },
-              "advanced": {
-                "$ref": "#/$defs/AcquisitionOptions",
-                "default": {
-                  "channels": null,
-                  "pixel_info": null,
-                  "condition_table_path": null,
-                  "axes": null,
-                  "data_type": "autodetect",
-                  "stage_orientation": {
-                    "flip_x": false,
-                    "flip_y": false,
-                    "swap_xy": false
-                  },
-                  "filters": []
-                },
-                "description": "Advanced acquisition options.",
-                "title": "Advanced"
-              },
               "plate_name": {
                 "anyOf": [
                   {
@@ -4977,6 +5004,37 @@
                 "minimum": 0,
                 "title": "Acquisition Id",
                 "type": "integer"
+              },
+              "z_processing": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/YokogawaZProcessingSelection"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Which Z-image processing outputs to convert, each written as its own plate.\nLeave unset to convert every one the acquisition contains.",
+                "title": "Z Processing"
+              },
+              "advanced": {
+                "$ref": "#/$defs/AcquisitionOptions",
+                "default": {
+                  "channels": null,
+                  "pixel_info": null,
+                  "condition_table_path": null,
+                  "axes": null,
+                  "data_type": "autodetect",
+                  "stage_orientation": {
+                    "flip_x": false,
+                    "flip_y": false,
+                    "swap_xy": false
+                  },
+                  "filters": []
+                },
+                "description": "Advanced acquisition options.",
+                "title": "Advanced"
               }
             },
             "required": [
@@ -6041,6 +6099,38 @@
             ],
             "title": "WriterMode",
             "type": "string"
+          },
+          "YokogawaZProcessingSelection": {
+            "additionalProperties": false,
+            "description": "Which Z-image processing outputs to convert.",
+            "properties": {
+              "raw": {
+                "default": true,
+                "description": "Convert the unprocessed images.",
+                "title": "Raw",
+                "type": "boolean"
+              },
+              "mip": {
+                "default": false,
+                "description": "Convert the maximum intensity projection.",
+                "title": "MIP",
+                "type": "boolean"
+              },
+              "min_ip": {
+                "default": false,
+                "description": "Convert the minimum intensity projection.",
+                "title": "MinIP",
+                "type": "boolean"
+              },
+              "sip": {
+                "default": false,
+                "description": "Convert the sum intensity projection.",
+                "title": "SIP",
+                "type": "boolean"
+              }
+            },
+            "title": "Z Processing Selection",
+            "type": "object"
           },
           "ZRangeFilter": {
             "additionalProperties": false,
@@ -7827,24 +7917,6 @@
                 "title": "Path",
                 "type": "string"
               },
-              "advanced": {
-                "$ref": "#/$defs/AcquisitionOptions",
-                "default": {
-                  "channels": null,
-                  "pixel_info": null,
-                  "condition_table_path": null,
-                  "axes": null,
-                  "data_type": "autodetect",
-                  "stage_orientation": {
-                    "flip_x": false,
-                    "flip_y": false,
-                    "swap_xy": false
-                  },
-                  "filters": []
-                },
-                "description": "Advanced acquisition options.",
-                "title": "Advanced"
-              },
               "plate_name": {
                 "anyOf": [
                   {
@@ -7864,6 +7936,24 @@
                 "minimum": 0,
                 "title": "Acquisition Id",
                 "type": "integer"
+              },
+              "advanced": {
+                "$ref": "#/$defs/AcquisitionOptions",
+                "default": {
+                  "channels": null,
+                  "pixel_info": null,
+                  "condition_table_path": null,
+                  "axes": null,
+                  "data_type": "autodetect",
+                  "stage_orientation": {
+                    "flip_x": false,
+                    "flip_y": false,
+                    "swap_xy": false
+                  },
+                  "filters": []
+                },
+                "description": "Advanced acquisition options.",
+                "title": "Advanced"
               }
             },
             "required": [
@@ -9228,7 +9318,7 @@
         "ImageXpress HCS.ai",
         "Plate converter"
       ],
-      "docs_info": "### Purpose\n\n- Convert images acquired with an MD ImageXpress HCS.ai microscope to an OME-Zarr Plate.\n\n### Outputs\n\n- An OME-Zarr Plate.\n\n### Limitations\n\n- This task has been tested on a limited set of acquisitions. It may not work on all MD ImageXpress acquisitions.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\n{protocol_name}_{date-time}\n\u251c\u2500\u2500 {protocol_name}.mxprotocol\n\u251c\u2500\u2500 autofocus/\n\u2514\u2500\u2500 experiment{_mode}/\n    \u251c\u2500\u2500 {acquisition_name}.jdce\n    \u251c\u2500\u2500 image_metadata_1.csv\n    \u251c\u2500\u2500 timepoint0/\n    \u2514\u2500\u2500 timepoint1/\n        \u251c\u2500\u2500 {protocol_name}_t1_C05_s0_w0_z0.tif\n        \u251c\u2500\u2500 {protocol_name}_t1_C05_s0_w0_z1.tif\n        \u2514\u2500\u2500 ...\n```\n\n`Path` should point to the `{protocol_name}_{date-time}` folder or the `{protocol_name}.mxprotocol` file.\n",
+      "docs_info": "### Purpose\n\n- Convert images acquired with an MD ImageXpress HCS.ai microscope to an OME-Zarr Plate.\n\n### Outputs\n\n- An OME-Zarr Plate.\n- One acquisition is read from a single `experiment{_mode}` directory. `Z Processing` picks which: `Raw` (the default) prefers `experiment_z_stack`, falling back to `experiment`; `MIP` reads `experiment`, where MD writes the projections of a Z stack. Only one of the two can be enabled, since both would produce the same plate.\n- `Advanced` \u2192 `Convert Montages` reads `experiment_montage` instead, taking precedence over `Z Processing`; combining it with `MIP` is an error when the montage data is a Z stack.\n\n### Limitations\n\n- This task has been tested on a limited set of acquisitions. It may not work on all MD ImageXpress acquisitions.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\n{protocol_name}_{date-time}\n\u251c\u2500\u2500 {protocol_name}.mxprotocol\n\u251c\u2500\u2500 autofocus/\n\u2514\u2500\u2500 experiment{_mode}/\n    \u251c\u2500\u2500 {acquisition_name}.jdce\n    \u251c\u2500\u2500 image_metadata_1.csv\n    \u251c\u2500\u2500 timepoint0/\n    \u2514\u2500\u2500 timepoint1/\n        \u251c\u2500\u2500 {protocol_name}_t1_C05_s0_w0_z0.tif\n        \u251c\u2500\u2500 {protocol_name}_t1_C05_s0_w0_z1.tif\n        \u2514\u2500\u2500 ...\n```\n\n`Path` should point to the `{protocol_name}_{date-time}` folder or the `{protocol_name}.mxprotocol` file.\n",
       "type": "converter_compound",
       "executable_non_parallel": "imagexpress_hcs/convert_imagexpress_hcs_init_task.py",
       "executable_parallel": "common/image_in_plate_compute_task.py",
@@ -9946,12 +10036,6 @@
                 "title": "Filters",
                 "type": "array"
               },
-              "convert_only_projections": {
-                "default": false,
-                "description": "If True, only convert projection images, if available.",
-                "title": "Convert Only Projections",
-                "type": "boolean"
-              },
               "convert_montages": {
                 "default": false,
                 "description": "If True, convert montaged / stitched images, if available.",
@@ -9969,26 +10053,6 @@
                 "description": "Path to the acquisition directory or file.",
                 "title": "Path",
                 "type": "string"
-              },
-              "advanced": {
-                "$ref": "#/$defs/MDAcquisitionOptions",
-                "default": {
-                  "channels": null,
-                  "pixel_info": null,
-                  "condition_table_path": null,
-                  "axes": null,
-                  "data_type": "autodetect",
-                  "stage_orientation": {
-                    "flip_x": false,
-                    "flip_y": false,
-                    "swap_xy": false
-                  },
-                  "filters": [],
-                  "convert_only_projections": false,
-                  "convert_montages": false
-                },
-                "description": "Advanced acquisition options.",
-                "title": "Advanced"
               },
               "plate_name": {
                 "anyOf": [
@@ -10009,12 +10073,64 @@
                 "minimum": 0,
                 "title": "Acquisition Id",
                 "type": "integer"
+              },
+              "z_processing": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/MDZProcessingSelection"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Which Z-image processing outputs to convert. Leave unset to convert the raw\nimages, preferring a Z stack when the acquisition holds one.",
+                "title": "Z Processing"
+              },
+              "advanced": {
+                "$ref": "#/$defs/MDAcquisitionOptions",
+                "default": {
+                  "channels": null,
+                  "pixel_info": null,
+                  "condition_table_path": null,
+                  "axes": null,
+                  "data_type": "autodetect",
+                  "stage_orientation": {
+                    "flip_x": false,
+                    "flip_y": false,
+                    "swap_xy": false
+                  },
+                  "filters": [],
+                  "convert_montages": false
+                },
+                "description": "Advanced acquisition options.",
+                "title": "Advanced"
               }
             },
             "required": [
               "path"
             ],
             "title": "MDImageXpressHCSaiAcquisitionModel",
+            "type": "object"
+          },
+          "MDZProcessingSelection": {
+            "additionalProperties": false,
+            "description": "Which Z-image processing outputs to convert.",
+            "properties": {
+              "raw": {
+                "default": true,
+                "description": "Convert the unprocessed images.",
+                "title": "Raw",
+                "type": "boolean"
+              },
+              "mip": {
+                "default": false,
+                "description": "Convert the projections, which MD writes to the `experiment` directory.",
+                "title": "MIP",
+                "type": "boolean"
+              }
+            },
+            "title": "Z Processing Selection",
             "type": "object"
           },
           "MosaicGrouping": {
@@ -12201,24 +12317,6 @@
                 "title": "Path",
                 "type": "string"
               },
-              "advanced": {
-                "$ref": "#/$defs/AcquisitionOptions",
-                "default": {
-                  "channels": null,
-                  "pixel_info": null,
-                  "condition_table_path": null,
-                  "axes": null,
-                  "data_type": "autodetect",
-                  "stage_orientation": {
-                    "flip_x": false,
-                    "flip_y": false,
-                    "swap_xy": false
-                  },
-                  "filters": []
-                },
-                "description": "Advanced acquisition options.",
-                "title": "Advanced"
-              },
               "plate_name": {
                 "anyOf": [
                   {
@@ -12238,6 +12336,24 @@
                 "minimum": 0,
                 "title": "Acquisition Id",
                 "type": "integer"
+              },
+              "advanced": {
+                "$ref": "#/$defs/AcquisitionOptions",
+                "default": {
+                  "channels": null,
+                  "pixel_info": null,
+                  "condition_table_path": null,
+                  "axes": null,
+                  "data_type": "autodetect",
+                  "stage_orientation": {
+                    "flip_x": false,
+                    "flip_y": false,
+                    "swap_xy": false
+                  },
+                  "filters": []
+                },
+                "description": "Advanced acquisition options.",
+                "title": "Advanced"
               }
             },
             "required": [
@@ -14908,6 +15024,19 @@
                 "title": "Path",
                 "type": "string"
               },
+              "image_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Optional custom name for the output OME-Zarr image. If not provided, the\nname will be derived from the acquisition directory or file name.",
+                "title": "Image Name"
+              },
               "advanced": {
                 "$ref": "#/$defs/AcquisitionOptions",
                 "default": {
@@ -14925,19 +15054,6 @@
                 },
                 "description": "Advanced acquisition options.",
                 "title": "Advanced"
-              },
-              "image_name": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "description": "Optional custom name for the output OME-Zarr image. If not provided, the\nname will be derived from the acquisition directory or file name.",
-                "title": "Image Name"
               }
             },
             "required": [

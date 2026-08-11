@@ -1,21 +1,53 @@
 """Common utilities for fractal UZH converters."""
 
 import logging
-from typing import Protocol, TypeVar
+import warnings
+from typing import TYPE_CHECKING, Protocol, TypeVar
 
 import polars
 from fsspec.core import split_protocol
 from ome_zarr_converters_tools import (
-    AcquisitionOptions,
     AttributeType,
     ConverterOptions,
+    ImageInPlate,
     TiledImage,
+    join_url_paths,
 )
 from pydantic import BaseModel, Field
+
+# Imported from the private module, not the package: `common/__init__.py` imports
+# this one.
+from fractal_uzh_converters.common._warnings import SourceMetadataWarning
+
+if TYPE_CHECKING:
+    from ome_zarr_converters_tools import AcquisitionOptions
 
 logger = logging.getLogger("common_converters_compute_task")
 
 STANDARD_ROWS_NAMES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+
+def clean_channel_string(value: str | None) -> str | None:
+    """Strip a vendor channel label or wavelength id, or `None` if it is blank.
+
+    Vendor metadata routinely pads these strings and nothing downstream normalises
+    them: ngio enforces only *uniqueness*, so `"DAPI"` and `"DAPI "` are two valid
+    distinct channels and a later `get_channel_idx(channel_label="DAPI")` silently
+    misses the padded one.
+
+    Strips only — the label is the vendor's identifier. A blank string becomes
+    `None` rather than `""`, so the caller applies its own fallback instead of
+    writing a nameless channel.
+
+    Args:
+        value: The raw vendor string, or `None`.
+
+    Returns:
+        The stripped string, or `None` if there is nothing left of it.
+    """
+    if value is None:
+        return None
+    return value.strip() or None
 
 
 def _path_basename(path: str) -> str:
@@ -36,10 +68,12 @@ class BaseAcquisitionModel(BaseModel):
     """
     Path to the acquisition directory or file.
     """
-    advanced: AcquisitionOptions = Field(default_factory=AcquisitionOptions)
-    """
-    Advanced acquisition options.
-    """
+
+    if TYPE_CHECKING:
+        # Not a real pydantic field: each leaf declares `advanced` itself, as its
+        # last field, so it renders last in the Fractal form. This only tells the
+        # type checker that every acquisition model has the attribute.
+        advanced: AcquisitionOptions = AcquisitionOptions()
 
     def get_condition_table(self) -> polars.DataFrame | None:
         """Get the path to the condition table if it exists."""
@@ -124,6 +158,60 @@ class ParserProtocol(Protocol[AcquisitionModelType]):
         ...
 
 
+def parse_acquisitions_grouped(
+    *,
+    parse_function: ParserProtocol[AcquisitionModelType],
+    acquisitions: list[AcquisitionModelType],
+    converter_options: ConverterOptions,
+) -> list[tuple[AcquisitionModelType, list[TiledImage]]]:
+    """Parse the acquisitions metadata, keeping each image with its acquisition.
+
+    Same work as `parse_acquisitions`, but without flattening. Callers that need
+    to act on the raw acquisition directory *after* the images have been set up
+    — copying the vendor metadata into the plate, say — need the association,
+    and it appears nowhere on a `TiledImage`.
+
+    Args:
+        parse_function (Callable): Function to parse the acquisition metadata
+            and return tiled images.
+        acquisitions (list[AcquisitionModelType]): List of acquisition models.
+        converter_options (ConverterOptions): Converter options.
+
+    Returns:
+        list[tuple[AcquisitionModelType, list[TiledImage]]]: One entry per
+            acquisition that yielded images, in input order. Acquisitions that
+            yielded none are dropped, so no entry has an empty image list.
+    """
+    if not acquisitions:
+        raise ValueError("Acquisitions list is empty.")
+
+    # prepare the parallel list of zarr urls
+    grouped: list[tuple[AcquisitionModelType, list[TiledImage]]] = []
+    total = 0
+    for acq in acquisitions:
+        _tiled_images = parse_function(
+            acquisition_model=acq,
+            converter_options=converter_options,
+        )
+
+        if not _tiled_images:
+            warnings.warn(
+                f"No images found in {acq.path}",
+                SourceMetadataWarning,
+                stacklevel=2,
+            )
+            continue
+        else:
+            logger.info(f"Found {len(_tiled_images)} images in acquisition {acq.path}")
+        grouped.append((acq, _tiled_images))
+        total += len(_tiled_images)
+
+    if total == 0:
+        raise ValueError("No images found in any of the provided acquisitions.")
+    logger.info(f"Total {total} images found in all acquisitions.")
+    return grouped
+
+
 def parse_acquisitions(
     *,
     parse_function: ParserProtocol[AcquisitionModelType],
@@ -141,28 +229,38 @@ def parse_acquisitions(
     Returns:
         list[TiledImage]: List of tiled images.
     """
-    if not acquisitions:
-        raise ValueError("Acquisitions list is empty.")
+    grouped = parse_acquisitions_grouped(
+        parse_function=parse_function,
+        acquisitions=acquisitions,
+        converter_options=converter_options,
+    )
+    return [tiled_image for _, images in grouped for tiled_image in images]
 
-    # prepare the parallel list of zarr urls
-    tiled_images = []
-    for acq in acquisitions:
-        _tiled_images = parse_function(
-            acquisition_model=acq,
-            converter_options=converter_options,
-        )
 
-        if not _tiled_images:
-            logger.warning(f"No images found in {acq.path}")
-            continue
-        else:
-            logger.info(f"Found {len(_tiled_images)} images in acquisition {acq.path}")
-        tiled_images.extend(_tiled_images)
+def plate_urls_for_images(
+    *, zarr_dir: str, tiled_images: list[TiledImage]
+) -> list[str]:
+    """Absolute URLs of the distinct plates `tiled_images` were written into.
 
-    if len(tiled_images) == 0:
-        raise ValueError("No images found in any of the provided acquisitions.")
-    logger.info(f"Total {len(tiled_images)} images found in all acquisitions.")
-    return tiled_images
+    `ImageInPlate.plate_path()` is relative to `zarr_dir`, so it is joined here
+    the same way the library's own plate setup does it. One acquisition can
+    produce several plates — a Yokogawa acquisition yields one per projection
+    algorithm — and each of them gets its own copy of the metadata.
+
+    Args:
+        zarr_dir: Directory the plates were written into.
+        tiled_images: Images of a single acquisition.
+
+    Returns:
+        Sorted, deduplicated plate URLs. Empty for collections that are not
+        plates, which carry no `plate_path`.
+    """
+    plate_paths = {
+        image.collection.plate_path()
+        for image in tiled_images
+        if isinstance(image.collection, ImageInPlate)
+    }
+    return sorted(join_url_paths(zarr_dir, path) for path in plate_paths)
 
 
 def get_attributes_from_condition_table(
@@ -196,9 +294,11 @@ def get_attributes_from_condition_table(
         filtered = filtered.filter(polars.col(acquisition_col_name) == acquisition)
         skip_keys.add(acquisition_col_name)
     if filtered.is_empty():
-        logger.warning(
+        warnings.warn(
             f"No matching entry found in condition table "
-            f"for row:{row} / column:{column} / acquisition:{acquisition}"
+            f"for row:{row} / column:{column} / acquisition:{acquisition}",
+            SourceMetadataWarning,
+            stacklevel=2,
         )
         return {}
     filtered_dict = filtered.to_dict(as_series=False)

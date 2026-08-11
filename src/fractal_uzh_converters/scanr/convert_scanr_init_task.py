@@ -9,7 +9,10 @@ from ome_zarr_converters_tools import (
 )
 from pydantic import validate_call
 
-from fractal_uzh_converters.common import parse_acquisitions
+from fractal_uzh_converters.common import (
+    log_converter_warnings,
+    parse_acquisitions,
+)
 from fractal_uzh_converters.scanr._utils import (
     ScanRAcquisitionModel,
     parse_scanr_metadata,
@@ -43,6 +46,9 @@ def convert_scanr_init_task(
             - "Extend": Extend existing data without removing it.
             Default is "No Overwrite".
     """
+    # Fractal captures logging output, not stderr.
+    log_converter_warnings()
+
     tiled_images = parse_acquisitions(
         parse_function=parse_scanr_metadata,
         acquisitions=acquisitions,
@@ -55,7 +61,6 @@ def convert_scanr_init_task(
         converter_options=converter_options,
         collection_type="ImageInPlate",
         overwrite_mode=overwrite,
-        ngff_version=converter_options.omezarr_options.ngff_version,
     )
     logger.info(
         f"Prepared parallelization list with {len(parallelization_list)} items."

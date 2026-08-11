@@ -5,6 +5,8 @@
 ### Outputs
 
 - An OME-Zarr Plate.
+- One acquisition is read from a single `experiment{_mode}` directory. `Z Processing` picks which: `Raw` (the default) prefers `experiment_z_stack`, falling back to `experiment`; `MIP` reads `experiment`, where MD writes the projections of a Z stack. Only one of the two can be enabled, since both would produce the same plate.
+- `Advanced` → `Convert Montages` reads `experiment_montage` instead, taking precedence over `Z Processing`; combining it with `MIP` is an error when the montage data is a Z stack.
 
 ### Limitations
 

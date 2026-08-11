@@ -24,7 +24,7 @@ TASK_LIST = [
     ),
     ConverterCompoundTask(
         name="Convert Yokogawa CellVoyager Plate to OME-Zarr",
-        executable_init="cellvoyager/convert_cellvoyager_init_task.py",
+        executable_init="yokogawa/cellvoyager/convert_cellvoyager_init_task.py",
         executable="common/image_in_plate_compute_task.py",
         meta_init={"cpus_per_task": 1, "mem": 4000},
         meta={"cpus_per_task": 1, "mem": 4000},
@@ -39,7 +39,7 @@ TASK_LIST = [
     ),
     ConverterCompoundTask(
         name="Convert Yokogawa CQ3K Plate to OME-Zarr",
-        executable_init="cq3k/convert_cq3k_init_task.py",
+        executable_init="yokogawa/cq3k/convert_cq3k_init_task.py",
         executable="common/image_in_plate_compute_task.py",
         meta_init={"cpus_per_task": 1, "mem": 4000},
         meta={"cpus_per_task": 1, "mem": 4000},
