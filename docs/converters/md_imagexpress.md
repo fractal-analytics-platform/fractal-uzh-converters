@@ -77,7 +77,7 @@ The MD ImageXpress init task extends the base acquisition parameters with a proj
 | `Path` | `str` | *required* | Path to the acquisition directory or `.mxprotocol` file. |
 | `Plate Name` | `str` or `null` | `null` | Custom plate name. Defaults to the directory name. |
 | `Acquisition Id` | `int` | `0` | Acquisition identifier for multi-acquisition plates. |
-| `Z Processing` | `ZProcessingSelection` or `null` | `null` | [Which Z-image processing outputs to convert](#z-processing). Unset converts the raw images. |
+| `Z Processing` | `MDZProcessingSelection` or `null` | `null` | [Which Z-image processing outputs to convert](#z-processing). Unset converts the raw images. |
 | `Advanced` | `MDAcquisitionOptions` | `{}` | Advanced options (see below). |
 
 ### MD-Specific Advanced Options

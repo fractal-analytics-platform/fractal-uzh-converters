@@ -140,7 +140,7 @@ The CQ3K init task extends the base acquisition parameters with one additional f
 | `Path` | `str` | *required* | Path to the CQ3K acquisition directory. |
 | `Plate Name` | `str` or `null` | `null` | Custom plate name. Defaults to the directory name. |
 | `Acquisition Id` | `int` | `0` | Acquisition identifier for multi-acquisition plates. |
-| `Z Processing` | `ZProcessingSelection` or `null` | `null` | [Which Z-image processing outputs to convert](#converting-only-some-of-them). Unset converts every kind the acquisition contains. |
+| `Z Processing` | `YokogawaZProcessingSelection` or `null` | `null` | [Which Z-image processing outputs to convert](#converting-only-some-of-them). Unset converts every kind the acquisition contains. |
 | `Advanced` | `AcquisitionOptions` | `{}` | Advanced options (condition table, [channel overrides](#channels), filters). |
 
 ## Python API

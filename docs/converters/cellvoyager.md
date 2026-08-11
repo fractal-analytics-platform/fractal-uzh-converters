@@ -48,31 +48,6 @@ The `.mlf` and `.mrf` are copied under their fixed names; the `.mes`, `.wpi` and
 - **A file the acquisition does not ship is a warning, not an error.** The conversion itself is unaffected. This is a common case rather than a defect: CV8000 acquisitions routinely name a `.wpi` in the `.mrf` that was never written.
 - When several acquisitions land in the same plate with identically named files, the second copy becomes `<stem>_acq{acquisition_id}<ext>` rather than overwriting the first. A byte-identical copy is left alone, so re-running a conversion does not accumulate duplicates.
 
-## Channels
-
-Channel labels, display colours and wavelength ids come from the acquisition's `.mes` protocol file, whose filename is recorded in the `.mrf`. The label is the channel's `Target` (e.g. `405`, `DAPI`), and the wavelength id is `A{action}_C{channel}` — for example `A01_C04`. When no `.mes` is available the label falls back to the wavelength id.
-
-To override them, fill in `Advanced` → `Channels`. **The list is ordered by the instrument's channel number**: element 0 is `Ch1`, element 1 is `Ch2`, and so on across the full channel range the protocol declares — it is *not* a dense list of the channels you can see in the output.
-
-That distinction matters whenever an acquisition uses a subset of the instrument's channels, which on the CellVoyager includes the case where different wells acquire different channels:
-
-> A 5-channel instrument, where one well acquires only `Ch1` and another only `Ch4`. The override still needs **four** entries, and it is elements 0 and 3 that end up on the two wells. A 2-entry list — one per channel actually visible — is rejected.
-
-The list must have at least as many entries as the highest channel number the acquisition uses. If it is too short the conversion fails with an error naming the number required, so running once and reading the error is the quickest way to find it. Beyond that:
-
-- Extra entries are discarded.
-- Entries past the end of your list keep their `.mes` metadata.
-- Leaving `Wavelength ID` empty keeps the computed `A{action}_C{channel}`.
-- Leaving the colour on `Auto` keeps the colour from the `.mes`.
-
-### With projection plates
-
-One list covers the **whole acquisition**, every plate included, and it is numbered in the acquisition-wide channel space — not per plate. Because each [projection algorithm](#z-image-processing) carries its own channel numbers, the entries are split across plates rather than repeated in each.
-
-> An acquisition that min-projects `Ch1` and max-projects `Ch2`–`Ch5` needs one 5-entry list. Element 0 surfaces in `MyPlate_MinIP.zarr`; elements 1–4 surface in `MyPlate_MIP.zarr`.
-
-So do not write a separate list per plate, and do not size the list by the channels visible in one plate. Selecting a single plate with `Z Processing` does relax the requirement to that plate's own channels.
-
 ## Z-Image Processing
 
 A CellVoyager acquisition can write projections alongside — or instead of — the raw Z slices, tagged `bts:ZImageProcessing` in the `.mlf`. Each projection algorithm carries its own channel numbers, so the converter writes one plate per algorithm, suffixing the plate name:
@@ -133,6 +108,31 @@ advanced={"filters": [
 ]}
 ```
 
+## Channels
+
+Channel labels, display colours and wavelength ids come from the acquisition's `.mes` protocol file, whose filename is recorded in the `.mrf`. The label is the channel's `Target` (e.g. `405`, `DAPI`), and the wavelength id is `A{action}_C{channel}` — for example `A01_C04`. When no `.mes` is available the label falls back to the wavelength id.
+
+To override them, fill in `Advanced` → `Channels`. **The list is ordered by the instrument's channel number**: element 0 is `Ch1`, element 1 is `Ch2`, and so on across the full channel range the protocol declares — it is *not* a dense list of the channels you can see in the output.
+
+That distinction matters whenever an acquisition uses a subset of the instrument's channels, which on the CellVoyager includes the case where different wells acquire different channels:
+
+> A 5-channel instrument, where one well acquires only `Ch1` and another only `Ch4`. The override still needs **four** entries, and it is elements 0 and 3 that end up on the two wells. A 2-entry list — one per channel actually visible — is rejected.
+
+The list must have at least as many entries as the highest channel number the acquisition uses. If it is too short the conversion fails with an error naming the number required, so running once and reading the error is the quickest way to find it. Beyond that:
+
+- Extra entries are discarded.
+- Entries past the end of your list keep their `.mes` metadata.
+- Leaving `Wavelength ID` empty keeps the computed `A{action}_C{channel}`.
+- Leaving the colour on `Auto` keeps the colour from the `.mes`.
+
+### With projection plates
+
+One list covers the **whole acquisition**, every plate included, and it is numbered in the acquisition-wide channel space — not per plate. Because each [projection algorithm](#z-image-processing) carries its own channel numbers, the entries are split across plates rather than repeated in each.
+
+> An acquisition that min-projects `Ch1` and max-projects `Ch2`–`Ch5` needs one 5-entry list. Element 0 surfaces in `MyPlate_MinIP.zarr`; elements 1–4 surface in `MyPlate_MIP.zarr`.
+
+So do not write a separate list per plate, and do not size the list by the channels visible in one plate. Selecting a single plate with `Z Processing` does relax the requirement to that plate's own channels.
+
 ## Task Parameters
 
 The CellVoyager init task extends the base acquisition parameters with two additional fields:
@@ -142,8 +142,8 @@ The CellVoyager init task extends the base acquisition parameters with two addit
 | `Path` | `str` | *required* | Path to the CellVoyager acquisition directory. |
 | `Plate Name` | `str` or `null` | `null` | Custom plate name. Defaults to the directory name. |
 | `Acquisition Id` | `int` | `0` | Acquisition identifier for multi-acquisition plates. |
-| `Image Extension` | `"png"` or `"tif"` | `"png"` | File extension of the actual image files. The metadata always references `.tif`, but actual files may be `.png` or `.tif`. |
-| `Z Processing` | `ZProcessingSelection` or `null` | `null` | [Which Z-image processing outputs to convert](#converting-only-some-of-them). Unset converts every kind the acquisition contains. |
+| `Image Extension` | `".tif"` or `".png"` | `".tif"` | File extension of the actual image files. The metadata always references `.tif`, but actual files may be `.png` or `.tif`. |
+| `Z Processing` | `YokogawaZProcessingSelection` or `null` | `null` | [Which Z-image processing outputs to convert](#converting-only-some-of-them). Unset converts every kind the acquisition contains. |
 | `Advanced` | `AcquisitionOptions` | `{}` | Advanced options (condition table, [channel overrides](#channels), filters). |
 
 ## Python API
