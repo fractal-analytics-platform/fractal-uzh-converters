@@ -100,21 +100,21 @@ Most CellVoyager acquisitions carry no `bts:ZImageProcessing` at all and produce
 
 ### Converting only some of them
 
-`Advanced` → `Z Processing` selects which of these plates are written. Leave it unset — the default — to convert every kind the acquisition contains. Otherwise it is one switch per kind:
+`Z Processing` selects which of these plates are written. Leave it unset — the default — to convert every kind the acquisition contains. Otherwise it is one switch per kind:
 
 | Switch | Default | Selects |
 |---|---|---|
-| `Z slices` | on | the unsuffixed raw-stack plate |
+| `Raw` | on | the unsuffixed raw-stack plate |
 | `MIP` | off | `_MIP` |
 | `MinIP` | off | `_MinIP` |
 | `SIP` | off | `_SIP` |
 
-Note that `Z slices` is the only one on by default, so enabling a projection *adds* to the raw stack rather than replacing it:
+Note that `Raw` is the only one on by default, so enabling a projection *adds* to the raw stack rather than replacing it:
 
 ```python
-advanced={"z_processing": {"mip": True}}                     # Z slices + MIP
-advanced={"z_processing": {"z_slices": False, "mip": True}}  # MIP only
-advanced={"z_processing": {}}                                # Z slices only
+z_processing={"mip": True}                 # Raw + MIP
+z_processing={"raw": False, "mip": True}   # MIP only
+z_processing={}                            # Raw only
 ```
 
 | Selection | Result |
@@ -135,7 +135,7 @@ advanced={"filters": [
 
 ## Task Parameters
 
-The CellVoyager init task extends the base acquisition parameters with one additional field:
+The CellVoyager init task extends the base acquisition parameters with two additional fields:
 
 | Field | Type | Default | Description |
 |---|---|---|---|
@@ -143,7 +143,8 @@ The CellVoyager init task extends the base acquisition parameters with one addit
 | `Plate Name` | `str` or `null` | `null` | Custom plate name. Defaults to the directory name. |
 | `Acquisition Id` | `int` | `0` | Acquisition identifier for multi-acquisition plates. |
 | `Image Extension` | `"png"` or `"tif"` | `"png"` | File extension of the actual image files. The metadata always references `.tif`, but actual files may be `.png` or `.tif`. |
-| `Advanced` | `CellVoyagerAcquisitionOptions` | `{}` | Advanced options (condition table, [channel overrides](#channels), [`Z Processing`](#converting-only-some-of-them), filters). |
+| `Z Processing` | `ZProcessingSelection` or `null` | `null` | [Which Z-image processing outputs to convert](#converting-only-some-of-them). Unset converts every kind the acquisition contains. |
+| `Advanced` | `AcquisitionOptions` | `{}` | Advanced options (condition table, [channel overrides](#channels), filters). |
 
 ## Python API
 

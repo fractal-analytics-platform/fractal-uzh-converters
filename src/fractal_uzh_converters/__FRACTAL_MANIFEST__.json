@@ -2321,7 +2321,7 @@
         "CellVoyager",
         "Plate converter"
       ],
-      "docs_info": "### Purpose\n\n- Convert images acquired with a Yokogawa CellVoyager microscope to an OME-Zarr Plate.\n\n### Outputs\n\n- An OME-Zarr Plate.\n- One plate per Z-image processing type. Projections are suffixed `_MIP` (`Maximum`), `_MinIP` (`Minimum`) or `_SIP` (`Sum`), and coexist with the unsuffixed plate holding the raw Z slices. Channel labels are the same across all of them. Most acquisitions carry no `bts:ZImageProcessing` and produce the single unsuffixed plate.\n- `Advanced` \u2192 `Z Processing` is one switch per output. Leave it unset to convert all of them; otherwise only `Z slices` is on by default, so enabling a projection adds to the raw stack rather than replacing it. An enabled kind the acquisition does not contain is a warning; enabling nothing, or nothing that the acquisition contains, is an error.\n\n### Channels\n\n- Channel labels, colors and wavelength ids (`A{action}_C{channel}`) are read from the acquisition's `.mes` protocol file, whose name is recorded in the `.mrf`. Without a `.mes`, the label is the wavelength id.\n- To override them, `Advanced` \u2192 `Channels` is ordered by the **instrument channel number**: element 0 is `Ch1`, element 1 is `Ch2`, over the full range the protocol declares \u2014 not one entry per channel visible in the output. It must be at least as long as the highest channel the acquisition uses; the error names that number if it is too short.\n- One list covers the whole acquisition, projection plates included: each projection algorithm carries its own channel numbers, so the entries are split across plates rather than repeated in each.\n\n### Metadata\n\n- The acquisition's five plate-level vendor files are copied verbatim into `<plate>.zarr/metadata/`: the `.mlf` and `.mrf` under their fixed names, the `.mes`, `.wpi` and `.wpp` under the names recorded in the `.mrf`.\n- Every plate the acquisition produced gets a copy, projection plates included. A file the acquisition does not ship is only a warning \u2014 CV8000 acquisitions routinely name a `.wpi` that was never written \u2014 and a name already taken by another acquisition becomes `<stem>_acq{id}<ext>` instead of overwriting.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\nmy_acquisition/\n\u251c\u2500\u2500 MeasurementData.mlf      # Image measurement records (required)\n\u251c\u2500\u2500 MeasurementDetail.mrf    # Acquisition details and channel info (required)\n\u251c\u2500\u2500 protocol.mes             # Acquisition protocol (optional, sets channel names)\n\u251c\u2500\u2500 plate.wpi                # Plate definition (optional)\n\u251c\u2500\u2500 plate.wpp                # Plate product (optional)\n\u251c\u2500\u2500 image_001.png\n\u2514\u2500\u2500 ...\n```\n\nThe image file paths are referenced inside `MeasurementData.mlf` (with `.tif` extension) and can be in subdirectories relative to the acquisition directory. The actual files may use `.png` or `.tif` extension \u2014 select the matching extension via the `image_extension` parameter. The `.mes`, `.wpi` and `.wpp` filenames vary per acquisition and are read out of the `.mrf` \u2014 the names above are only examples.\n",
+      "docs_info": "### Purpose\n\n- Convert images acquired with a Yokogawa CellVoyager microscope to an OME-Zarr Plate.\n\n### Outputs\n\n- An OME-Zarr Plate.\n- One plate per Z-image processing type. Projections are suffixed `_MIP` (`Maximum`), `_MinIP` (`Minimum`) or `_SIP` (`Sum`), and coexist with the unsuffixed plate holding the raw Z slices. Channel labels are the same across all of them. Most acquisitions carry no `bts:ZImageProcessing` and produce the single unsuffixed plate.\n- `Z Processing` is one switch per output. Leave it unset to convert all of them; otherwise only `Raw` is on by default, so enabling a projection adds to the raw stack rather than replacing it. An enabled kind the acquisition does not contain is a warning; enabling nothing, or nothing that the acquisition contains, is an error.\n\n### Channels\n\n- Channel labels, colors and wavelength ids (`A{action}_C{channel}`) are read from the acquisition's `.mes` protocol file, whose name is recorded in the `.mrf`. Without a `.mes`, the label is the wavelength id.\n- To override them, `Advanced` \u2192 `Channels` is ordered by the **instrument channel number**: element 0 is `Ch1`, element 1 is `Ch2`, over the full range the protocol declares \u2014 not one entry per channel visible in the output. It must be at least as long as the highest channel the acquisition uses; the error names that number if it is too short.\n- One list covers the whole acquisition, projection plates included: each projection algorithm carries its own channel numbers, so the entries are split across plates rather than repeated in each.\n\n### Metadata\n\n- The acquisition's five plate-level vendor files are copied verbatim into `<plate>.zarr/metadata/`: the `.mlf` and `.mrf` under their fixed names, the `.mes`, `.wpi` and `.wpp` under the names recorded in the `.mrf`.\n- Every plate the acquisition produced gets a copy, projection plates included. A file the acquisition does not ship is only a warning \u2014 CV8000 acquisitions routinely name a `.wpi` that was never written \u2014 and a name already taken by another acquisition becomes `<stem>_acq{id}<ext>` instead of overwriting.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\nmy_acquisition/\n\u251c\u2500\u2500 MeasurementData.mlf      # Image measurement records (required)\n\u251c\u2500\u2500 MeasurementDetail.mrf    # Acquisition details and channel info (required)\n\u251c\u2500\u2500 protocol.mes             # Acquisition protocol (optional, sets channel names)\n\u251c\u2500\u2500 plate.wpi                # Plate definition (optional)\n\u251c\u2500\u2500 plate.wpp                # Plate product (optional)\n\u251c\u2500\u2500 image_001.png\n\u2514\u2500\u2500 ...\n```\n\nThe image file paths are referenced inside `MeasurementData.mlf` (with `.tif` extension) and can be in subdirectories relative to the acquisition directory. The actual files may use `.png` or `.tif` extension \u2014 select the matching extension via the `image_extension` parameter. The `.mes`, `.wpi` and `.wpp` filenames vary per acquisition and are read out of the `.mrf` \u2014 the names above are only examples.\n",
       "type": "converter_compound",
       "executable_non_parallel": "yokogawa/cellvoyager/convert_cellvoyager_init_task.py",
       "executable_parallel": "common/image_in_plate_compute_task.py",
@@ -2369,6 +2369,132 @@
               "acquisitions"
             ],
             "title": "Acquisition Filter",
+            "type": "object"
+          },
+          "AcquisitionOptions": {
+            "additionalProperties": false,
+            "description": "Per-acquisition settings: channels, pixel sizes, axes, and filters.",
+            "properties": {
+              "channels": {
+                "anyOf": [
+                  {
+                    "items": {
+                      "$ref": "#/$defs/ChannelInfoUI"
+                    },
+                    "type": "array"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Names, wavelengths, and display colors of the channels. If left\nempty, the channel information parsed from the raw metadata is used.",
+                "title": "Channels"
+              },
+              "pixel_info": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/PixelSizeModel"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Override the pixel size and the Z/time spacing of the images. If left\nempty, the values parsed from the raw metadata are used.",
+                "title": "Pixel Size Information"
+              },
+              "condition_table_path": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Optional path to a condition table CSV file to store in the plate\nmetadata.",
+                "title": "Condition Table Path"
+              },
+              "axes": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Axes of the image data, e.g. `czyx`. If left empty, the axes parsed\nfrom the raw metadata are used.",
+                "title": "Axes"
+              },
+              "data_type": {
+                "$ref": "#/$defs/DataTypeEnum",
+                "default": "autodetect",
+                "description": "Pixel data type of the output image. `autodetect` infers it from the\ninput images.",
+                "title": "Data Type"
+              },
+              "stage_orientation": {
+                "$ref": "#/$defs/StageOrientation",
+                "default": {
+                  "flip_x": false,
+                  "flip_y": false,
+                  "swap_xy": false
+                },
+                "description": "Corrections for the orientation of the microscope stage relative to\nthe image axes.",
+                "title": "Stage Orientation"
+              },
+              "filters": {
+                "default": [],
+                "description": "Filters selecting which tiles of the acquisition are converted.",
+                "items": {
+                  "discriminator": {
+                    "mapping": {
+                      "Acquisition Filter": "#/$defs/AcquisitionFilter",
+                      "Attribute Filter": "#/$defs/AttributeFilter",
+                      "Channel Filter": "#/$defs/ChannelFilter",
+                      "FOV Name Filter": "#/$defs/FovNameFilter",
+                      "Path Regex Filter": "#/$defs/RegexFilter",
+                      "Time Range Filter": "#/$defs/TRangeFilter",
+                      "Well Filter": "#/$defs/WellFilter",
+                      "Z Range Filter": "#/$defs/ZRangeFilter"
+                    },
+                    "propertyName": "name"
+                  },
+                  "oneOf": [
+                    {
+                      "$ref": "#/$defs/RegexFilter"
+                    },
+                    {
+                      "$ref": "#/$defs/WellFilter"
+                    },
+                    {
+                      "$ref": "#/$defs/FovNameFilter"
+                    },
+                    {
+                      "$ref": "#/$defs/AcquisitionFilter"
+                    },
+                    {
+                      "$ref": "#/$defs/AttributeFilter"
+                    },
+                    {
+                      "$ref": "#/$defs/ChannelFilter"
+                    },
+                    {
+                      "$ref": "#/$defs/ZRangeFilter"
+                    },
+                    {
+                      "$ref": "#/$defs/TRangeFilter"
+                    }
+                  ]
+                },
+                "title": "Filters",
+                "type": "array"
+              }
+            },
+            "title": "AcquisitionOptions",
             "type": "object"
           },
           "AttributeFilter": {
@@ -2535,8 +2661,21 @@
                 "title": "Image Extension",
                 "type": "string"
               },
+              "z_processing": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/YokogawaZProcessingSelection"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Which Z-image processing outputs to convert, each written as its own plate.\nLeave unset to convert every one the acquisition contains.",
+                "title": "Z Processing"
+              },
               "advanced": {
-                "$ref": "#/$defs/CellVoyagerAcquisitionOptions",
+                "$ref": "#/$defs/AcquisitionOptions",
                 "default": {
                   "channels": null,
                   "pixel_info": null,
@@ -2548,8 +2687,7 @@
                     "flip_y": false,
                     "swap_xy": false
                   },
-                  "filters": [],
-                  "z_processing": null
+                  "filters": []
                 },
                 "description": "Advanced acquisition options.",
                 "title": "Advanced"
@@ -2559,145 +2697,6 @@
               "path"
             ],
             "title": "CellVoyagerAcquisitionModel",
-            "type": "object"
-          },
-          "CellVoyagerAcquisitionOptions": {
-            "additionalProperties": false,
-            "description": "Acquisition options for the CellVoyager converter.",
-            "properties": {
-              "channels": {
-                "anyOf": [
-                  {
-                    "items": {
-                      "$ref": "#/$defs/ChannelInfoUI"
-                    },
-                    "type": "array"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "description": "Names, wavelengths, and display colors of the channels. If left\nempty, the channel information parsed from the raw metadata is used.",
-                "title": "Channels"
-              },
-              "pixel_info": {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/PixelSizeModel"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "description": "Override the pixel size and the Z/time spacing of the images. If left\nempty, the values parsed from the raw metadata are used.",
-                "title": "Pixel Size Information"
-              },
-              "condition_table_path": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "description": "Optional path to a condition table CSV file to store in the plate\nmetadata.",
-                "title": "Condition Table Path"
-              },
-              "axes": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "description": "Axes of the image data, e.g. `czyx`. If left empty, the axes parsed\nfrom the raw metadata are used.",
-                "title": "Axes"
-              },
-              "data_type": {
-                "$ref": "#/$defs/DataTypeEnum",
-                "default": "autodetect",
-                "description": "Pixel data type of the output image. `autodetect` infers it from the\ninput images.",
-                "title": "Data Type"
-              },
-              "stage_orientation": {
-                "$ref": "#/$defs/StageOrientation",
-                "default": {
-                  "flip_x": false,
-                  "flip_y": false,
-                  "swap_xy": false
-                },
-                "description": "Corrections for the orientation of the microscope stage relative to\nthe image axes.",
-                "title": "Stage Orientation"
-              },
-              "filters": {
-                "default": [],
-                "description": "Filters selecting which tiles of the acquisition are converted.",
-                "items": {
-                  "discriminator": {
-                    "mapping": {
-                      "Acquisition Filter": "#/$defs/AcquisitionFilter",
-                      "Attribute Filter": "#/$defs/AttributeFilter",
-                      "Channel Filter": "#/$defs/ChannelFilter",
-                      "FOV Name Filter": "#/$defs/FovNameFilter",
-                      "Path Regex Filter": "#/$defs/RegexFilter",
-                      "Time Range Filter": "#/$defs/TRangeFilter",
-                      "Well Filter": "#/$defs/WellFilter",
-                      "Z Range Filter": "#/$defs/ZRangeFilter"
-                    },
-                    "propertyName": "name"
-                  },
-                  "oneOf": [
-                    {
-                      "$ref": "#/$defs/RegexFilter"
-                    },
-                    {
-                      "$ref": "#/$defs/WellFilter"
-                    },
-                    {
-                      "$ref": "#/$defs/FovNameFilter"
-                    },
-                    {
-                      "$ref": "#/$defs/AcquisitionFilter"
-                    },
-                    {
-                      "$ref": "#/$defs/AttributeFilter"
-                    },
-                    {
-                      "$ref": "#/$defs/ChannelFilter"
-                    },
-                    {
-                      "$ref": "#/$defs/ZRangeFilter"
-                    },
-                    {
-                      "$ref": "#/$defs/TRangeFilter"
-                    }
-                  ]
-                },
-                "title": "Filters",
-                "type": "array"
-              },
-              "z_processing": {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/ZProcessingSelection"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "description": "Which Z-image processing outputs to convert, each written as its own plate.\nLeave unset to convert every one the acquisition contains.",
-                "title": "Z Processing"
-              }
-            },
-            "title": "CellVoyagerAcquisitionOptions",
             "type": "object"
           },
           "ChannelFilter": {
@@ -3757,14 +3756,14 @@
             "title": "WriterMode",
             "type": "string"
           },
-          "ZProcessingSelection": {
+          "YokogawaZProcessingSelection": {
             "additionalProperties": false,
             "description": "Which Z-image processing outputs to convert.",
             "properties": {
-              "z_slices": {
+              "raw": {
                 "default": true,
-                "description": "Convert the raw Z stack.",
-                "title": "Z slices",
+                "description": "Convert the unprocessed images.",
+                "title": "Raw",
                 "type": "boolean"
               },
               "mip": {
@@ -3786,7 +3785,7 @@
                 "type": "boolean"
               }
             },
-            "title": "ZProcessingSelection",
+            "title": "Z Processing Selection",
             "type": "object"
           },
           "ZRangeFilter": {
@@ -4676,7 +4675,7 @@
         "CQ3K",
         "Plate converter"
       ],
-      "docs_info": "### Purpose\n\n- Convert images acquired with a Yokogawa CQ3K microscope to an OME-Zarr Plate.\n\n### Outputs\n\n- An OME-Zarr Plate.\n- One plate per Z-image processing type. Projections are suffixed `_MIP` (`Maximum`), `_MinIP` (`Minimum`) or `_SIP` (`Sum`), and coexist with the unsuffixed plate holding the raw Z slices. Channel labels are the same across all of them.\n- `Advanced` \u2192 `Z Processing` is one switch per output. Leave it unset to convert all of them; otherwise only `Z slices` is on by default, so enabling a projection adds to the raw stack rather than replacing it. An enabled kind the acquisition does not contain is a warning; enabling nothing, or nothing that the acquisition contains, is an error.\n\n### Channels\n\n- Channel labels, colors and wavelength ids (`A{action}_C{channel}`) are read from the acquisition's `.mes` protocol file, whose name is recorded in the `.mrf`. Without a `.mes`, the label is the wavelength id.\n- To override them, `Advanced` \u2192 `Channels` is ordered by the **instrument channel number**: element 0 is `Ch1`, element 1 is `Ch2`, over the full range the protocol declares \u2014 not one entry per channel visible in the output. It must be at least as long as the highest channel the acquisition uses; the error names that number if it is too short.\n- One list covers the whole acquisition, projection plates included: each projection algorithm carries its own channel numbers, so the entries are split across plates rather than repeated in each.\n\n### Metadata\n\n- The acquisition's five plate-level vendor files are copied verbatim into `<plate>.zarr/metadata/`: the `.mlf` and `.mrf` under their fixed names, the `.mes`, `.wpi` and `.wpp` under the names recorded in the `.mrf`.\n- Every plate the acquisition produced gets a copy, projection plates included. A file the acquisition does not ship is only a warning, and a name already taken by another acquisition becomes `<stem>_acq{id}<ext>` instead of overwriting.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\nmy_acquisition/\n\u251c\u2500\u2500 MeasurementData.mlf         # Image measurement records (required)\n\u251c\u2500\u2500 MeasurementDetail.mrf       # Acquisition details and channel info (required)\n\u251c\u2500\u2500 MeasurementProtocol.mes     # Acquisition protocol (optional, sets channel names)\n\u251c\u2500\u2500 NoPlateID.wpi               # Plate definition (optional)\n\u251c\u2500\u2500 10_Greiner_\u03bcClear.wpp       # Plate product (optional)\n\u2514\u2500\u2500 <subdirectories>/\n    \u251c\u2500\u2500 image_001.tif\n    \u2514\u2500\u2500 ...\n```\n\nThe TIFF file paths are referenced inside `MeasurementData.mlf` and can be in subdirectories relative to the acquisition directory. The `.mes`, `.wpi` and `.wpp` filenames vary per acquisition and are read out of the `.mrf` \u2014 the names above are only examples.\n",
+      "docs_info": "### Purpose\n\n- Convert images acquired with a Yokogawa CQ3K microscope to an OME-Zarr Plate.\n\n### Outputs\n\n- An OME-Zarr Plate.\n- One plate per Z-image processing type. Projections are suffixed `_MIP` (`Maximum`), `_MinIP` (`Minimum`) or `_SIP` (`Sum`), and coexist with the unsuffixed plate holding the raw Z slices. Channel labels are the same across all of them.\n- `Z Processing` is one switch per output. Leave it unset to convert all of them; otherwise only `Raw` is on by default, so enabling a projection adds to the raw stack rather than replacing it. An enabled kind the acquisition does not contain is a warning; enabling nothing, or nothing that the acquisition contains, is an error.\n\n### Channels\n\n- Channel labels, colors and wavelength ids (`A{action}_C{channel}`) are read from the acquisition's `.mes` protocol file, whose name is recorded in the `.mrf`. Without a `.mes`, the label is the wavelength id.\n- To override them, `Advanced` \u2192 `Channels` is ordered by the **instrument channel number**: element 0 is `Ch1`, element 1 is `Ch2`, over the full range the protocol declares \u2014 not one entry per channel visible in the output. It must be at least as long as the highest channel the acquisition uses; the error names that number if it is too short.\n- One list covers the whole acquisition, projection plates included: each projection algorithm carries its own channel numbers, so the entries are split across plates rather than repeated in each.\n\n### Metadata\n\n- The acquisition's five plate-level vendor files are copied verbatim into `<plate>.zarr/metadata/`: the `.mlf` and `.mrf` under their fixed names, the `.mes`, `.wpi` and `.wpp` under the names recorded in the `.mrf`.\n- Every plate the acquisition produced gets a copy, projection plates included. A file the acquisition does not ship is only a warning, and a name already taken by another acquisition becomes `<stem>_acq{id}<ext>` instead of overwriting.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\nmy_acquisition/\n\u251c\u2500\u2500 MeasurementData.mlf         # Image measurement records (required)\n\u251c\u2500\u2500 MeasurementDetail.mrf       # Acquisition details and channel info (required)\n\u251c\u2500\u2500 MeasurementProtocol.mes     # Acquisition protocol (optional, sets channel names)\n\u251c\u2500\u2500 NoPlateID.wpi               # Plate definition (optional)\n\u251c\u2500\u2500 10_Greiner_\u03bcClear.wpp       # Plate product (optional)\n\u2514\u2500\u2500 <subdirectories>/\n    \u251c\u2500\u2500 image_001.tif\n    \u2514\u2500\u2500 ...\n```\n\nThe TIFF file paths are referenced inside `MeasurementData.mlf` and can be in subdirectories relative to the acquisition directory. The `.mes`, `.wpi` and `.wpp` filenames vary per acquisition and are read out of the `.mrf` \u2014 the names above are only examples.\n",
       "type": "converter_compound",
       "executable_non_parallel": "yokogawa/cq3k/convert_cq3k_init_task.py",
       "executable_parallel": "common/image_in_plate_compute_task.py",
@@ -4724,6 +4723,132 @@
               "acquisitions"
             ],
             "title": "Acquisition Filter",
+            "type": "object"
+          },
+          "AcquisitionOptions": {
+            "additionalProperties": false,
+            "description": "Per-acquisition settings: channels, pixel sizes, axes, and filters.",
+            "properties": {
+              "channels": {
+                "anyOf": [
+                  {
+                    "items": {
+                      "$ref": "#/$defs/ChannelInfoUI"
+                    },
+                    "type": "array"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Names, wavelengths, and display colors of the channels. If left\nempty, the channel information parsed from the raw metadata is used.",
+                "title": "Channels"
+              },
+              "pixel_info": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/PixelSizeModel"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Override the pixel size and the Z/time spacing of the images. If left\nempty, the values parsed from the raw metadata are used.",
+                "title": "Pixel Size Information"
+              },
+              "condition_table_path": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Optional path to a condition table CSV file to store in the plate\nmetadata.",
+                "title": "Condition Table Path"
+              },
+              "axes": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Axes of the image data, e.g. `czyx`. If left empty, the axes parsed\nfrom the raw metadata are used.",
+                "title": "Axes"
+              },
+              "data_type": {
+                "$ref": "#/$defs/DataTypeEnum",
+                "default": "autodetect",
+                "description": "Pixel data type of the output image. `autodetect` infers it from the\ninput images.",
+                "title": "Data Type"
+              },
+              "stage_orientation": {
+                "$ref": "#/$defs/StageOrientation",
+                "default": {
+                  "flip_x": false,
+                  "flip_y": false,
+                  "swap_xy": false
+                },
+                "description": "Corrections for the orientation of the microscope stage relative to\nthe image axes.",
+                "title": "Stage Orientation"
+              },
+              "filters": {
+                "default": [],
+                "description": "Filters selecting which tiles of the acquisition are converted.",
+                "items": {
+                  "discriminator": {
+                    "mapping": {
+                      "Acquisition Filter": "#/$defs/AcquisitionFilter",
+                      "Attribute Filter": "#/$defs/AttributeFilter",
+                      "Channel Filter": "#/$defs/ChannelFilter",
+                      "FOV Name Filter": "#/$defs/FovNameFilter",
+                      "Path Regex Filter": "#/$defs/RegexFilter",
+                      "Time Range Filter": "#/$defs/TRangeFilter",
+                      "Well Filter": "#/$defs/WellFilter",
+                      "Z Range Filter": "#/$defs/ZRangeFilter"
+                    },
+                    "propertyName": "name"
+                  },
+                  "oneOf": [
+                    {
+                      "$ref": "#/$defs/RegexFilter"
+                    },
+                    {
+                      "$ref": "#/$defs/WellFilter"
+                    },
+                    {
+                      "$ref": "#/$defs/FovNameFilter"
+                    },
+                    {
+                      "$ref": "#/$defs/AcquisitionFilter"
+                    },
+                    {
+                      "$ref": "#/$defs/AttributeFilter"
+                    },
+                    {
+                      "$ref": "#/$defs/ChannelFilter"
+                    },
+                    {
+                      "$ref": "#/$defs/ZRangeFilter"
+                    },
+                    {
+                      "$ref": "#/$defs/TRangeFilter"
+                    }
+                  ]
+                },
+                "title": "Filters",
+                "type": "array"
+              }
+            },
+            "title": "AcquisitionOptions",
             "type": "object"
           },
           "AttributeFilter": {
@@ -4880,8 +5005,21 @@
                 "title": "Acquisition Id",
                 "type": "integer"
               },
+              "z_processing": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/YokogawaZProcessingSelection"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Which Z-image processing outputs to convert, each written as its own plate.\nLeave unset to convert every one the acquisition contains.",
+                "title": "Z Processing"
+              },
               "advanced": {
-                "$ref": "#/$defs/CQ3KAcquisitionOptions",
+                "$ref": "#/$defs/AcquisitionOptions",
                 "default": {
                   "channels": null,
                   "pixel_info": null,
@@ -4893,8 +5031,7 @@
                     "flip_y": false,
                     "swap_xy": false
                   },
-                  "filters": [],
-                  "z_processing": null
+                  "filters": []
                 },
                 "description": "Advanced acquisition options.",
                 "title": "Advanced"
@@ -4904,145 +5041,6 @@
               "path"
             ],
             "title": "CQ3KAcquisitionModel",
-            "type": "object"
-          },
-          "CQ3KAcquisitionOptions": {
-            "additionalProperties": false,
-            "description": "Acquisition options for the CQ3K converter.",
-            "properties": {
-              "channels": {
-                "anyOf": [
-                  {
-                    "items": {
-                      "$ref": "#/$defs/ChannelInfoUI"
-                    },
-                    "type": "array"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "description": "Names, wavelengths, and display colors of the channels. If left\nempty, the channel information parsed from the raw metadata is used.",
-                "title": "Channels"
-              },
-              "pixel_info": {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/PixelSizeModel"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "description": "Override the pixel size and the Z/time spacing of the images. If left\nempty, the values parsed from the raw metadata are used.",
-                "title": "Pixel Size Information"
-              },
-              "condition_table_path": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "description": "Optional path to a condition table CSV file to store in the plate\nmetadata.",
-                "title": "Condition Table Path"
-              },
-              "axes": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "description": "Axes of the image data, e.g. `czyx`. If left empty, the axes parsed\nfrom the raw metadata are used.",
-                "title": "Axes"
-              },
-              "data_type": {
-                "$ref": "#/$defs/DataTypeEnum",
-                "default": "autodetect",
-                "description": "Pixel data type of the output image. `autodetect` infers it from the\ninput images.",
-                "title": "Data Type"
-              },
-              "stage_orientation": {
-                "$ref": "#/$defs/StageOrientation",
-                "default": {
-                  "flip_x": false,
-                  "flip_y": false,
-                  "swap_xy": false
-                },
-                "description": "Corrections for the orientation of the microscope stage relative to\nthe image axes.",
-                "title": "Stage Orientation"
-              },
-              "filters": {
-                "default": [],
-                "description": "Filters selecting which tiles of the acquisition are converted.",
-                "items": {
-                  "discriminator": {
-                    "mapping": {
-                      "Acquisition Filter": "#/$defs/AcquisitionFilter",
-                      "Attribute Filter": "#/$defs/AttributeFilter",
-                      "Channel Filter": "#/$defs/ChannelFilter",
-                      "FOV Name Filter": "#/$defs/FovNameFilter",
-                      "Path Regex Filter": "#/$defs/RegexFilter",
-                      "Time Range Filter": "#/$defs/TRangeFilter",
-                      "Well Filter": "#/$defs/WellFilter",
-                      "Z Range Filter": "#/$defs/ZRangeFilter"
-                    },
-                    "propertyName": "name"
-                  },
-                  "oneOf": [
-                    {
-                      "$ref": "#/$defs/RegexFilter"
-                    },
-                    {
-                      "$ref": "#/$defs/WellFilter"
-                    },
-                    {
-                      "$ref": "#/$defs/FovNameFilter"
-                    },
-                    {
-                      "$ref": "#/$defs/AcquisitionFilter"
-                    },
-                    {
-                      "$ref": "#/$defs/AttributeFilter"
-                    },
-                    {
-                      "$ref": "#/$defs/ChannelFilter"
-                    },
-                    {
-                      "$ref": "#/$defs/ZRangeFilter"
-                    },
-                    {
-                      "$ref": "#/$defs/TRangeFilter"
-                    }
-                  ]
-                },
-                "title": "Filters",
-                "type": "array"
-              },
-              "z_processing": {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/ZProcessingSelection"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "description": "Which Z-image processing outputs to convert, each written as its own plate.\nLeave unset to convert every one the acquisition contains.",
-                "title": "Z Processing"
-              }
-            },
-            "title": "CQ3KAcquisitionOptions",
             "type": "object"
           },
           "ChannelFilter": {
@@ -6102,14 +6100,14 @@
             "title": "WriterMode",
             "type": "string"
           },
-          "ZProcessingSelection": {
+          "YokogawaZProcessingSelection": {
             "additionalProperties": false,
             "description": "Which Z-image processing outputs to convert.",
             "properties": {
-              "z_slices": {
+              "raw": {
                 "default": true,
-                "description": "Convert the raw Z stack.",
-                "title": "Z slices",
+                "description": "Convert the unprocessed images.",
+                "title": "Raw",
                 "type": "boolean"
               },
               "mip": {
@@ -6131,7 +6129,7 @@
                 "type": "boolean"
               }
             },
-            "title": "ZProcessingSelection",
+            "title": "Z Processing Selection",
             "type": "object"
           },
           "ZRangeFilter": {
@@ -9320,7 +9318,7 @@
         "ImageXpress HCS.ai",
         "Plate converter"
       ],
-      "docs_info": "### Purpose\n\n- Convert images acquired with an MD ImageXpress HCS.ai microscope to an OME-Zarr Plate.\n\n### Outputs\n\n- An OME-Zarr Plate.\n\n### Limitations\n\n- This task has been tested on a limited set of acquisitions. It may not work on all MD ImageXpress acquisitions.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\n{protocol_name}_{date-time}\n\u251c\u2500\u2500 {protocol_name}.mxprotocol\n\u251c\u2500\u2500 autofocus/\n\u2514\u2500\u2500 experiment{_mode}/\n    \u251c\u2500\u2500 {acquisition_name}.jdce\n    \u251c\u2500\u2500 image_metadata_1.csv\n    \u251c\u2500\u2500 timepoint0/\n    \u2514\u2500\u2500 timepoint1/\n        \u251c\u2500\u2500 {protocol_name}_t1_C05_s0_w0_z0.tif\n        \u251c\u2500\u2500 {protocol_name}_t1_C05_s0_w0_z1.tif\n        \u2514\u2500\u2500 ...\n```\n\n`Path` should point to the `{protocol_name}_{date-time}` folder or the `{protocol_name}.mxprotocol` file.\n",
+      "docs_info": "### Purpose\n\n- Convert images acquired with an MD ImageXpress HCS.ai microscope to an OME-Zarr Plate.\n\n### Outputs\n\n- An OME-Zarr Plate.\n- One acquisition is read from a single `experiment{_mode}` directory. `Z Processing` picks which: `Raw` (the default) prefers `experiment_z_stack`, falling back to `experiment`; `MIP` reads `experiment`, where MD writes the projections of a Z stack. Only one of the two can be enabled, since both would produce the same plate.\n- `Advanced` \u2192 `Convert Montages` reads `experiment_montage` instead, taking precedence over `Z Processing`; combining it with `MIP` is an error when the montage data is a Z stack.\n\n### Limitations\n\n- This task has been tested on a limited set of acquisitions. It may not work on all MD ImageXpress acquisitions.\n\n### Expected inputs\n\nThe following directory structure is expected:\n\n```text\n{protocol_name}_{date-time}\n\u251c\u2500\u2500 {protocol_name}.mxprotocol\n\u251c\u2500\u2500 autofocus/\n\u2514\u2500\u2500 experiment{_mode}/\n    \u251c\u2500\u2500 {acquisition_name}.jdce\n    \u251c\u2500\u2500 image_metadata_1.csv\n    \u251c\u2500\u2500 timepoint0/\n    \u2514\u2500\u2500 timepoint1/\n        \u251c\u2500\u2500 {protocol_name}_t1_C05_s0_w0_z0.tif\n        \u251c\u2500\u2500 {protocol_name}_t1_C05_s0_w0_z1.tif\n        \u2514\u2500\u2500 ...\n```\n\n`Path` should point to the `{protocol_name}_{date-time}` folder or the `{protocol_name}.mxprotocol` file.\n",
       "type": "converter_compound",
       "executable_non_parallel": "imagexpress_hcs/convert_imagexpress_hcs_init_task.py",
       "executable_parallel": "common/image_in_plate_compute_task.py",
@@ -10038,12 +10036,6 @@
                 "title": "Filters",
                 "type": "array"
               },
-              "convert_only_projections": {
-                "default": false,
-                "description": "If True, only convert projection images, if available.",
-                "title": "Convert Only Projections",
-                "type": "boolean"
-              },
               "convert_montages": {
                 "default": false,
                 "description": "If True, convert montaged / stitched images, if available.",
@@ -10082,6 +10074,19 @@
                 "title": "Acquisition Id",
                 "type": "integer"
               },
+              "z_processing": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/MDZProcessingSelection"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Which Z-image processing outputs to convert. Leave unset to convert the raw\nimages, preferring a Z stack when the acquisition holds one.",
+                "title": "Z Processing"
+              },
               "advanced": {
                 "$ref": "#/$defs/MDAcquisitionOptions",
                 "default": {
@@ -10096,7 +10101,6 @@
                     "swap_xy": false
                   },
                   "filters": [],
-                  "convert_only_projections": false,
                   "convert_montages": false
                 },
                 "description": "Advanced acquisition options.",
@@ -10107,6 +10111,26 @@
               "path"
             ],
             "title": "MDImageXpressHCSaiAcquisitionModel",
+            "type": "object"
+          },
+          "MDZProcessingSelection": {
+            "additionalProperties": false,
+            "description": "Which Z-image processing outputs to convert.",
+            "properties": {
+              "raw": {
+                "default": true,
+                "description": "Convert the unprocessed images.",
+                "title": "Raw",
+                "type": "boolean"
+              },
+              "mip": {
+                "default": false,
+                "description": "Convert the projections, which MD writes to the `experiment` directory.",
+                "title": "MIP",
+                "type": "boolean"
+              }
+            },
+            "title": "Z Processing Selection",
             "type": "object"
           },
           "MosaicGrouping": {

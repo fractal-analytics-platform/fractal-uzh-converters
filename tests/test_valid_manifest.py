@@ -9,7 +9,9 @@ from . import MANIFEST, TASK_LIST
 # is part of the task's public surface. It is also fragile: pydantic keeps a
 # redeclared field in the base class's slot, so moving `advanced` back onto
 # `BaseAcquisitionModel` would silently pull it up to slot #2 in all seven
-# models at once, even though each one declares it last.
+# models at once, even though each one declares it last. `z_processing` is
+# top-level rather than an advanced option and must stay ahead of `advanced`
+# too, so a converter-specific field cannot drift behind it.
 EXPECTED_ACQUISITION_FIELD_ORDER = {
     "ScanRAcquisitionModel": [
         "path",
@@ -23,14 +25,22 @@ EXPECTED_ACQUISITION_FIELD_ORDER = {
         "plate_name",
         "acquisition_id",
         "image_extension",
+        "z_processing",
         "advanced",
     ],
-    "CQ3KAcquisitionModel": ["path", "plate_name", "acquisition_id", "advanced"],
+    "CQ3KAcquisitionModel": [
+        "path",
+        "plate_name",
+        "acquisition_id",
+        "z_processing",
+        "advanced",
+    ],
     "OperettaAcquisitionModel": ["path", "plate_name", "acquisition_id", "advanced"],
     "MDImageXpressHCSaiAcquisitionModel": [
         "path",
         "plate_name",
         "acquisition_id",
+        "z_processing",
         "advanced",
     ],
     "HcsTiffAcquisitionModel": ["path", "plate_name", "acquisition_id", "advanced"],

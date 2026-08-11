@@ -12,7 +12,7 @@ from pydantic import Field
 
 from fractal_uzh_converters.common import HCSBaseAcquisitionModel
 from fractal_uzh_converters.yokogawa._parse import parse_yokogawa_metadata
-from fractal_uzh_converters.yokogawa._z_processing import ZProcessingSelection
+from fractal_uzh_converters.yokogawa._z_processing import YokogawaZProcessingSelection
 
 ######################################################################
 #
@@ -21,22 +21,17 @@ from fractal_uzh_converters.yokogawa._z_processing import ZProcessingSelection
 ######################################################################
 
 
-class CQ3KAcquisitionOptions(AcquisitionOptions):
-    """Acquisition options for the CQ3K converter."""
+class CQ3KAcquisitionModel(HCSBaseAcquisitionModel):
+    """Acquisition details for the CQ3K microscope data."""
 
-    z_processing: ZProcessingSelection | None = Field(
+    z_processing: YokogawaZProcessingSelection | None = Field(
         default=None, title="Z Processing"
     )
     """
     Which Z-image processing outputs to convert, each written as its own plate.
     Leave unset to convert every one the acquisition contains.
     """
-
-
-class CQ3KAcquisitionModel(HCSBaseAcquisitionModel):
-    """Acquisition details for the CQ3K microscope data."""
-
-    advanced: CQ3KAcquisitionOptions = Field(default_factory=CQ3KAcquisitionOptions)
+    advanced: AcquisitionOptions = Field(default_factory=AcquisitionOptions)
     """
     Advanced acquisition options.
     """
@@ -66,5 +61,5 @@ def parse_cq3k_metadata(
     return parse_yokogawa_metadata(
         acquisition_model=acquisition_model,
         converter_options=converter_options,
-        z_selection=acquisition_model.advanced.z_processing,
+        z_selection=acquisition_model.z_processing,
     )

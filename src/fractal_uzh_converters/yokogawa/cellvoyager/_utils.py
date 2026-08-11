@@ -14,25 +14,13 @@ from pydantic import Field
 
 from fractal_uzh_converters.common import HCSBaseAcquisitionModel
 from fractal_uzh_converters.yokogawa._parse import parse_yokogawa_metadata
-from fractal_uzh_converters.yokogawa._z_processing import ZProcessingSelection
+from fractal_uzh_converters.yokogawa._z_processing import YokogawaZProcessingSelection
 
 ######################################################################
 #
 # Acquisition Input Model
 #
 ######################################################################
-
-
-class CellVoyagerAcquisitionOptions(AcquisitionOptions):
-    """Acquisition options for the CellVoyager converter."""
-
-    z_processing: ZProcessingSelection | None = Field(
-        default=None, title="Z Processing"
-    )
-    """
-    Which Z-image processing outputs to convert, each written as its own plate.
-    Leave unset to convert every one the acquisition contains.
-    """
 
 
 class CellVoyagerAcquisitionModel(HCSBaseAcquisitionModel):
@@ -44,9 +32,14 @@ class CellVoyagerAcquisitionModel(HCSBaseAcquisitionModel):
     The metadata (.mlf) always references '.tif', but the actual files
     may be '.png' or '.tif'. Select the extension matching your data.
     """
-    advanced: CellVoyagerAcquisitionOptions = Field(
-        default_factory=CellVoyagerAcquisitionOptions
+    z_processing: YokogawaZProcessingSelection | None = Field(
+        default=None, title="Z Processing"
     )
+    """
+    Which Z-image processing outputs to convert, each written as its own plate.
+    Leave unset to convert every one the acquisition contains.
+    """
+    advanced: AcquisitionOptions = Field(default_factory=AcquisitionOptions)
     """
     Advanced acquisition options.
     """
@@ -83,7 +76,7 @@ def parse_cellvoyager_metadata(
     return parse_yokogawa_metadata(
         acquisition_model=acquisition_model,
         converter_options=converter_options,
-        z_selection=acquisition_model.advanced.z_processing,
+        z_selection=acquisition_model.z_processing,
         filename_transform=lambda file_name: _replace_extension(
             file_name, acquisition_model.image_extension
         ),

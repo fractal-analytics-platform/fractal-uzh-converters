@@ -7,16 +7,22 @@ Migration to `ome-zarr-converters-tools` v1.
 ### Features
 - Yokogawa (CQ3K, CellVoyager): channel labels, wavelength ids (`A{action}_C{channel}`) and
   colours are now read from the acquisition's `.mes` protocol file (#27).
-- CQ3K: new `advanced.z_processing` option selecting which Z-image processing outputs to
-  convert, so a projection or the raw Z stack can be skipped without a path regex filter.
+- CQ3K: new `z_processing` option selecting which Z-image processing outputs to convert,
+  so a projection or the raw Z stack can be skipped without a path regex filter.
 - Yokogawa (CQ3K, CellVoyager): the acquisition's `.mlf`, `.mrf`, `.mes`, `.wpi` and `.wpp`
   are copied verbatim into `<plate>.zarr/metadata/`, so the vendor metadata the converters
   do not model travels with the converted plate (#46).
 
 ### API Breaking Changes
 - **CellVoyager acquisitions tagged `bts:ZImageProcessing` now split into one plate per
-  algorithm** (`_MIP`/`_MinIP`/`_SIP`), with the same `advanced.z_processing` selection
-  as CQ3K; the attribute was previously dropped, overlapping the tiles of both plates.
+  algorithm** (`_MIP`/`_MinIP`/`_SIP`), with the same `z_processing` selection as CQ3K;
+  the attribute was previously dropped, overlapping the tiles of both plates.
+- **`z_processing` is now a top-level acquisition field** on CQ3K, CellVoyager and MD
+  ImageXpress instead of an advanced option, sharing one `Z Processing Selection` shape
+  per converter; the Yokogawa switch `Z slices` is renamed `Raw`.
+- **MD ImageXpress `advanced.convert_only_projections` is removed** in favour of
+  `z_processing`, where `MIP` reads `experiment` and `Raw` prefers `experiment_z_stack`;
+  the two cannot be enabled together, since MD reads a single source directory.
 - **Yokogawa default channel labels are no longer `channel_N`** but the `.mes` channel
   target, falling back to the wavelength id when no `.mes` is available. With
   `reindex_channels` disabled, instrument channels the acquisition did not use are now

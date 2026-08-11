@@ -41,24 +41,26 @@ CQ3K_EXTENDED_RAW_DIR = EXTENDED_DATA_DIR / "Yokogawa-CQ3K" / "raw"
 CELLVOYAGER_FIXTURE = DATA_DIR / "Yokogawa-CellVoyager" / "raw" / "hcs_1w1p1c1z1t"
 
 
-def _parse(name: str, converter_options, root=None, **advanced):
+def _parse(name: str, converter_options, root=None, z_processing=None, **advanced):
     """Parse an acquisition without converting it.
 
-    `root` defaults to the extended store.
+    `root` defaults to the extended store. `z_processing` is a top-level field;
+    the remaining kwargs are advanced options.
     """
     return parse_cq3k_metadata(
         acquisition_model=CQ3KAcquisitionModel(
             path=str((root or CQ3K_EXTENDED_RAW_DIR) / name),
             acquisition_id=0,
+            z_processing=z_processing,
             advanced=advanced,
         ),
         converter_options=converter_options,
     )
 
 
-def _plate_names(name: str, converter_options, **advanced) -> set[str]:
+def _plate_names(name: str, converter_options, **kwargs) -> set[str]:
     """Plate paths an extended acquisition would write, without converting it."""
-    tiled_images = _parse(name, converter_options, **advanced)
+    tiled_images = _parse(name, converter_options, **kwargs)
     return {tiled_image.collection.plate_path() for tiled_image in tiled_images}
 
 
@@ -83,7 +85,7 @@ def _acquired_channels(name: str, converter_options) -> dict[str, set[int]]:
 @pytest.mark.parametrize(
     ("z_type", "token", "expected"),
     [
-        (None, "Z slices", "plate"),
+        (None, "Raw", "plate"),
         ("Maximum", "MIP", "plate_MIP"),
         ("Minimum", "MinIP", "plate_MinIP"),
         ("Sum", "SIP", "plate_SIP"),
@@ -218,7 +220,7 @@ def test_sum_projections_are_suffixed_sip(converter_options):
 
 ######################################################################
 #
-# `advanced.z_processing` selects which of those plates are written
+# `z_processing` selects which of those plates are written
 #
 ######################################################################
 
@@ -229,21 +231,19 @@ def test_sum_projections_are_suffixed_sip(converter_options):
     [
         # Unset is the default and converts everything.
         (None, {"", "_MIP", "_MinIP"}),
-        # `z_slices` is the only field defaulting to True, so `{}` is slices-only
+        # `raw` is the only field defaulting to True, so `{}` is slices-only
         # and `{"mip": True}` adds the MIP rather than replacing the slices.
         ({}, {""}),
         ({"mip": True}, {"", "_MIP"}),
-        ({"z_slices": False, "mip": True}, {"_MIP"}),
-        ({"z_slices": False, "mip": True, "min_ip": True}, {"_MIP", "_MinIP"}),
+        ({"raw": False, "mip": True}, {"_MIP"}),
+        ({"raw": False, "mip": True, "min_ip": True}, {"_MIP", "_MinIP"}),
     ],
 )
 def test_selection_picks_the_plate_subset(selection, expected, converter_options):
     """`Slices_MIP_MinIP` is the only acquisition holding slices *and* two kinds."""
-    advanced = {} if selection is None else {"z_processing": selection}
-
-    assert _plate_names(_SLICES_MIP_MINIP, converter_options, **advanced) == {
-        f"{_SLICES_MIP_MINIP}{suffix}.zarr" for suffix in expected
-    }
+    assert _plate_names(
+        _SLICES_MIP_MINIP, converter_options, z_processing=selection
+    ) == {f"{_SLICES_MIP_MINIP}{suffix}.zarr" for suffix in expected}
 
 
 @pytest.mark.extended
@@ -252,7 +252,7 @@ def test_a_selected_kind_the_acquisition_lacks_only_warns(converter_options, cap
     plates = _plate_names(
         _SLICES_MIP_MINIP,
         converter_options,
-        z_processing={"z_slices": False, "mip": True, "sip": True},
+        z_processing={"raw": False, "mip": True, "sip": True},
     )
 
     assert plates == {f"{_SLICES_MIP_MINIP}_MIP.zarr"}
@@ -270,12 +270,12 @@ def test_enabling_nothing_raises(converter_options):
             "hcs_2w1p1c1z1t_mip",
             converter_options,
             root=CQ3K_RAW_DIR,
-            z_processing={"z_slices": False},
+            z_processing={"raw": False},
         )
 
 
 def test_a_selection_matching_nothing_raises(converter_options):
-    """The in-repo fixture is projection-only, so `Z slices` matches none of it.
+    """The in-repo fixture is projection-only, so `Raw` matches none of it.
 
     Without this the failure would surface later, from the library, as "No tiles
     provided to build TiledImage" — which never names the option responsible.
@@ -296,7 +296,7 @@ def test_the_error_names_what_the_acquisition_contains(converter_options):
             "hcs_2w1p1c1z1t_mip",
             converter_options,
             root=CQ3K_RAW_DIR,
-            z_processing={"z_slices": False, "min_ip": True},
+            z_processing={"raw": False, "min_ip": True},
         )
 
 
@@ -313,7 +313,7 @@ def test_selection_relaxes_the_required_channel_override_length(converter_option
     tiled_images = _parse(
         _CHANNELS_MIP_MINIP,
         converter_options,
-        z_processing={"z_slices": False, "min_ip": True},
+        z_processing={"raw": False, "min_ip": True},
         channels=one_entry,
     )
     assert tiled_images
@@ -338,7 +338,7 @@ def test_a_selection_converts_only_the_selected_plate(
             {
                 "path": str(CQ3K_EXTENDED_RAW_DIR / _CHANNELS_MIP_MINIP),
                 "acquisition_id": 0,
-                "advanced": {"z_processing": {"z_slices": False, "min_ip": True}},
+                "z_processing": {"raw": False, "min_ip": True},
             }
         ],
         converter_options=converter_options,
@@ -356,7 +356,9 @@ def test_a_selection_converts_only_the_selected_plate(
 ######################################################################
 
 
-def _cellvoyager_plate_names(acquisition_dir: Path, converter_options, **advanced):
+def _cellvoyager_plate_names(
+    acquisition_dir: Path, converter_options, z_processing=None, **advanced
+):
     """Plate paths a CellVoyager acquisition would write, without converting it."""
     tiled_images = parse_cellvoyager_metadata(
         acquisition_model=CellVoyagerAcquisitionModel(
@@ -364,6 +366,7 @@ def _cellvoyager_plate_names(acquisition_dir: Path, converter_options, **advance
             acquisition_id=0,
             # The in-repo CellVoyager fixture ships `.png`, not `.tif`.
             image_extension=".png",
+            z_processing=z_processing,
             advanced=advanced,
         ),
         converter_options=converter_options,
@@ -418,20 +421,20 @@ def test_cellvoyager_projections_land_in_their_own_plate(
 def test_cellvoyager_selection_picks_the_plate_subset(
     tmp_path: Path, converter_options
 ):
-    """`advanced.z_processing` reaches the CellVoyager parser, as it does CQ3K's."""
+    """`z_processing` reaches the CellVoyager parser, as it does CQ3K's."""
     acquisition_dir = _projected_fixture(tmp_path)
 
     assert _cellvoyager_plate_names(
         acquisition_dir,
         converter_options,
-        z_processing={"z_slices": False, "mip": True},
+        z_processing={"raw": False, "mip": True},
     ) == {f"{CELLVOYAGER_FIXTURE.name}_MIP.zarr"}
 
 
 def test_cellvoyager_a_selection_matching_nothing_raises(
     tmp_path: Path, converter_options
 ):
-    """The rewritten fixture is projection-only, so `Z slices` matches none of it."""
+    """The rewritten fixture is projection-only, so `Raw` matches none of it."""
     acquisition_dir = _projected_fixture(tmp_path)
 
     with pytest.raises(ValueError, match="z_processing"):

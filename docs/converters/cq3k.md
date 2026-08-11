@@ -73,21 +73,21 @@ Channel labels do **not** carry the algorithm — it is already in the plate nam
 
 ### Converting only some of them
 
-`Advanced` → `Z Processing` selects which of these plates are written. Leave it unset — the default — to convert every kind the acquisition contains. Otherwise it is one switch per kind:
+`Z Processing` selects which of these plates are written. Leave it unset — the default — to convert every kind the acquisition contains. Otherwise it is one switch per kind:
 
 | Switch | Default | Selects |
 |---|---|---|
-| `Z slices` | on | the unsuffixed raw-stack plate |
+| `Raw` | on | the unsuffixed raw-stack plate |
 | `MIP` | off | `_MIP` |
 | `MinIP` | off | `_MinIP` |
 | `SIP` | off | `_SIP` |
 
-Note that `Z slices` is the only one on by default, so enabling a projection *adds* to the raw stack rather than replacing it:
+Note that `Raw` is the only one on by default, so enabling a projection *adds* to the raw stack rather than replacing it:
 
 ```python
-advanced={"z_processing": {"mip": True}}                     # Z slices + MIP
-advanced={"z_processing": {"z_slices": False, "mip": True}}  # MIP only
-advanced={"z_processing": {}}                                # Z slices only
+z_processing={"mip": True}                 # Raw + MIP
+z_processing={"raw": False, "mip": True}   # MIP only
+z_processing={}                            # Raw only
 ```
 
 | Selection | Result |
@@ -133,14 +133,15 @@ So do not write a separate list per plate, and do not size the list by the chann
 
 ## Task Parameters
 
-The CQ3K init task uses the base acquisition parameters with no additional fields:
+The CQ3K init task extends the base acquisition parameters with one additional field:
 
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `Path` | `str` | *required* | Path to the CQ3K acquisition directory. |
 | `Plate Name` | `str` or `null` | `null` | Custom plate name. Defaults to the directory name. |
 | `Acquisition Id` | `int` | `0` | Acquisition identifier for multi-acquisition plates. |
-| `Advanced` | `CQ3KAcquisitionOptions` | `{}` | Advanced options (condition table, [channel overrides](#channels), [`Z Processing`](#converting-only-some-of-them), filters). |
+| `Z Processing` | `ZProcessingSelection` or `null` | `null` | [Which Z-image processing outputs to convert](#converting-only-some-of-them). Unset converts every kind the acquisition contains. |
+| `Advanced` | `AcquisitionOptions` | `{}` | Advanced options (condition table, [channel overrides](#channels), filters). |
 
 ## Python API
 

@@ -52,7 +52,7 @@ from fractal_uzh_converters.yokogawa._records import (
     MeasurementDetail,
 )
 from fractal_uzh_converters.yokogawa._z_processing import (
-    ZProcessingSelection,
+    YokogawaZProcessingSelection,
     _plate_name,
     _select_z_processing,
     _z_processing_token,
@@ -287,7 +287,7 @@ def parse_yokogawa_metadata(
     *,
     acquisition_model: HCSBaseAcquisitionModel,
     converter_options: ConverterOptions,
-    z_selection: ZProcessingSelection | None = None,
+    z_selection: YokogawaZProcessingSelection | None = None,
     filename_transform: Callable[[str], str] = lambda file_name: file_name,
 ) -> list[TiledImage]:
     """Parse a Yokogawa acquisition and return a list of TiledImages.
@@ -364,7 +364,7 @@ def parse_yokogawa_metadata(
 
     # Resolved once per distinct `z_type` rather than per (well, field of view)
     # group, so an unknown algorithm warns once per acquisition. The token is both
-    # the `advanced.z_processing` value and the plate name suffix.
+    # the `z_processing` value and the plate name suffix.
     plates_tokens = {z_type: _z_processing_token(z_type) for z_type in plates_records}
     kept = _select_z_processing(
         plates_tokens=plates_tokens,

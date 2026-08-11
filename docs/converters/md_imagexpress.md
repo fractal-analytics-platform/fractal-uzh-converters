@@ -41,17 +41,43 @@ The microscope can produce up to three experiment directories, each containing a
 | `experiment_z_stack` | Full Z-stack acquisitions |
 | `experiment_montage` | Montaged / stitched images |
 
-By default, the converter prefers `experiment_z_stack` if present, otherwise falls back to `experiment`. Use the advanced options below to select a different mode.
+By default, the converter prefers `experiment_z_stack` if present, otherwise falls back to `experiment`. Use [`Z Processing`](#z-processing) to read the projections instead, or `Advanced` → `Convert Montages` for the montaged images.
+
+## Z Processing
+
+MD does not mark a record as a projection: it writes the projections of a Z stack into `experiment`, and the stack itself into `experiment_z_stack`. So `Z Processing` picks which of those two directories is read.
+
+| Switch | Default | Selects |
+|---|---|---|
+| `Raw` | on | `experiment_z_stack` if present, otherwise `experiment` |
+| `MIP` | off | `experiment` |
+
+Because one acquisition is read from a single directory and written as a single plate, exactly one of the two must be enabled:
+
+```python
+z_processing=None                          # the default — raw images
+z_processing={"raw": False, "mip": True}   # projections only
+```
+
+| Selection | Result |
+|---|---|
+| unset, or `Raw` only | The raw images — a Z stack where the acquisition has one. |
+| `MIP` only | The contents of `experiment`. An error if the acquisition has no such directory. |
+| both enabled | An error — MD reads one source directory, so convert the acquisition twice instead. |
+| nothing enabled | An error — enable one, or leave the option unset. |
+
+Note that `MIP` simply means "read `experiment`". On an acquisition with no `experiment_z_stack` alongside it, that directory holds the raw images rather than projections, and they are converted as they always were.
 
 ## Task Parameters
 
-The MD ImageXpress init task extends the base acquisition parameters with MD-specific advanced options:
+The MD ImageXpress init task extends the base acquisition parameters with a projection selection and MD-specific advanced options:
 
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `Path` | `str` | *required* | Path to the acquisition directory or `.mxprotocol` file. |
 | `Plate Name` | `str` or `null` | `null` | Custom plate name. Defaults to the directory name. |
 | `Acquisition Id` | `int` | `0` | Acquisition identifier for multi-acquisition plates. |
+| `Z Processing` | `ZProcessingSelection` or `null` | `null` | [Which Z-image processing outputs to convert](#z-processing). Unset converts the raw images. |
 | `Advanced` | `MDAcquisitionOptions` | `{}` | Advanced options (see below). |
 
 ### MD-Specific Advanced Options
@@ -60,11 +86,10 @@ In addition to the [common advanced options](index.md#acquisition-options-advanc
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `Convert Only Projections` | `bool` | `false` | Only convert projection images from the `experiment` directory, ignoring Z-stacks. |
 | `Convert Montages` | `bool` | `false` | Convert montaged / stitched images from `experiment_montage` instead of individual FOVs. |
 
 !!! warning "Incompatible options"
-    `Convert Only Projections` and `Convert Montages` cannot both be enabled when the montage data contains Z-stacks.
+    `Convert Montages` takes precedence over `Z Processing` in choosing the source directory, so enabling it together with `MIP` is an error when the montage data contains Z-stacks.
 
 ## Multiple Acquisitions (same plate)
 

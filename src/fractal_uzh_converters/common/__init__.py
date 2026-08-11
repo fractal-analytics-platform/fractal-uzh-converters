@@ -11,6 +11,7 @@ from fractal_uzh_converters.common._utils import (
     parse_acquisitions_grouped,
     plate_urls_for_images,
 )
+from fractal_uzh_converters.common._z_processing import ZProcessingSelection
 from fractal_uzh_converters.common.image_in_plate_compute_task import (
     image_in_plate_compute_task,
 )
@@ -23,6 +24,7 @@ __all__ = [
     "BaseAcquisitionModel",
     "HCSBaseAcquisitionModel",
     "SingleBaseAcquisitionModel",
+    "ZProcessingSelection",
     "clean_channel_string",
     "get_attributes_from_condition_table",
     "image_in_plate_compute_task",
