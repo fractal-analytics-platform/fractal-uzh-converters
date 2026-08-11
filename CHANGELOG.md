@@ -58,6 +58,8 @@ Migration to `ome-zarr-converters-tools` v1.
   base. Such records are skipped, with one warning per acquisition (#41).
 
 ### Chores
+- Tests: rename the stale `init_task_kwargs` parametrize variable to `api_kwargs`, the
+  only name `run_converter_test` has ever accepted.
 - All converters: what a converter has to say about the input data is now a real
   `warnings.warn` under a `ConverterWarning` hierarchy instead of a `logger.warning`, so
   a caller can filter or escalate it; the init tasks keep it visible in the task log.

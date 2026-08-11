@@ -22,7 +22,7 @@ _SINGLE_DATASETS = ["img_2p2c1z1t"]
 
 
 @pytest.mark.parametrize(
-    "init_task_kwargs, snapshot_name",
+    "api_kwargs, snapshot_name",
     [
         pytest.param(
             {"acquisitions": [{"path": str(RAW_DIR / name)}]},
@@ -33,7 +33,7 @@ _SINGLE_DATASETS = ["img_2p2c1z1t"]
 )
 def test_hcs_tiff(
     tmp_path: Path,
-    init_task_kwargs: dict,
+    api_kwargs: dict,
     snapshot_name: str,
     update_snapshots: bool,
     converter_options,
@@ -41,7 +41,7 @@ def test_hcs_tiff(
     run_converter_test(
         tmp_path=tmp_path,
         api_fn=convert_hcs_tiff,
-        api_kwargs=init_task_kwargs,
+        api_kwargs=api_kwargs,
         snapshot_path=SNAPSHOT_DIR / f"{snapshot_name}.json",
         update_snapshots=update_snapshots,
         converter_options=converter_options,
@@ -49,7 +49,7 @@ def test_hcs_tiff(
 
 
 @pytest.mark.parametrize(
-    "init_task_kwargs, snapshot_name",
+    "api_kwargs, snapshot_name",
     [
         pytest.param(
             {"acquisitions": [{"path": str(RAW_DIR / name)}]},
@@ -60,7 +60,7 @@ def test_hcs_tiff(
 )
 def test_single_tiff(
     tmp_path: Path,
-    init_task_kwargs: dict,
+    api_kwargs: dict,
     snapshot_name: str,
     update_snapshots: bool,
     converter_options,
@@ -68,7 +68,7 @@ def test_single_tiff(
     run_converter_test(
         tmp_path=tmp_path,
         api_fn=convert_single_tiff,
-        api_kwargs=init_task_kwargs,
+        api_kwargs=api_kwargs,
         snapshot_path=SNAPSHOT_DIR / f"{snapshot_name}.json",
         update_snapshots=update_snapshots,
         converter_options=converter_options,

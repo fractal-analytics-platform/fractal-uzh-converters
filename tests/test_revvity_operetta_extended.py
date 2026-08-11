@@ -27,7 +27,7 @@ _DATASETS: list[str] = [
 
 @pytest.mark.extended
 @pytest.mark.parametrize(
-    "init_task_kwargs, snapshot_name",
+    "api_kwargs, snapshot_name",
     [
         (
             {"acquisitions": [{"path": str(RAW_DIR / name), "acquisition_id": 0}]},
@@ -38,7 +38,7 @@ _DATASETS: list[str] = [
 )
 def test_operetta_extended(
     tmp_path: Path,
-    init_task_kwargs: dict,
+    api_kwargs: dict,
     snapshot_name: str,
     update_snapshots: bool,
     converter_options,
@@ -46,7 +46,7 @@ def test_operetta_extended(
     run_converter_test(
         tmp_path=tmp_path,
         api_fn=convert_operetta,
-        api_kwargs=init_task_kwargs,
+        api_kwargs=api_kwargs,
         snapshot_path=SNAPSHOT_DIR / f"{snapshot_name}.json",
         update_snapshots=update_snapshots,
         converter_options=converter_options,
