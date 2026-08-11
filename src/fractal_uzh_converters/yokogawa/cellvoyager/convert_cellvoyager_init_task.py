@@ -10,6 +10,7 @@ from ome_zarr_converters_tools import (
 from pydantic import validate_call
 
 from fractal_uzh_converters.common import (
+    log_converter_warnings,
     parse_acquisitions_grouped,
     plate_urls_for_images,
 )
@@ -47,6 +48,10 @@ def convert_cellvoyager_init_task(
             - "Extend": Extend existing data without removing it.
             Default is "No Overwrite".
     """
+    # Fractal captures the task's logging output, not its stderr, so the
+    # converters' warnings are routed through the `py.warnings` logger.
+    log_converter_warnings()
+
     grouped = parse_acquisitions_grouped(
         parse_function=parse_cellvoyager_metadata,
         acquisitions=acquisitions,

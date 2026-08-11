@@ -16,13 +16,14 @@ The fixtures are derived from the in-repo CQ3K and CellVoyager acquisitions by
 rewriting their XML in `tmp_path`, so all four are covered by the fast suite.
 """
 
-import logging
 import re
 import shutil
+import warnings
 from pathlib import Path
 
 import pytest
 
+from fractal_uzh_converters.common import GeometryWarning, SourceMetadataWarning
 from fractal_uzh_converters.yokogawa._channels import (
     ChannelGeometry,
     warn_on_channel_geometry_mismatch,
@@ -162,13 +163,19 @@ def _geometry(ch: int, pixel_size: float = 0.5, frame: int = 2000) -> ChannelGeo
         pytest.param([_geometry(1), _geometry(2)], id="agreeing"),
     ],
 )
-def test_agreeing_channel_geometry_is_silent(caplog, geometries):
-    """Nothing to report when the channels agree, or there is nothing to compare."""
-    with caplog.at_level(logging.WARNING):
+def test_agreeing_channel_geometry_is_silent(geometries):
+    """Nothing to report when the channels agree, or there is nothing to compare.
+
+    `pytest.warns` cannot assert an absence, so the recording context is opened by
+    hand. `simplefilter("always")` overrides the suite-wide
+    `ignore::ConverterWarning`, which would otherwise make this pass vacuously.
+    """
+    with warnings.catch_warnings(record=True) as raised:
+        warnings.simplefilter("always")
         warn_on_channel_geometry_mismatch(
             geometries=geometries, acquisition_dir="/some/acquisition"
         )
-    assert caplog.records == []
+    assert raised == []
 
 
 @pytest.mark.parametrize(
@@ -178,16 +185,16 @@ def test_agreeing_channel_geometry_is_silent(caplog, geometries):
         pytest.param(_geometry(2, frame=1000), "1000", id="frame-size"),
     ],
 )
-def test_disagreeing_channel_geometry_warns(caplog, odd_one_out, expected: str):
+def test_disagreeing_channel_geometry_warns(odd_one_out, expected: str):
     """A channel whose geometry differs from channel 1's is reported, once."""
-    with caplog.at_level(logging.WARNING):
+    with pytest.warns(GeometryWarning) as raised:
         warn_on_channel_geometry_mismatch(
             geometries=[_geometry(1), odd_one_out],
             acquisition_dir="/some/acquisition",
         )
 
-    assert len(caplog.records) == 1
-    message = caplog.records[0].message
+    assert len(raised) == 1
+    message = str(raised[0].message)
     assert "bts:Ch 2" in message
     assert expected in message
     assert "/some/acquisition" in message
@@ -196,7 +203,6 @@ def test_disagreeing_channel_geometry_warns(caplog, odd_one_out, expected: str):
 @BOTH_CONVERTERS
 def test_geometry_warning_does_not_change_the_applied_pixel_size(
     tmp_path: Path,
-    caplog,
     converter_options,
     fixture: Path,
     model_cls,
@@ -223,7 +229,7 @@ def test_geometry_warning_does_not_change_the_applied_pixel_size(
     )
     mrf.write_text(text.replace(first_channel, first_channel + extra_channel), "utf-8")
 
-    with caplog.at_level(logging.WARNING):
+    with pytest.warns(GeometryWarning) as raised:
         tiled_images = parse_fn(
             acquisition_model=model_cls(
                 path=str(acquisition_dir), acquisition_id=0, **model_kwargs
@@ -231,8 +237,8 @@ def test_geometry_warning_does_not_change_the_applied_pixel_size(
             converter_options=converter_options,
         )
 
-    warnings = [r.message for r in caplog.records if "bts:Ch 99" in r.message]
-    assert len(warnings) == 1, "expected exactly one warning, per acquisition"
+    reported = [str(w.message) for w in raised if "bts:Ch 99" in str(w.message)]
+    assert len(reported) == 1, "expected exactly one warning, per acquisition"
 
     # Unchanged behaviour: every image still carries channel 1's pixel size. The
     # injected channel 99 declares a ten-times-larger one.
@@ -321,7 +327,6 @@ def test_error_records_are_skipped(
 @BOTH_CONVERTERS
 def test_error_records_warn_once_per_acquisition(
     tmp_path: Path,
-    caplog,
     converter_options,
     fixture: Path,
     model_cls,
@@ -336,7 +341,7 @@ def test_error_records_warn_once_per_acquisition(
     acquisition_dir = _copy_acquisition(fixture, tmp_path)
     _add_error_records(acquisition_dir)
 
-    with caplog.at_level(logging.WARNING):
+    with pytest.warns(SourceMetadataWarning) as raised:
         parse_fn(
             acquisition_model=model_cls(
                 path=str(acquisition_dir), acquisition_id=0, **model_kwargs
@@ -344,10 +349,10 @@ def test_error_records_warn_once_per_acquisition(
             converter_options=converter_options,
         )
 
-    warnings = [r.message for r in caplog.records if "bts:Type='ERR'" in r.message]
-    assert len(warnings) == 1, "expected exactly one warning, per acquisition"
-    assert "2" in warnings[0], "the warning must carry the count"
-    assert str(acquisition_dir) in warnings[0]
+    reported = [str(w.message) for w in raised if "bts:Type='ERR'" in str(w.message)]
+    assert len(reported) == 1, "expected exactly one warning, per acquisition"
+    assert "2" in reported[0], "the warning must carry the count"
+    assert str(acquisition_dir) in reported[0]
 
 
 @BOTH_CONVERTERS

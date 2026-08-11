@@ -58,6 +58,9 @@ Migration to `ome-zarr-converters-tools` v1.
   base. Such records are skipped, with one warning per acquisition (#41).
 
 ### Chores
+- All converters: what a converter has to say about the input data is now a real
+  `warnings.warn` under a `ConverterWarning` hierarchy instead of a `logger.warning`, so
+  a caller can filter or escalate it; the init tasks keep it visible in the task log.
 - Unify the two Yokogawa converters into a `yokogawa/` package with one shared parser and
   thin `cq3k`/`cellvoyager` layers; `fractal_uzh_converters.{cq3k,cellvoyager}` move to
   `fractal_uzh_converters.yokogawa.{cq3k,cellvoyager}`, package-root names are unchanged.

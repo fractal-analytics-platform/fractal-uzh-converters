@@ -1,6 +1,7 @@
 """Utility functions for Operetta data."""
 
 import logging
+import warnings
 from typing import Any
 
 import numpy as np
@@ -25,6 +26,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from fractal_uzh_converters.common import (
     STANDARD_ROWS_NAMES,
+    GeometryWarning,
     HCSBaseAcquisitionModel,
     clean_channel_string,
     get_attributes_from_condition_table,
@@ -183,7 +185,11 @@ def _get_z_spacing(images: list[OperettaImageMeta]) -> float:
         return 1.0
     delta_z = np.diff(z_positions)
     if not np.allclose(delta_z, delta_z[0]):
-        logger.warning("Z spacing is not constant, using mean value.")
+        warnings.warn(
+            "Z spacing is not constant, using mean value.",
+            GeometryWarning,
+            stacklevel=2,
+        )
     return float(np.mean(delta_z))
 
 
@@ -248,9 +254,11 @@ def build_acquisition_details(
     is_time_series = _is_time_series(images)
 
     if not np.isclose(pixelsize_x, pixelsize_y):
-        logger.warning(
+        warnings.warn(
             f"Physical size x ({pixelsize_x}) and y ({pixelsize_y}) are not equal. "
-            "Using x size for pixelsize."
+            "Using x size for pixelsize.",
+            GeometryWarning,
+            stacklevel=2,
         )
     axes = default_axes_builder(is_time_series=is_time_series)
     channels = [

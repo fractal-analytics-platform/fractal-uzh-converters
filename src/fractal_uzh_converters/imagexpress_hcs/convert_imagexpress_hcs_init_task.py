@@ -10,6 +10,7 @@ from ome_zarr_converters_tools import (
 from pydantic import validate_call
 
 from fractal_uzh_converters.common import (
+    log_converter_warnings,
     parse_acquisitions,
 )
 from fractal_uzh_converters.imagexpress_hcs._utils import (
@@ -46,6 +47,10 @@ def convert_imagexpress_hcs_init_task(
             - "Extend": Extend existing data without removing it.
             Default is "No Overwrite".
     """
+    # Fractal captures the task's logging output, not its stderr, so the
+    # converters' warnings are routed through the `py.warnings` logger.
+    log_converter_warnings()
+
     tiled_images = parse_acquisitions(
         parse_function=parse_md_metadata,
         acquisitions=acquisitions,

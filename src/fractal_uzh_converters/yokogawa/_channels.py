@@ -13,6 +13,7 @@ labelled `channel_0…channel_N`.
 """
 
 import logging
+import warnings
 from collections.abc import Iterable
 from typing import Any, NamedTuple
 
@@ -27,7 +28,11 @@ from ome_zarr_converters_tools import (
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_pascal
 
-from fractal_uzh_converters.common import clean_channel_string
+from fractal_uzh_converters.common import (
+    ChannelMetadataWarning,
+    GeometryWarning,
+    clean_channel_string,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -167,9 +172,11 @@ def read_mes_channels(
         the in-repo CV7000 fixture names a `.mes` that was never shipped with it.
     """
     if not mes_file_name:
-        logger.warning(
+        warnings.warn(
             "No `.mes` file name recorded in the `.mrf`; channel labels will fall "
-            "back to their wavelength ids."
+            "back to their wavelength ids.",
+            ChannelMetadataWarning,
+            stacklevel=2,
         )
         return None
 
@@ -177,21 +184,31 @@ def read_mes_channels(
     try:
         mes = parse_mes(mes_url)
     except FileNotFoundError:
-        logger.warning(
+        warnings.warn(
             f"`.mes` file {mes_url} is named in the `.mrf` but does not exist; "
-            "channel labels will fall back to their wavelength ids."
+            "channel labels will fall back to their wavelength ids.",
+            ChannelMetadataWarning,
+            stacklevel=2,
         )
         return None
 
     if mes.channel_list is None:
-        logger.warning(f"`.mes` file {mes_url} has no channel list.")
+        warnings.warn(
+            f"`.mes` file {mes_url} has no channel list.",
+            ChannelMetadataWarning,
+            stacklevel=2,
+        )
         return None
 
     channels = mes.channel_list.channel
     if isinstance(channels, MesChannel):
         channels = [channels]
     if not channels:
-        logger.warning(f"`.mes` file {mes_url} has an empty channel list.")
+        warnings.warn(
+            f"`.mes` file {mes_url} has an empty channel list.",
+            ChannelMetadataWarning,
+            stacklevel=2,
+        )
         return None
     return sorted(channels, key=lambda channel: channel.ch)
 
@@ -226,9 +243,11 @@ def _actions_by_channel(acquired: list[tuple[int, int]]) -> dict[int, int]:
     resolved = {}
     for ch, ch_actions in actions.items():
         if len(ch_actions) > 1:
-            logger.warning(
+            warnings.warn(
                 f"Channel Ch{ch} is acquired by more than one action "
-                f"({sorted(ch_actions)}); using the lowest for its wavelength id."
+                f"({sorted(ch_actions)}); using the lowest for its wavelength id.",
+                ChannelMetadataWarning,
+                stacklevel=2,
             )
         resolved[ch] = min(ch_actions)
     return resolved
@@ -246,12 +265,20 @@ def _strip_argb_alpha(color: str | None, *, ch: int) -> str | None:
 
     value = color.strip()
     if not value.startswith("#"):
-        logger.warning(f"Ignoring malformed `.mes` color {color!r} for Ch{ch}.")
+        warnings.warn(
+            f"Ignoring malformed `.mes` color {color!r} for Ch{ch}.",
+            ChannelMetadataWarning,
+            stacklevel=2,
+        )
         return None
 
     digits = value[1:]
     if not all(c in "0123456789abcdefABCDEF" for c in digits):
-        logger.warning(f"Ignoring malformed `.mes` color {color!r} for Ch{ch}.")
+        warnings.warn(
+            f"Ignoring malformed `.mes` color {color!r} for Ch{ch}.",
+            ChannelMetadataWarning,
+            stacklevel=2,
+        )
         return None
 
     if len(digits) == 8:  # ARGB
@@ -259,7 +286,11 @@ def _strip_argb_alpha(color: str | None, *, ch: int) -> str | None:
     if len(digits) in (3, 6):
         return f"#{digits}"
 
-    logger.warning(f"Ignoring malformed `.mes` color {color!r} for Ch{ch}.")
+    warnings.warn(
+        f"Ignoring malformed `.mes` color {color!r} for Ch{ch}.",
+        ChannelMetadataWarning,
+        stacklevel=2,
+    )
     return None
 
 
@@ -329,9 +360,11 @@ def resolve_channels(
     by_ch: dict[int, MesChannel] = {}
     for channel in mes_channels or []:
         if channel.ch in by_ch:
-            logger.warning(
+            warnings.warn(
                 f"`.mes` channel list declares Ch{channel.ch} more than once; "
-                "keeping the first entry."
+                "keeping the first entry.",
+                ChannelMetadataWarning,
+                stacklevel=2,
             )
             continue
         by_ch[channel.ch] = channel
@@ -432,10 +465,12 @@ def apply_channel_overrides(
     labels = [channel.channel_label for channel in merged]
     duplicates = sorted({label for label in labels if labels.count(label) > 1})
     if duplicates:
-        logger.warning(
+        warnings.warn(
             f"`advanced.channels` produces duplicate channel labels {duplicates}. "
             "Channel labels must be unique within an image; the conversion will "
-            "fail if more than one of them is acquired."
+            "fail if more than one of them is acquired.",
+            ChannelMetadataWarning,
+            stacklevel=2,
         )
     return merged
 
@@ -550,10 +585,12 @@ def warn_on_channel_geometry_mismatch(
         )
         frame_size_differs = other.frame_size != reference.frame_size
         if pixel_size_differs or frame_size_differs:
-            logger.warning(
+            warnings.warn(
                 f"In {acquisition_dir}, bts:Ch {other.ch} declares pixel size "
                 f"{other.xy_pixel_size} and frame size {other.frame_size}, but "
                 f"bts:Ch {reference.ch} declares {reference.xy_pixel_size} and "
                 f"{reference.frame_size}. Channel {reference.ch}'s geometry is "
-                "applied to every channel, so this image may be misplaced."
+                "applied to every channel, so this image may be misplaced.",
+                GeometryWarning,
+                stacklevel=2,
             )

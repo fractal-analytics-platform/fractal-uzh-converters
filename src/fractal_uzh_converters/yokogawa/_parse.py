@@ -10,6 +10,7 @@ always names `.tif` even when the files on disk are `.png`.
 """
 
 import logging
+import warnings
 from collections.abc import Callable
 from typing import Any
 
@@ -32,7 +33,9 @@ from ome_zarr_converters_tools import (
 
 from fractal_uzh_converters.common import (
     STANDARD_ROWS_NAMES,
+    GeometryWarning,
     HCSBaseAcquisitionModel,
+    SourceMetadataWarning,
     get_attributes_from_condition_table,
 )
 from fractal_uzh_converters.yokogawa._channels import (
@@ -136,7 +139,11 @@ def _get_z_spacing(images: list[ImageMeasurementRecord]) -> float:
         return 1.0
     delta_z = np.diff(z_positions)
     if not np.allclose(delta_z, delta_z[0]):
-        logger.warning("Z spacing is not constant, using mean value.")
+        warnings.warn(
+            "Z spacing is not constant, using mean value.",
+            GeometryWarning,
+            stacklevel=2,
+        )
     return float(np.mean(delta_z))
 
 
@@ -173,9 +180,11 @@ def build_acquisition_details(
     pixelsize_y = first_channel.vertical_pixel_dimension
 
     if not np.isclose(pixelsize_x, pixelsize_y):
-        logger.warning(
+        warnings.warn(
             f"Physical size x ({pixelsize_x}) and y ({pixelsize_y}) are not equal. "
-            "Using x size for pixelsize."
+            "Using x size for pixelsize.",
+            GeometryWarning,
+            stacklevel=2,
         )
 
     z_spacing = _get_z_spacing(images)
@@ -330,8 +339,11 @@ def parse_yokogawa_metadata(
     all_image_records = [r for r in records if isinstance(r, ImageMeasurementRecord)]
     skipped = len(records) - len(all_image_records)
     if skipped:
-        logger.warning(
-            f"Skipping {skipped} error record(s) (bts:Type='ERR') in {acquisition_dir}."
+        warnings.warn(
+            f"Skipping {skipped} error record(s) (bts:Type='ERR') in "
+            f"{acquisition_dir}.",
+            SourceMetadataWarning,
+            stacklevel=2,
         )
     if not all_image_records:
         raise ValueError(

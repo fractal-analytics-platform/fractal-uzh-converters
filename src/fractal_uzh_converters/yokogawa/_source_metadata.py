@@ -10,7 +10,7 @@ Nothing here raises: a metadata copy must never fail a conversion that has
 already written its images.
 """
 
-import logging
+import warnings
 
 from ome_zarr_converters_tools import (
     filesystem_for_url,
@@ -19,9 +19,8 @@ from ome_zarr_converters_tools import (
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_pascal
 
+from fractal_uzh_converters.common import SourceMetadataWarning
 from fractal_uzh_converters.yokogawa._channels import _parse_bts_xml
-
-logger = logging.getLogger(__name__)
 
 #: Plate-level files whose basename is fixed by the BTS schema.
 _FIXED_FILE_NAMES = ("MeasurementData.mlf", "MeasurementDetail.mrf")
@@ -89,15 +88,19 @@ def _source_file_names(acquisition_dir: str) -> list[str]:
     try:
         detail = _MeasurementDetailNames(**_parse_bts_xml(mrf_url)["MeasurementDetail"])
     except FileNotFoundError:
-        logger.warning(
+        warnings.warn(
             f"No `MeasurementDetail.mrf` at {mrf_url}; the `.mes`, `.wpi` and `.wpp` "
-            "cannot be located and will not be copied."
+            "cannot be located and will not be copied.",
+            SourceMetadataWarning,
+            stacklevel=2,
         )
         return names
     except Exception as e:
-        logger.warning(
+        warnings.warn(
             f"Could not read the file names out of {mrf_url} ({e}); the `.mes`, "
-            "`.wpi` and `.wpp` will not be copied."
+            "`.wpi` and `.wpp` will not be copied.",
+            SourceMetadataWarning,
+            stacklevel=2,
         )
         return names
 
@@ -161,9 +164,11 @@ def _destination_url(
             if f.read() == payload:
                 return None
 
-    logger.warning(
+    warnings.warn(
         f"Gave up copying {file_name} into {metadata_dir}: "
-        f"{_MAX_COLLISION_VARIANTS + 1} differing copies are already there."
+        f"{_MAX_COLLISION_VARIANTS + 1} differing copies are already there.",
+        SourceMetadataWarning,
+        stacklevel=2,
     )
     return None
 
@@ -185,7 +190,7 @@ def copy_source_metadata(
     raw directory converted into an `s3://` `zarr_dir`), which is the whole point
     of the requirement.
 
-    A missing or unreadable file is logged and skipped, never raised. That path
+    A missing or unreadable file is warned about and skipped, never raised. That path
     is normal, not defensive: the in-repo CV7000 fixture names a `.mes`, a `.wpi`
     and a `.wpp` that were never shipped with it.
 
@@ -205,13 +210,19 @@ def copy_source_metadata(
             with src_fs.open(src, "rb") as f:
                 payload = f.read()
         except FileNotFoundError:
-            logger.warning(
+            warnings.warn(
                 f"Source metadata file {src} does not exist; it will not be copied "
-                "into the plate."
+                "into the plate.",
+                SourceMetadataWarning,
+                stacklevel=2,
             )
             continue
         except Exception as e:
-            logger.warning(f"Could not read source metadata file {src} ({e}).")
+            warnings.warn(
+                f"Could not read source metadata file {src} ({e}).",
+                SourceMetadataWarning,
+                stacklevel=2,
+            )
             continue
 
         for plate_url in plate_urls:
@@ -230,7 +241,9 @@ def copy_source_metadata(
                 with dst_fs.open(dst, "wb") as f:
                     f.write(payload)
             except Exception as e:
-                logger.warning(
+                warnings.warn(
                     f"Could not copy {src} into {metadata_dir} ({e}); the "
-                    "conversion itself is unaffected."
+                    "conversion itself is unaffected.",
+                    SourceMetadataWarning,
+                    stacklevel=2,
                 )

@@ -1,7 +1,7 @@
 """Utility functions for Custom TIFF data."""
 
-import logging
 import tomllib
+import warnings
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -22,13 +22,12 @@ from ome_zarr_converters_tools.core import (
 from pydantic import Field
 
 from fractal_uzh_converters.common import (
+    ChannelMetadataWarning,
     HCSBaseAcquisitionModel,
     SingleBaseAcquisitionModel,
+    SourceMetadataWarning,
     clean_channel_string,
 )
-
-logger = logging.getLogger(__name__)
-
 
 ######################################################################
 #
@@ -111,7 +110,11 @@ _TIME_UNIT_TO_S: dict[str, float] = {
 def _convert_space_unit(value: float, unit: str) -> float | None:
     factor = _SPACE_UNIT_TO_UM.get(unit.strip().lower())
     if factor is None:
-        logger.warning(f"Unknown space unit '{unit}', skipping spacing value.")
+        warnings.warn(
+            f"Unknown space unit '{unit}', skipping spacing value.",
+            SourceMetadataWarning,
+            stacklevel=2,
+        )
         return None
     return value * factor
 
@@ -119,7 +122,11 @@ def _convert_space_unit(value: float, unit: str) -> float | None:
 def _convert_time_unit(value: float, unit: str) -> float | None:
     factor = _TIME_UNIT_TO_S.get(unit.strip().lower())
     if factor is None:
-        logger.warning(f"Unknown time unit '{unit}', skipping t_spacing value.")
+        warnings.warn(
+            f"Unknown time unit '{unit}', skipping t_spacing value.",
+            SourceMetadataWarning,
+            stacklevel=2,
+        )
         return None
     return value * factor
 
@@ -156,7 +163,7 @@ def _parse_tiff_metadata(path: Path) -> dict:
       length_x, length_y, length_z, length_t, length_c (ints, pixels).
 
     Raises ValueError if the TIFF series axes are not a canonical subsequence
-    of t, c, z, y, x.  All other I/O errors are logged as warnings.
+    of t, c, z, y, x.  All other I/O errors are reported as warnings.
     """
     result: dict = {}
     try:
@@ -168,7 +175,11 @@ def _parse_tiff_metadata(path: Path) -> dict:
                     result["length_y"] = int(page_shape[-2])
                     result["length_x"] = int(page_shape[-1])
             except Exception as exc:
-                logger.warning(f"Could not read page shape from {path}: {exc}")
+                warnings.warn(
+                    f"Could not read page shape from {path}: {exc}",
+                    SourceMetadataWarning,
+                    stacklevel=2,
+                )
 
             # Shape from series — may provide z/t/c dims and refine x/y
             try:
@@ -190,7 +201,11 @@ def _parse_tiff_metadata(path: Path) -> dict:
             except ValueError:
                 raise
             except Exception as exc:
-                logger.warning(f"Could not read series shape from {path}: {exc}")
+                warnings.warn(
+                    f"Could not read series shape from {path}: {exc}",
+                    SourceMetadataWarning,
+                    stacklevel=2,
+                )
 
             # OME-TIFF metadata — spacing
             if tif.is_ome:
@@ -221,7 +236,11 @@ def _parse_tiff_metadata(path: Path) -> dict:
                                 if val is not None and val > 0:
                                     result["t_spacing"] = val
                 except Exception as exc:
-                    logger.warning(f"Could not parse OME metadata from {path}: {exc}")
+                    warnings.warn(
+                        f"Could not parse OME metadata from {path}: {exc}",
+                        SourceMetadataWarning,
+                        stacklevel=2,
+                    )
 
             # ImageJ TIFF metadata — spacing (only if not already from OME)
             elif tif.is_imagej:
@@ -244,14 +263,20 @@ def _parse_tiff_metadata(path: Path) -> dict:
                             if val is not None and val > 0:
                                 result["xy_pixel_size"] = val
                 except Exception as exc:
-                    logger.warning(
-                        f"Could not parse ImageJ metadata from {path}: {exc}"
+                    warnings.warn(
+                        f"Could not parse ImageJ metadata from {path}: {exc}",
+                        SourceMetadataWarning,
+                        stacklevel=2,
                     )
 
     except ValueError:
         raise
     except Exception as exc:
-        logger.warning(f"Could not open {path} for metadata parsing: {exc}")
+        warnings.warn(
+            f"Could not open {path} for metadata parsing: {exc}",
+            SourceMetadataWarning,
+            stacklevel=2,
+        )
 
     return result
 
@@ -315,9 +340,11 @@ def _build_acquisition_details(raw: dict) -> AcquisitionDetails:
             (label, wavelength) for label, wavelength in cleaned if label is not None
         ]
         if len(named) != len(cleaned):
-            logger.warning(
+            warnings.warn(
                 "`channel_names` in `acquisition_details.toml` has a blank entry; "
-                "ignoring the whole list and using the default channel names."
+                "ignoring the whole list and using the default channel names.",
+                ChannelMetadataWarning,
+                stacklevel=2,
             )
         else:
             channels = [

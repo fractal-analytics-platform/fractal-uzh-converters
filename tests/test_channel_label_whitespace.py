@@ -20,7 +20,7 @@ from types import SimpleNamespace
 import pytest
 from ome_zarr_converters_tools import ChannelInfo, ChannelInfoUI
 
-from fractal_uzh_converters.common import clean_channel_string
+from fractal_uzh_converters.common import ChannelMetadataWarning, clean_channel_string
 from fractal_uzh_converters.custom_tiff._utils import (
     _build_acquisition_details as custom_tiff_details,
 )
@@ -116,7 +116,7 @@ class TestYokogawa:
         assert merged[0].channel_label == "405"
         assert merged[0].wavelength_id == "A01_C01"
 
-    def test_padded_duplicates_are_reported(self, caplog):
+    def test_padded_duplicates_are_reported(self):
         """`"DAPI"` vs `"DAPI "` is a duplicate the unstripped check missed."""
         resolved = resolve_channels(
             mes_channels=[
@@ -126,7 +126,7 @@ class TestYokogawa:
             acquired=[(1, 1), (1, 2)],
             mrf_channel_count=2,
         )
-        with caplog.at_level("WARNING"):
+        with pytest.warns(ChannelMetadataWarning, match="duplicate channel labels"):
             merged = apply_channel_overrides(
                 resolved=resolved,
                 overrides=[
@@ -137,7 +137,6 @@ class TestYokogawa:
             )
 
         assert [c.channel_label for c in merged] == ["DAPI", "DAPI"]
-        assert "duplicate channel labels" in caplog.text
 
 
 # ---------------------------------------------------------------------------
@@ -231,15 +230,14 @@ class TestCustomTiff:
         assert [c.channel_label for c in details.channels] == ["DAPI", "GFP"]
         assert [c.wavelength_id for c in details.channels] == ["405", "488"]
 
-    def test_blank_name_drops_the_list(self, caplog):
+    def test_blank_name_drops_the_list(self):
         """Rather than leaving one channel of the user's plate nameless."""
-        with caplog.at_level("WARNING"):
+        with pytest.warns(ChannelMetadataWarning, match="blank entry"):
             details = custom_tiff_details(
                 {"channel_names": ["DAPI", "  "], "xy_pixel_size": 0.325}
             )
 
         assert details.channels is None
-        assert "blank entry" in caplog.text
 
 
 # ---------------------------------------------------------------------------

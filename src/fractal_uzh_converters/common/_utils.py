@@ -1,6 +1,7 @@
 """Common utilities for fractal UZH converters."""
 
 import logging
+import warnings
 from typing import TYPE_CHECKING, Protocol, TypeVar
 
 import polars
@@ -13,6 +14,10 @@ from ome_zarr_converters_tools import (
     join_url_paths,
 )
 from pydantic import BaseModel, Field
+
+# Imported from the private module, not the package: `common/__init__.py` imports
+# this one.
+from fractal_uzh_converters.common._warnings import SourceMetadataWarning
 
 if TYPE_CHECKING:
     from ome_zarr_converters_tools import AcquisitionOptions
@@ -196,7 +201,11 @@ def parse_acquisitions_grouped(
         )
 
         if not _tiled_images:
-            logger.warning(f"No images found in {acq.path}")
+            warnings.warn(
+                f"No images found in {acq.path}",
+                SourceMetadataWarning,
+                stacklevel=2,
+            )
             continue
         else:
             logger.info(f"Found {len(_tiled_images)} images in acquisition {acq.path}")
@@ -291,9 +300,11 @@ def get_attributes_from_condition_table(
         filtered = filtered.filter(polars.col(acquisition_col_name) == acquisition)
         skip_keys.add(acquisition_col_name)
     if filtered.is_empty():
-        logger.warning(
+        warnings.warn(
             f"No matching entry found in condition table "
-            f"for row:{row} / column:{column} / acquisition:{acquisition}"
+            f"for row:{row} / column:{column} / acquisition:{acquisition}",
+            SourceMetadataWarning,
+            stacklevel=2,
         )
         return {}
     filtered_dict = filtered.to_dict(as_series=False)

@@ -17,6 +17,7 @@ from xml.parsers.expat import ExpatError
 import pytest
 from ome_zarr_converters_tools import ChannelInfo, ChannelInfoUI, join_url_paths
 
+from fractal_uzh_converters.common import ChannelMetadataWarning
 from fractal_uzh_converters.yokogawa._channels import (
     MesChannel,
     _actions_by_channel,
@@ -112,24 +113,22 @@ class TestReadMesChannels:
         assert channels is not None
         assert [channel.ch for channel in channels] == [1]
 
-    def test_missing_mes_is_not_an_error(self, caplog):
+    def test_missing_mes_is_not_an_error(self):
         """A `.mes` named in the `.mrf` but absent falls back, it does not raise."""
-        with caplog.at_level("WARNING"):
+        with pytest.warns(ChannelMetadataWarning, match="does not exist"):
             channels = read_mes_channels(
                 acquisition_dir=str(CELLVOYAGER_FIXTURE),
                 mes_file_name=_CELLVOYAGER_FIXTURE_MES,
             )
 
         assert channels is None
-        assert "does not exist" in caplog.text
 
-    def test_unnamed_mes(self, caplog):
-        with caplog.at_level("WARNING"):
+    def test_unnamed_mes(self):
+        with pytest.warns(ChannelMetadataWarning, match="No `.mes` file name"):
             assert (
                 read_mes_channels(acquisition_dir=str(CQ3K_FIXTURE), mes_file_name=None)
                 is None
             )
-        assert "No `.mes` file name" in caplog.text
 
     def test_channels_are_sorted_by_ch(self, tmp_path: Path):
         url = _write_mes(
@@ -164,16 +163,15 @@ class TestReadMesChannels:
         )
         assert channels == [MesChannel(ch=1, target="405", color=None)]
 
-    def test_no_channel_list(self, tmp_path: Path, caplog):
+    def test_no_channel_list(self, tmp_path: Path):
         url = _write_mes(tmp_path, "  <bts:LightSourceList />")
-        with caplog.at_level("WARNING"):
+        with pytest.warns(ChannelMetadataWarning, match="no channel list"):
             assert (
                 read_mes_channels(
                     acquisition_dir=str(tmp_path), mes_file_name=Path(url).name
                 )
                 is None
             )
-        assert "no channel list" in caplog.text
 
     def test_truncated_xml_raises(self, tmp_path: Path):
         """A broken `.mes` is a real error, unlike an absent one."""
@@ -263,11 +261,10 @@ class TestPureHelpers:
     def test_actions_by_channel(self):
         assert _actions_by_channel([(2, 1), (2, 1), (1, 4)]) == {1: 2, 4: 1}
 
-    def test_actions_by_channel_warns_on_ambiguity(self, caplog):
+    def test_actions_by_channel_warns_on_ambiguity(self):
         """`(ActionIndex, Ch)` is 1:1 on `Ch` in all known data."""
-        with caplog.at_level("WARNING"):
+        with pytest.warns(ChannelMetadataWarning, match="more than one action"):
             assert _actions_by_channel([(3, 1), (1, 1)]) == {1: 1}
-        assert "more than one action" in caplog.text
 
     @pytest.mark.parametrize(
         "acquired, expected", [([], 0), ([(1, 2), (1, 4), (2, 3)], 4)]
@@ -387,8 +384,8 @@ class TestResolveChannels:
             "t5",
         ]
 
-    def test_duplicate_ch_keeps_the_first(self, caplog):
-        with caplog.at_level("WARNING"):
+    def test_duplicate_ch_keeps_the_first(self):
+        with pytest.warns(ChannelMetadataWarning, match="more than once"):
             resolved = resolve_channels(
                 mes_channels=[
                     MesChannel(ch=1, target="first"),
@@ -398,7 +395,6 @@ class TestResolveChannels:
                 mrf_channel_count=1,
             )
         assert [c.channel_label for c in resolved] == ["first"]
-        assert "more than once" in caplog.text
 
     def test_mrf_channel_count_widens_the_range(self):
         resolved = resolve_channels(
@@ -554,16 +550,15 @@ class TestApplyChannelOverrides:
         assert merged[0].color != "#0000FF"
         assert merged[1].color == "#0000FF"
 
-    def test_duplicate_labels_warn_but_are_not_renamed(self, caplog):
+    def test_duplicate_labels_warn_but_are_not_renamed(self):
         """Renaming a label the user typed on purpose would be worse."""
         overrides = [ChannelInfoUI(channel_label="same") for _ in range(4)]
-        with caplog.at_level("WARNING"):
+        with pytest.warns(ChannelMetadataWarning, match="duplicate channel labels"):
             merged = apply_channel_overrides(
                 resolved=_resolved(), overrides=overrides, max_acquired_ch=4
             )
 
         assert [c.channel_label for c in merged[:4]] == ["same"] * 4
-        assert "duplicate channel labels" in caplog.text
 
 
 # ---------------------------------------------------------------------------

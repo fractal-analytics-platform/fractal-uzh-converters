@@ -1,7 +1,7 @@
 """Utility functions for Evident ScanR data."""
 
-import logging
 import re
+import warnings
 from typing import Literal, NamedTuple
 
 import numpy as np
@@ -25,6 +25,8 @@ from pydantic import Field, field_validator
 
 from fractal_uzh_converters.common import (
     STANDARD_ROWS_NAMES,
+    ChannelMetadataWarning,
+    GeometryWarning,
     HCSBaseAcquisitionModel,
     clean_channel_string,
     get_attributes_from_condition_table,
@@ -49,8 +51,6 @@ STANDARD_PLATES_LAYOUTS: dict[AVAILABLE_PLATE_LAYOUTS, dict[str, int]] = {
         "columns": 24,
     },
 }
-
-logger = logging.getLogger(__name__)
 
 
 class ScanRAcquisitionModel(HCSBaseAcquisitionModel):
@@ -131,7 +131,11 @@ def _get_channel_names(image) -> list[str] | None:
             return None
         return [name for name in parsed_channels if name is not None]
     except Exception as e:
-        logger.warning(f"Could not parse channel names: {e}")
+        warnings.warn(
+            f"Could not parse channel names: {e}",
+            ChannelMetadataWarning,
+            stacklevel=2,
+        )
         return None
 
 
@@ -176,9 +180,11 @@ def build_acquisition_details(
     pixelsize_x = image_meta.pixels.physical_size_x or 1
     pixelsize_y = image_meta.pixels.physical_size_y or 1
     if not np.isclose(pixelsize_x, pixelsize_y):
-        logger.warning(
+        warnings.warn(
             f"Physical size x ({pixelsize_x}) and y ({pixelsize_y}) are not equal. "
-            "Using x size for pixelsize."
+            "Using x size for pixelsize.",
+            GeometryWarning,
+            stacklevel=2,
         )
 
     channel_names = _get_channel_names(image_meta)

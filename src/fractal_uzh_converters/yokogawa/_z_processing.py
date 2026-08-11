@@ -7,13 +7,11 @@ tiles; each kind is written as its own plate instead, suffixed by the
 abbreviation of its algorithm.
 """
 
-import logging
+import warnings
 
 from pydantic import Field
 
-from fractal_uzh_converters.common import ZProcessingSelection
-
-logger = logging.getLogger(__name__)
+from fractal_uzh_converters.common import ConverterWarning, ZProcessingSelection
 
 #: `bts:ZImageProcessing` values, mapped to the conventional imaging abbreviations.
 #: Anything else is used verbatim, with a warning.
@@ -54,9 +52,11 @@ def _z_processing_token(z_type: str | None) -> str:
         return _RAW
     token = _Z_PROCESSING_SUFFIXES.get(z_type)
     if token is None:
-        logger.warning(
+        warnings.warn(
             f"Unknown z image processing type '{z_type}'. Using it verbatim as the "
-            "plate name suffix."
+            "plate name suffix.",
+            ConverterWarning,
+            stacklevel=2,
         )
         token = z_type
     return token
@@ -115,9 +115,11 @@ def _select_z_processing(
 
     missing = sorted(selected - available)
     if missing:
-        logger.warning(
+        warnings.warn(
             f"`z_processing` enables {missing}, which {acquisition_dir} does not "
-            "contain. Converting the rest of the selection."
+            "contain. Converting the rest of the selection.",
+            ConverterWarning,
+            stacklevel=2,
         )
 
     # An unrecognised `bts:ZImageProcessing` value keeps its raw string as the token,
@@ -128,10 +130,12 @@ def _select_z_processing(
         if z_type not in kept and token not in _Z_PROCESSING_TOKENS.values()
     )
     if unnameable:
-        logger.warning(
+        warnings.warn(
             f"Skipping the unrecognised z image processing type(s) {unnameable}, "
             "which `z_processing` cannot name. Use a `Path Regex Filter` on the "
-            "plate name to select them."
+            "plate name to select them.",
+            ConverterWarning,
+            stacklevel=2,
         )
     return kept
 

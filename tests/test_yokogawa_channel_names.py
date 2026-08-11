@@ -16,6 +16,7 @@ from pathlib import Path
 
 import pytest
 
+from fractal_uzh_converters.common import ChannelMetadataWarning
 from fractal_uzh_converters.yokogawa.cellvoyager import convert_cellvoyager
 from fractal_uzh_converters.yokogawa.cellvoyager._utils import (
     CellVoyagerAcquisitionModel,
@@ -82,29 +83,29 @@ def test_cq3k_labels_come_from_the_mes(tmp_path: Path, converter_options):
 
 
 def test_cellvoyager_without_a_mes_falls_back_to_the_wavelength_id(
-    tmp_path: Path, converter_options, caplog
+    tmp_path: Path, converter_options
 ):
     """A `.mes` named in the `.mrf` but never shipped is a warning, not an error."""
     zarr_dir = tmp_path / "output"
     zarr_dir.mkdir()
 
-    image_list_updates = convert_cellvoyager(
-        zarr_dir=str(zarr_dir),
-        acquisitions=[
-            {
-                "path": str(CELLVOYAGER_RAW_DIR / "hcs_1w1p1c1z1t"),
-                "acquisition_id": 0,
-                "image_extension": ".png",
-            }
-        ],
-        converter_options=converter_options,
-    )
+    with pytest.warns(ChannelMetadataWarning, match="does not exist"):
+        image_list_updates = convert_cellvoyager(
+            zarr_dir=str(zarr_dir),
+            acquisitions=[
+                {
+                    "path": str(CELLVOYAGER_RAW_DIR / "hcs_1w1p1c1z1t"),
+                    "acquisition_id": 0,
+                    "image_extension": ".png",
+                }
+            ],
+            converter_options=converter_options,
+        )
 
     channels = channel_metadata(zarr_dir, image_list_updates)
     assert channels
     for labels, wavelength_ids in channels.values():
         assert labels == wavelength_ids == ["A01_C01"]
-    assert "does not exist" in caplog.text
 
 
 ######################################################################

@@ -8,13 +8,12 @@ projection suffixes are being renamed in a separate change and these tests must
 not care.
 """
 
-import logging
 from pathlib import Path
 
 import pytest
 from ome_zarr_converters_tools import SingleImage, join_url_paths
 
-from fractal_uzh_converters.common import plate_urls_for_images
+from fractal_uzh_converters.common import SourceMetadataWarning, plate_urls_for_images
 from fractal_uzh_converters.yokogawa import _source_metadata
 from fractal_uzh_converters.yokogawa._source_metadata import (
     METADATA_DIR_NAME,
@@ -139,13 +138,13 @@ def test_cq3k_preserves_the_verbatim_filename(tmp_path: Path, converter_options)
 
 
 def test_cellvoyager_warns_for_files_the_mrf_names_but_ships(
-    tmp_path: Path, converter_options, caplog
+    tmp_path: Path, converter_options
 ):
     """A missing source is a warning and a skip, never a failed conversion."""
     zarr_dir = tmp_path / "output"
     zarr_dir.mkdir()
 
-    with caplog.at_level(logging.WARNING, logger=_source_metadata.__name__):
+    with pytest.warns(SourceMetadataWarning) as raised:
         convert_cellvoyager(
             zarr_dir=str(zarr_dir),
             acquisitions=[
@@ -163,11 +162,7 @@ def test_cellvoyager_warns_for_files_the_mrf_names_but_ships(
     for plate_dir in plates:
         assert set(_metadata_files(plate_dir)) == CELLVOYAGER_PRESENT_FILES
 
-    warned = "\n".join(
-        record.message
-        for record in caplog.records
-        if record.name == _source_metadata.__name__
-    )
+    warned = "\n".join(str(w.message) for w in raised)
     for missing in CELLVOYAGER_MISSING_FILES:
         assert missing in warned
 
@@ -234,21 +229,20 @@ def test_a_second_acquisition_does_not_overwrite_the_first(tmp_path: Path):
     assert copied["Protocol_acq1.mes"] == b"Protocol.mes-bob"
 
 
-def test_a_missing_mrf_still_copies_the_mlf(tmp_path: Path, caplog):
+def test_a_missing_mrf_still_copies_the_mlf(tmp_path: Path):
     """The two fixed names do not depend on the `.mrf` being readable."""
     acquisition = tmp_path / "raw"
     acquisition.mkdir()
     (acquisition / "MeasurementData.mlf").write_bytes(b"records")
     plate_url = str(tmp_path / "plate.zarr")
 
-    with caplog.at_level(logging.WARNING, logger=_source_metadata.__name__):
+    with pytest.warns(SourceMetadataWarning, match="MeasurementDetail.mrf"):
         copy_source_metadata(acquisition_dir=str(acquisition), plate_urls=[plate_url])
 
     assert _metadata_files(Path(plate_url)) == {"MeasurementData.mlf": b"records"}
-    assert "MeasurementDetail.mrf" in caplog.text
 
 
-def test_a_malformed_mrf_still_copies_the_fixed_names(tmp_path: Path, caplog):
+def test_a_malformed_mrf_still_copies_the_fixed_names(tmp_path: Path):
     """A `.mrf` that does not parse costs the three variable files, nothing more."""
     acquisition = tmp_path / "raw"
     acquisition.mkdir()
@@ -256,14 +250,13 @@ def test_a_malformed_mrf_still_copies_the_fixed_names(tmp_path: Path, caplog):
     (acquisition / "MeasurementDetail.mrf").write_bytes(b"<bts:Not>closed")
     plate_url = str(tmp_path / "plate.zarr")
 
-    with caplog.at_level(logging.WARNING, logger=_source_metadata.__name__):
+    with pytest.warns(SourceMetadataWarning, match="MeasurementDetail.mrf"):
         copy_source_metadata(acquisition_dir=str(acquisition), plate_urls=[plate_url])
 
     assert set(_metadata_files(Path(plate_url))) == {
         "MeasurementData.mlf",
         "MeasurementDetail.mrf",
     }
-    assert "MeasurementDetail.mrf" in caplog.text
 
 
 def test_no_plates_is_a_no_op(tmp_path: Path):

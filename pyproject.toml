@@ -122,6 +122,10 @@ minversion = "8.0"
 testpaths = ["tests"]
 filterwarnings = [
     "error",
+    # The converters' own warnings describe the input data and fire on healthy
+    # runs (no CV8000 acquisition ships a `.wpi`), so "error" would fail the
+    # suite on them. `pytest.warns` installs its own filter and is unaffected.
+    "ignore::fractal_uzh_converters.common.ConverterWarning",
     "ignore::zarr.errors.ZarrUserWarning", # required for anndata
     # "ignore::anndata._warnings.ImplicitModificationWarning", # anndata internal index coercion
     "ignore::UserWarning:anndata._io.zarr", # anndata zarr v2→v3 migration notice

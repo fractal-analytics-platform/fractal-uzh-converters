@@ -20,6 +20,7 @@ from pathlib import Path
 
 import pytest
 
+from fractal_uzh_converters.common import ConverterWarning
 from fractal_uzh_converters.yokogawa._z_processing import (
     _plate_name,
     _z_processing_token,
@@ -97,15 +98,15 @@ def test_known_algorithms_map_to_their_abbreviation(z_type, token, expected):
     assert _plate_name("plate", token) == expected
 
 
-def test_an_unknown_algorithm_is_used_verbatim_with_a_warning(caplog):
+def test_an_unknown_algorithm_is_used_verbatim_with_a_warning():
     """A firmware update adding an algorithm must not break the conversion.
 
     No acquisition in either test store carries a value outside the three known
     ones, so this is the only coverage the fallback gets.
     """
-    assert _z_processing_token("Median") == "Median"
+    with pytest.warns(ConverterWarning, match="Median"):
+        assert _z_processing_token("Median") == "Median"
     assert _plate_name("plate", "Median") == "plate_Median"
-    assert "Median" in caplog.text
 
 
 ######################################################################
@@ -247,16 +248,16 @@ def test_selection_picks_the_plate_subset(selection, expected, converter_options
 
 
 @pytest.mark.extended
-def test_a_selected_kind_the_acquisition_lacks_only_warns(converter_options, caplog):
+def test_a_selected_kind_the_acquisition_lacks_only_warns(converter_options):
     """One selection has to stay usable across a batch of mixed acquisitions."""
-    plates = _plate_names(
-        _SLICES_MIP_MINIP,
-        converter_options,
-        z_processing={"raw": False, "mip": True, "sip": True},
-    )
+    with pytest.warns(ConverterWarning, match="SIP"):
+        plates = _plate_names(
+            _SLICES_MIP_MINIP,
+            converter_options,
+            z_processing={"raw": False, "mip": True, "sip": True},
+        )
 
     assert plates == {f"{_SLICES_MIP_MINIP}_MIP.zarr"}
-    assert "SIP" in caplog.text
 
 
 def test_enabling_nothing_raises(converter_options):
