@@ -45,8 +45,8 @@ _Z_PROCESSING_TOKENS = {
 def _z_processing_token(z_type: str | None) -> str:
     """The selection token for one `bts:ZImageProcessing` value.
 
-    Doubles as the plate name suffix. Resolve it once per distinct `z_type`: an
-    unrecognised value warns here, and `_build_tiles` runs per field of view.
+    Doubles as the plate name suffix. Resolve once per distinct `z_type` — an
+    unrecognised value warns here.
     """
     if z_type is None:
         return _RAW
@@ -70,11 +70,10 @@ def _select_z_processing(
 ) -> set[str | None]:
     """The `z_image_processing` groups to convert, given the user's selection.
 
-    No selection keeps everything. Otherwise a selected kind the acquisition does not
-    contain is a warning rather than an error, so that one selection can be applied to
-    a batch of acquisitions; but a selection matching *nothing* raises, since the
-    alternative is an empty output whose cause only surfaces much later, from the
-    library, without naming the option responsible.
+    No selection keeps everything. A selected kind the acquisition lacks only warns,
+    so one selection stays usable across a batch; a selection matching *nothing*
+    raises, rather than producing an empty output whose cause surfaces later from
+    the library without naming the option responsible.
 
     Args:
         plates_tokens: `{z_image_processing: token}` for this acquisition.

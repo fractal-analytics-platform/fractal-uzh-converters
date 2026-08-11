@@ -1,14 +1,11 @@
 """Tests for the Yokogawa `.mes` reader and channel resolution.
 
-These cover `yokogawa/_channels.py` directly rather than through a conversion,
-so the resolution rules stay pinned independently of the snapshots.
+These cover `yokogawa/_channels.py` directly, so the resolution rules stay pinned
+independently of the snapshots.
 
-The `.mes` file supplies the human-readable channel targets that the `.mlf`/`.mrf`
-pair lacks. The resolved list spans the full instrument channel range, not the
-acquired subset: pruning to what a given image actually acquired happens at
-compute time in the library's `reindex_channels`, so the per-well expectations
-below simulate it with `[full[ch - 1] for ch in sorted(acquired)]` rather than
-asserting an end-to-end result.
+The resolved list spans the full instrument channel range, not the acquired subset
+— pruning happens at compute time in the library's `reindex_channels` — so the
+per-well expectations simulate it with `[full[ch - 1] for ch in sorted(acquired)]`.
 """
 
 from pathlib import Path
@@ -431,16 +428,16 @@ class TestResolveChannels:
         `join_url_paths`, which normalises to forward slashes — on Windows that
         differs from `str(tmp_path / name)`.
         """
-        from fractal_uzh_converters.yokogawa import _channels as _yokogawa
+        from fractal_uzh_converters.yokogawa import _xml
 
         urls = []
-        original = _yokogawa.filesystem_for_url
+        original = _xml.filesystem_for_url
 
         def _spy(url, *args, **kwargs):
             urls.append(url)
             return original(url, *args, **kwargs)
 
-        monkeypatch.setattr(_yokogawa, "filesystem_for_url", _spy)
+        monkeypatch.setattr(_xml, "filesystem_for_url", _spy)
 
         name = Path(
             _write_mes(

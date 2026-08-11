@@ -1,19 +1,9 @@
 """Robustness of the Yokogawa `.mlf`/`.mrf` parsers against real-world variation.
 
-Four independent defects, each with a concrete failing input:
-
-1. `xmltodict` collapses a lone `<bts:MeasurementRecord>` to a bare dict, so the
-   CQ3K parser rejected any acquisition holding exactly one record —
-   `hcs_1w1p1c1z1t_SearchFirst_SP_Grid` in the extended store.
-2. The CQ3K models used `extra="forbid"`, making a single new `bts:` attribute
-   from a firmware update a hard parse failure.
-3. Both converters take pixel size and frame size from the *first* `.mrf`
-   channel and apply them to all of them, silently.
-4. `bts:Type="ERR"` records carry no `bts:FieldIndex`, which was required on the
-   shared record base — one autofocus failure made the whole `.mlf` unparsable.
-
-The fixtures are derived from the in-repo CQ3K and CellVoyager acquisitions by
-rewriting their XML in `tmp_path`, so all four are covered by the fast suite.
+Four independent defects: a single-record `.mlf`, an unknown `bts:` attribute, a
+`.mrf` whose channels disagree on geometry, and `bts:Type="ERR"` records. Fixtures
+are the in-repo acquisitions with their XML rewritten in `tmp_path`, so all four
+stay in the fast suite.
 """
 
 import re

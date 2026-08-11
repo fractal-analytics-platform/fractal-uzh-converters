@@ -5,10 +5,9 @@ were converted to 0-based. The off-by-one was masked by the library default
 `reindex_channels=True`, but any user filling `advanced.channels` hit a
 ``Tile 'FOV_1' references channel index N`` validation error.
 
-The second half of these tests covers the related fix: `AcquisitionDetails` is
-now built once per plate instead of once per field of view, because
-`TiledImage.add_tile` rejects tiles whose `AcquisitionDetails` disagree and
-several fields of view merge into a single output image.
+The second half covers the related fix: `AcquisitionDetails` is now built once per
+plate rather than per field of view, since `TiledImage.add_tile` rejects tiles
+whose details disagree and several fields of view merge into one image.
 """
 
 from pathlib import Path

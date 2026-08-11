@@ -523,12 +523,10 @@ def _only_projections(
 ) -> bool:
     """Whether to read `experiment` instead of preferring `experiment_z_stack`.
 
-    MD reads a single source directory per acquisition and writes one unsuffixed
-    plate, so — unlike Yokogawa, which suffixes a plate per algorithm — `Raw` and
-    `MIP` cannot both be converted in one run.
-
-    The two invalid combinations are rejected here rather than in a validator so
-    that the message can name the acquisition, a batch failing one at a time.
+    MD reads one source directory per acquisition and writes one unsuffixed plate,
+    so unlike Yokogawa it cannot convert `Raw` and `MIP` in the same run. The two
+    invalid combinations are rejected here rather than in a validator so the
+    message can name the acquisition, a batch failing one at a time.
 
     Args:
         selection: The user's `z_processing`, or `None` for the default.

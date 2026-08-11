@@ -19,9 +19,8 @@ class Base(BaseModel):
 
     model_config = ConfigDict(
         alias_generator=to_pascal,
-        # `ignore`, not `forbid`: a firmware update adding a single `bts:` attribute
-        # would otherwise be a hard parse failure. The `.mrf` of both instruments
-        # already carries fields these models do not declare.
+        # `ignore`, not `forbid`: a firmware update adding one `bts:` attribute
+        # would otherwise be a hard parse failure.
         extra="ignore",
     )
 
@@ -65,10 +64,8 @@ class ImageMeasurementRecord(MeasurementRecordBase):
 class ErrorMeasurementRecord(MeasurementRecordBase):
     """Error measurement record.
 
-    An autofocus failure carries no `bts:FieldIndex`, which is why that field
-    sits on `ImageMeasurementRecord` rather than the base (#41). The attributes
-    an ERR record does carry beyond the base set — `bts:PartialTileIndex` — are
-    never read, so `extra="ignore"` absorbs them and they stay unmodelled.
+    An autofocus failure carries no `bts:FieldIndex`, which is why that field sits
+    on `ImageMeasurementRecord` rather than the base (#41).
     """
 
     type: Literal["ERR"]

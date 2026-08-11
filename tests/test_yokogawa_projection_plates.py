@@ -5,14 +5,12 @@ it is now the conventional imaging abbreviation (`_MIP`, `_MinIP`, `_SIP`), with
 anything unrecognised passed through verbatim (issue #45).
 
 Renaming the plates rewrites every CQ3K snapshot, so the cases that matter are
-asserted here explicitly rather than left to the snapshot diff. Where only the
-plate *names* are under test the assertions run off `parse_cq3k_metadata`, which
-reads the `.mlf`/`.mrf` and no image data — `Slices_MIP_MinIP` is 985 MB.
+asserted here explicitly. Where only the plate *names* are under test the
+assertions run off `parse_cq3k_metadata`, which reads no image data.
 
-The split applies to both instruments. The only CellVoyager acquisition in either
-store carrying a `bts:ZImageProcessing` lives in the extended one, so the
-CellVoyager cases at the end rewrite the in-repo fixture's `.mlf` in `tmp_path`
-instead — that is the coverage CI gets, `tests/data-extended/` being gitignored.
+The split applies to both instruments, but the only CellVoyager acquisition with a
+`bts:ZImageProcessing` is in the gitignored extended store — so the CellVoyager
+cases rewrite the in-repo fixture's `.mlf` in `tmp_path`, to give CI coverage.
 """
 
 import shutil

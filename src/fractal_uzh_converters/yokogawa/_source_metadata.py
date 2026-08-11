@@ -1,13 +1,12 @@
 """Copy the plate-level Yokogawa vendor files into the converted plate.
 
-An acquisition carries five plate-level metadata files: the `.mlf` record list
-and the `.mrf` acquisition detail under fixed names, plus a `.mes` protocol, a
-`.wpi` plate definition and a `.wpp` plate product file, whose names are recorded
-inside the `.mrf`. The converters model only the fraction of them they need, so
-they are copied verbatim into `<plate>.zarr/metadata/` and nothing is lost.
+An acquisition carries five: the `.mlf` and `.mrf` under fixed names, plus a `.mes`
+protocol, a `.wpi` plate definition and a `.wpp` plate product whose names are
+recorded in the `.mrf`. The converters model only the fraction they need, so all
+five are copied verbatim into `<plate>.zarr/metadata/` and nothing is lost.
 
-Nothing here raises: a metadata copy must never fail a conversion that has
-already written its images.
+Nothing here raises: a metadata copy must never fail a conversion that has already
+written its images.
 """
 
 import warnings
@@ -20,16 +19,13 @@ from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_pascal
 
 from fractal_uzh_converters.common import SourceMetadataWarning
-from fractal_uzh_converters.yokogawa._channels import _parse_bts_xml
+from fractal_uzh_converters.yokogawa._xml import parse_bts_xml
 
 #: Plate-level files whose basename is fixed by the BTS schema.
 _FIXED_FILE_NAMES = ("MeasurementData.mlf", "MeasurementDetail.mrf")
 
 #: Subdirectory of the plate the vendor files are copied into.
 METADATA_DIR_NAME = "metadata"
-
-#: How many `_acq{id}_{k}` variants to try before giving up on a name collision.
-_MAX_COLLISION_VARIANTS = 10
 
 
 ######################################################################
@@ -42,10 +38,9 @@ _MAX_COLLISION_VARIANTS = 10
 class _MrfNamesBase(BaseModel):
     """Base for the trimmed `.mrf` view used to discover file names.
 
-    Deliberately *not* the converters' `MeasurementDetail`, which pins a dozen
-    required fields: a `.mrf` this module cannot fully validate would cost the
-    two fixed-name copies as well. Here every field is optional — a `.mrf` that
-    names no `.wpi` simply yields one file fewer.
+    Not the converters' `MeasurementDetail`, which pins a dozen required fields: a
+    `.mrf` that failed full validation would cost the two fixed-name copies too.
+    Every field here is optional — a `.mrf` naming no `.wpi` yields one file fewer.
     """
 
     model_config = ConfigDict(
@@ -86,7 +81,7 @@ def _source_file_names(acquisition_dir: str) -> list[str]:
 
     mrf_url = join_url_paths(acquisition_dir, "MeasurementDetail.mrf")
     try:
-        detail = _MeasurementDetailNames(**_parse_bts_xml(mrf_url)["MeasurementDetail"])
+        detail = _MeasurementDetailNames(**parse_bts_xml(mrf_url)["MeasurementDetail"])
     except FileNotFoundError:
         warnings.warn(
             f"No `MeasurementDetail.mrf` at {mrf_url}; the `.mes`, `.wpi` and `.wpp` "
@@ -143,20 +138,14 @@ def _destination_url(
 ) -> str | None:
     """Where to write `file_name` under `metadata_dir`, or `None` to skip.
 
-    Several acquisitions can target one plate while shipping identically named
-    files, so a taken name is never overwritten: the copy moves to
-    `<stem>_acq{acquisition_id}<ext>`. An existing byte-identical copy is left
-    alone, which also makes re-running a conversion idempotent.
+    Several acquisitions can target one plate with identically named files, so a
+    taken name is never overwritten — the copy moves to `<stem>_acq{id}<ext>`. A
+    byte-identical copy is left alone, which makes re-running idempotent.
     """
     fs = filesystem_for_url(metadata_dir)
     stem, ext = _split_name(file_name)
-    candidates = [file_name, f"{stem}_acq{acquisition_id}{ext}"]
-    candidates += [
-        f"{stem}_acq{acquisition_id}_{k}{ext}"
-        for k in range(1, _MAX_COLLISION_VARIANTS)
-    ]
 
-    for candidate in candidates:
+    for candidate in (file_name, f"{stem}_acq{acquisition_id}{ext}"):
         url = join_url_paths(metadata_dir, candidate)
         if not fs.exists(url):
             return url
@@ -165,8 +154,8 @@ def _destination_url(
                 return None
 
     warnings.warn(
-        f"Gave up copying {file_name} into {metadata_dir}: "
-        f"{_MAX_COLLISION_VARIANTS + 1} differing copies are already there.",
+        f"Gave up copying {file_name} into {metadata_dir}: both it and the "
+        f"_acq{acquisition_id} variant are already there with different content.",
         SourceMetadataWarning,
         stacklevel=2,
     )
@@ -181,18 +170,13 @@ def copy_source_metadata(
 ) -> None:
     """Copy the acquisition's vendor metadata into every plate it produced.
 
-    Each source is read once and fanned out, so a CQ3K acquisition split across
-    several projection plates does not re-read it per plate.
+    Each source is read once and fanned out across the plates. Source and
+    destination get *separate* `filesystem_for_url` lookups and the bytes travel
+    through this process rather than via `fs.copy`/`fs.put`: the two are routinely
+    different filesystems (a local raw directory converted into an `s3://` zarr_dir).
 
-    Source and destination are resolved through *separate* `filesystem_for_url`
-    lookups and the bytes travel through this process. `fs.copy`/`fs.put` are
-    deliberately not used: the two are routinely different filesystems (a local
-    raw directory converted into an `s3://` `zarr_dir`), which is the whole point
-    of the requirement.
-
-    A missing or unreadable file is warned about and skipped, never raised. That path
-    is normal, not defensive: the in-repo CV7000 fixture names a `.mes`, a `.wpi`
-    and a `.wpp` that were never shipped with it.
+    A missing or unreadable file is warned about and skipped, never raised — a
+    `.mrf` routinely names files that were never shipped with the acquisition.
 
     Args:
         acquisition_dir: URL of the raw acquisition directory.

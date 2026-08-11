@@ -30,50 +30,43 @@ Migration to `ome-zarr-converters-tools` v1.
 - **CQ3K projection plates are now suffixed `_MIP`/`_MinIP`/`_SIP`** instead of the raw
   `bts:ZImageProcessing` values `_Maximum`/`_Minimum`/`_Sum`; an unrecognised value is
   still used verbatim (#45).
+- **`fractal_uzh_converters.{cq3k,cellvoyager}` move to
+  `fractal_uzh_converters.yokogawa.{cq3k,cellvoyager}`**, which unifies the two behind one
+  shared parser. Package-root imports are unchanged; the old submodule paths are not.
 - **CustomTiff `acquisition_details.toml` keys renamed** (follows the v1 field renames):
-  `pixelsize` → `xy_pixel_size`, `start_z_coo`/`start_t_coo` → `start_z_space`/`start_t_space`
-  (and any other `*_coo` → `*_space`). Existing user `acquisition_details.toml` files must
-  be updated. See `docs/converters/custom_tiff.md`.
+  `pixelsize` → `xy_pixel_size`, `*_coo` → `*_space`. Existing files must be updated — see
+  `docs/converters/custom_tiff.md`.
 - **`Advanced` is now the last acquisition field** in all seven converters instead of the
-  second, so the form reads `Path → Plate Name → Acquisition Id → … → Advanced`.
+  second.
 
 ### Fix
-- All converters: strip leading and trailing whitespace from channel labels and
-  wavelength ids — ngio treats `"DAPI"` and `"DAPI "` as two distinct valid channels, so
-  a stray space silently broke per-name channel matching downstream.
-- Yokogawa (CQ3K, CellVoyager): channel indices are now 0-based, so an
-  `advanced.channels` override maps its first entry to `Ch1` instead of failing (#27).
-- Yokogawa (CQ3K, CellVoyager): build one `AcquisitionDetails` per plate instead of one
-  per field of view, so fields merged into a single image cannot disagree on it.
-- CQ3K: a `.mlf` holding a single measurement record now converts, and unknown `bts:`
-  attributes are ignored rather than rejected, so a firmware update adding one is no longer
-  a hard parse failure. Both already held on CellVoyager.
-- Yokogawa (CQ3K, CellVoyager): warn when the `.mrf` channels disagree on pixel size or
-  frame size — channel 1's geometry is applied to all of them.
-- Yokogawa (CQ3K, CellVoyager): each well's `bts:TimePoint` values are mapped onto a dense
-  0-based time axis; the raw value counts timelines, so it left leading frames empty.
-- Yokogawa (CQ3K, CellVoyager): a `bts:Type="ERR"` record no longer makes the whole `.mlf`
-  unparsable — it carries no `bts:FieldIndex`, which was required on the shared record
-  base. Such records are skipped, with one warning per acquisition (#41).
+- All converters: strip whitespace from channel labels and wavelength ids — ngio treats
+  `"DAPI"` and `"DAPI "` as two distinct channels, so a stray space silently broke
+  per-name channel matching downstream.
+- Yokogawa: channel indices are now 0-based, so an `advanced.channels` override maps its
+  first entry to `Ch1` instead of failing (#27).
+- Yokogawa: build one `AcquisitionDetails` per plate rather than per field of view, so
+  fields merged into a single image cannot disagree on it.
+- Yokogawa: each well's `bts:TimePoint` values map onto a dense 0-based time axis; the raw
+  value counts timelines, so it left leading frames empty.
+- Yokogawa: a `bts:Type="ERR"` record no longer makes the whole `.mlf` unparsable. Such
+  records are skipped, with one warning per acquisition (#41).
+- Yokogawa: warn when the `.mrf` channels disagree on pixel size or frame size — channel
+  1's geometry is applied to all of them.
+- CQ3K: a single-record `.mlf` now converts, and unknown `bts:` attributes are ignored
+  rather than rejected. Both already held on CellVoyager.
 
 ### Chores
-- Unify the two Yokogawa converters into a `yokogawa/` package with one shared parser and
-  thin `cq3k`/`cellvoyager` layers; `fractal_uzh_converters.{cq3k,cellvoyager}` move to
-  `fractal_uzh_converters.yokogawa.{cq3k,cellvoyager}`, package-root names are unchanged.
-- All converters: what a converter has to say about the input data is now a real
-  `warnings.warn` under a `ConverterWarning` hierarchy instead of a `logger.warning`, so
-  a caller can filter or escalate it; the init tasks keep it visible in the task log.
-- Bump `ome-zarr-converters-tools` to `[s3]>=1.0.2,<2.0.0` and adopt its v1 API: the `[s3]`
-  extra is now required, since v1 makes `s3fs` optional; `AcquisitionDetails` takes
-  `xy_pixel_size=` and `*_space=`; the deprecated `ngff_version=` argument is gone.
-- Regenerate `__FRACTAL_MANIFEST__.json` against the v1 `AcquisitionOptions` schema (new
-  built-in filters, `grouping`/tiling split, `remove_*` stage corrections, scheduler
-  `mode`).
+- All converters: what a converter reports about the input data is now a `warnings.warn`
+  under a `ConverterWarning` hierarchy instead of a `logger.warning`, so a caller can
+  filter or escalate it; the init tasks keep it visible in the task log.
+- Bump `ome-zarr-converters-tools` to `[s3]>=1.0.2,<2.0.0` and adopt its v1 API. The
+  `[s3]` extra is now required, since v1 makes `s3fs` optional.
+- Regenerate `__FRACTAL_MANIFEST__.json` against the v1 `AcquisitionOptions` schema.
 - Replace the Yokogawa CQ3K test data with BSSE-CQ3000 acquisitions, the previous data not
-  being redistributable; add an extended suite for CellVoyager, and rename the Yokogawa
+  being redistributable; add an extended CellVoyager suite and rename the Yokogawa
   extended datasets to the canonical `hcs_…` convention.
-- Tests: rename the stale `init_task_kwargs` parametrize variable to `api_kwargs`, the
-  only name `run_converter_test` has ever accepted.
+- Tests: rename the stale `init_task_kwargs` parametrize variable to `api_kwargs`.
 
 ### Documentation
 - Document Yokogawa channel handling: where the labels come from, and that an
@@ -81,9 +74,7 @@ Migration to `ome-zarr-converters-tools` v1.
   channels present in the output.
 - Document the Yokogawa vendor-metadata copy on both converter pages, and drop the
   limited-testing caveats now that both converters have an extended test suite.
-- Bring the shared converter-options reference up to date with the v1 schema: `Grouping`
-  and its tiling strategies, `Stage Position Corrections`, the built-in filters, the
-  OME-Zarr options and `Runtime Settings`.
+- Bring the shared converter-options reference up to date with the v1 schema.
 - Fix `tests/data_intake_instructions.md` and `tests/cleanup_test_data.sh`: snapshots are
   JSON, not YAML, and the extended-test template was outdated.
 

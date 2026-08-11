@@ -1,18 +1,12 @@
 """Channel labels and wavelength ids are stripped at every construction site.
 
-ngio validates channel labels only for *uniqueness*
-(`ngio_specs/_channels.py`), so `"DAPI"` and `"DAPI "` are two valid, distinct
-channels — and a downstream `get_channel_idx(channel_label="DAPI")` then
-silently misses the padded one. Nothing in `ome-zarr-converters-tools` or ngio
-normalises them, so each converter must.
+ngio validates labels only for *uniqueness*, so `"DAPI"` and `"DAPI "` are two
+valid distinct channels and a downstream `get_channel_idx(channel_label="DAPI")`
+misses the padded one. An all-whitespace label must become `None`, not `""`, so it
+falls through to whatever that converter does for a nameless channel.
 
-No reference dataset in either store carries stray whitespace — the ScanR
-OME names, the Yokogawa `.mes` targets and the Operetta `ChannelName`s are all
-clean — so this behaviour is invisible to the snapshots and is covered here with
-hand-built inputs instead.
-
-A string that is *only* whitespace must not become `""`: it falls through to
-whatever that converter already does for a nameless channel.
+No reference dataset carries stray whitespace, so this is invisible to the
+snapshots and covered here with hand-built inputs instead.
 """
 
 from types import SimpleNamespace

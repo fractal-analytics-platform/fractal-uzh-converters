@@ -4,12 +4,10 @@ The `.mes` protocol file carries the human-readable `bts:Target` of each
 instrument channel; the `.mlf`/`.mrf` pair does not. Without it every output was
 labelled `channel_0…channel_N` (issue #27).
 
-Wiring this in rewrites every Yokogawa snapshot, so the cases that matter are
-asserted here explicitly rather than left to the snapshots. `.mes` parsing and
-channel resolution themselves are unit-tested in `test_yokogawa_mes_channels.py`;
-what is under test here is the *wiring*: that the labels survive the conversion,
-that the acquisition-wide channel list is pruned per image, and that an
-`advanced.channels` override lands on the right slots.
+`.mes` parsing and channel resolution are unit-tested in
+`test_yokogawa_mes_channels.py`; what is under test here is the *wiring* — that
+labels survive the conversion, that the acquisition-wide list is pruned per image,
+and that an `advanced.channels` override lands on the right slots.
 """
 
 from pathlib import Path

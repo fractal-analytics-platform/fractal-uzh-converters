@@ -1,12 +1,12 @@
 """The shared Yokogawa `.mlf`/`.mrf` parser.
 
-One implementation for both instruments: an acquisition is split into one plate
-per `bts:ZImageProcessing` kind, and one that carries the attribute nowhere —
-the common case on both — collapses to the single `z_type=None` plate.
+One implementation for both instruments: an acquisition is split into one plate per
+`bts:ZImageProcessing` kind, and one carrying the attribute nowhere — the common
+case — collapses to the single `z_type=None` plate.
 
-The one genuine per-instrument difference is a parameter of
-`parse_yokogawa_metadata`: `filename_transform`, because a CellVoyager `.mlf`
-always names `.tif` even when the files on disk are `.png`.
+The only per-instrument difference is `parse_yokogawa_metadata`'s
+`filename_transform`, because a CellVoyager `.mlf` always names `.tif` even when
+the files on disk are `.png`.
 """
 
 import logging
@@ -15,7 +15,6 @@ from collections.abc import Callable
 from typing import Any
 
 import numpy as np
-import xmltodict
 from ome_zarr_converters_tools import (
     AcquisitionDetails,
     AttributeType,
@@ -26,7 +25,6 @@ from ome_zarr_converters_tools import (
     Tile,
     TiledImage,
     default_axes_builder,
-    filesystem_for_url,
     join_url_paths,
     tiles_aggregation_pipeline,
 )
@@ -54,6 +52,7 @@ from fractal_uzh_converters.yokogawa._records import (
     MeasurementData,
     MeasurementDetail,
 )
+from fractal_uzh_converters.yokogawa._xml import parse_bts_xml
 from fractal_uzh_converters.yokogawa._z_processing import (
     YokogawaZProcessingSelection,
     _plate_name,
@@ -73,15 +72,7 @@ logger = logging.getLogger(__name__)
 
 def _parse(path: str) -> dict[str, Any]:
     try:
-        fs = filesystem_for_url(path)
-        with fs.open(path, encoding="utf-8") as f:
-            return xmltodict.parse(
-                f.read(),
-                process_namespaces=True,
-                namespaces={"http://www.yokogawa.co.jp/BTS/BTSSchema/1.0": None},
-                attr_prefix="",
-                cdata_key="Value",
-            )
+        return parse_bts_xml(path)
     except FileNotFoundError as e:
         logger.error(f"File not found: {path}")
         raise e
@@ -157,21 +148,18 @@ def build_acquisition_details(
 ) -> AcquisitionDetails:
     """Build AcquisitionDetails from the Yokogawa metadata.
 
-    Call this once per plate (i.e. per `z_image_processing` group) with all of
-    that plate's image records, never per field of view: `TiledImage.add_tile`
-    rejects tiles whose AcquisitionDetails differ, and several fields of view
-    merge into a single output image.
+    Call once per plate with all of that plate's image records, never per field of
+    view: `TiledImage.add_tile` rejects tiles whose details differ, and several
+    fields of view merge into one output image.
 
     Args:
         images: The image records of this plate.
         detail: The parsed `.mrf`.
         acquisition_model: The acquisition input model.
         channels: One entry per instrument channel slot, from `resolve_channels`.
-            Resolved once for the whole acquisition and shared by every plate, so
-            that a channel keeps the same label across the raw and the projection
-            plates.
-        max_acquired_ch: Highest `bts:Ch` the acquisition actually acquired, used
-            to reject an `advanced.channels` override that is too short.
+            Shared by every plate of the acquisition.
+        max_acquired_ch: Highest `bts:Ch` actually acquired, used to reject an
+            `advanced.channels` override that is too short.
         time_index: This plate's time axis, from `build_time_index`.
     """
     first_channel = _measurement_channels(detail)[0]
@@ -209,10 +197,8 @@ def build_acquisition_details(
     acquisition_detail = acquisition_model.advanced.update_acquisition_details(
         acquisition_details=acquisition_detail
     )
-    # `update_acquisition_details` replaces `channels` wholesale with the user's
-    # list, dropping the `.mes` colours and any slot the list is too short to
-    # cover. Merge it back onto the resolved channels instead, so the list stays
-    # indexed by `bts:Ch - 1`.
+    # `update_acquisition_details` replaced `channels` wholesale; merge the user's
+    # list back onto the resolved ones so it stays indexed by `bts:Ch - 1`.
     acquisition_detail.channels = apply_channel_overrides(
         resolved=channels,
         overrides=acquisition_model.advanced.channels,
@@ -316,8 +302,8 @@ def parse_yokogawa_metadata(
     data, detail = _load_models(path=acquisition_dir)
     condition_table = acquisition_model.get_condition_table()
 
-    # Once per acquisition: `build_acquisition_details` runs per plate and
-    # `_build_tiles` per field of view, so neither is the right place to warn from.
+    # Once per acquisition — the two functions below run per plate and per field of
+    # view, so neither is the right place to warn from.
     warn_on_channel_geometry_mismatch(
         geometries=_channel_geometries(detail),
         acquisition_dir=acquisition_dir,
@@ -333,9 +319,8 @@ def parse_yokogawa_metadata(
         else [data.measurement_record]
     )
 
-    # `bts:Type="ERR"` records — autofocus failures — describe no image and are
-    # dropped here rather than at the grouping loop below: a plate-wide focus
-    # failure would otherwise warn hundreds of times per acquisition.
+    # `bts:Type="ERR"` records — autofocus failures — describe no image. Dropped in
+    # one pass so a plate-wide focus failure warns once, not hundreds of times.
     all_image_records = [r for r in records if isinstance(r, ImageMeasurementRecord)]
     skipped = len(records) - len(all_image_records)
     if skipped:
@@ -374,9 +359,8 @@ def parse_yokogawa_metadata(
             plates_records[z_type] = []
         plates_records[z_type].append(record)
 
-    # Resolved once per distinct `z_type` rather than per (well, field of view)
-    # group, so an unknown algorithm warns once per acquisition. The token is both
-    # the `z_processing` value and the plate name suffix.
+    # Once per distinct `z_type`, so an unknown algorithm warns once per
+    # acquisition. The token is both the `z_processing` value and the name suffix.
     plates_tokens = {z_type: _z_processing_token(z_type) for z_type in plates_records}
     kept = _select_z_processing(
         plates_tokens=plates_tokens,
@@ -389,20 +373,14 @@ def parse_yokogawa_metadata(
     plates_groups = {
         key: records for key, records in plates_groups.items() if key[0] in kept
     }
-    # Flat, for the acquisition-wide channel resolution below. Built from the kept
-    # records only, so that selecting a single plate also relaxes the required
+    # Kept records only, so selecting a single plate also relaxes the required
     # `advanced.channels` length to that plate's highest `bts:Ch`.
     image_records = [
         record for records in plates_records.values() for record in records
     ]
 
-    # Channel metadata comes from the `.mes` protocol file, whose basename is
-    # recorded in the `.mrf`. Resolved once for the whole acquisition, not per
-    # plate: the projection plates share one `.mes`, and a channel must keep the
-    # same label across the raw and the projection plates. The resolved list
-    # spans the full instrument channel range so that element `i` is
-    # `bts:Ch i + 1`, matching `start_c = ch - 1`; slots this acquisition never
-    # used are pruned per image at compute time.
+    # Once for the whole acquisition, not per plate: the projection plates share one
+    # `.mes` and a channel must keep the same label across all of them.
     mes_channels = read_mes_channels(
         acquisition_dir=acquisition_dir,
         mes_file_name=detail.measurement_setting_file_name,
@@ -413,14 +391,12 @@ def parse_yokogawa_metadata(
         acquired=acquired,
         mrf_channel_count=len(_measurement_channels(detail)),
     )
-    # Acquisition-wide as well, so that a too-short `advanced.channels` list
-    # fails identically on every plate of the acquisition.
+    # Acquisition-wide too, so a too-short `advanced.channels` list fails
+    # identically on every plate.
     max_acquired_ch = max_acquired_channel(acquired)
 
-    # Per plate rather than acquisition-wide: each plate is written as its own
-    # collection, so a projection acquired at fewer time points than the raw
-    # slices gets its own dense time axis. `bts:TimePoint` is a per-timeline
-    # counter, so the axis can only be decided by looking at every well at once.
+    # Per plate: each is its own collection, so a projection acquired at fewer time
+    # points than the raw slices gets its own dense time axis.
     plates_time_indices = {
         z_type: build_time_index(
             (record.row, record.column, record.time_point) for record in records

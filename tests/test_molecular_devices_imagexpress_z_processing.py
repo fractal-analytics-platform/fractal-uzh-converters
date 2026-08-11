@@ -5,10 +5,8 @@ into `experiment/` and the stack itself into `experiment_z_stack/`. So, unlike
 Yokogawa, the selection picks a directory rather than splitting one acquisition
 into several plates, and only one of `Raw` and `MIP` can be converted per run.
 
-This replaces the `advanced.convert_only_projections` boolean, which had no test
-coverage at all. The cases that need two source directories live in the extended
-store; the in-repo dataset carries only `experiment/`, so it covers the pure
-validation rules.
+Cases needing two source directories live in the extended store; the in-repo
+dataset carries only `experiment/`, so it covers the validation rules.
 """
 
 from pathlib import Path

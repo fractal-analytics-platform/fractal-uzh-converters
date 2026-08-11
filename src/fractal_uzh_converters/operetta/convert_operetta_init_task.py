@@ -47,8 +47,7 @@ def convert_operetta_init_task(
             - "Extend": Extend existing data without removing it.
             Default is "No Overwrite".
     """
-    # Fractal captures the task's logging output, not its stderr, so the
-    # converters' warnings are routed through the `py.warnings` logger.
+    # Fractal captures logging output, not stderr.
     log_converter_warnings()
 
     tiled_images = parse_acquisitions(

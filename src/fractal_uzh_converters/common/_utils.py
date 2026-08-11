@@ -30,16 +30,14 @@ STANDARD_ROWS_NAMES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 def clean_channel_string(value: str | None) -> str | None:
     """Strip a vendor channel label or wavelength id, or `None` if it is blank.
 
-    Vendor metadata routinely pads these strings — an OME-XML `Channel/@Name` of
-    `"DAPI "` is common enough — and neither ngio nor `ome-zarr-converters-tools`
-    normalises them. ngio only enforces *uniqueness*, so `"DAPI"` and `"DAPI "`
-    are two valid distinct channels and a later `get_channel_idx(
-    channel_label="DAPI")` silently misses the padded one.
+    Vendor metadata routinely pads these strings and nothing downstream normalises
+    them: ngio enforces only *uniqueness*, so `"DAPI"` and `"DAPI "` are two valid
+    distinct channels and a later `get_channel_idx(channel_label="DAPI")` silently
+    misses the padded one.
 
-    Strips only: the label is the vendor's identifier and is not otherwise
-    rewritten. A string that is empty or all whitespace becomes `None` rather
-    than `""`, so the caller applies its own fallback instead of writing a
-    nameless channel.
+    Strips only — the label is the vendor's identifier. A blank string becomes
+    `None` rather than `""`, so the caller applies its own fallback instead of
+    writing a nameless channel.
 
     Args:
         value: The raw vendor string, or `None`.
@@ -72,13 +70,9 @@ class BaseAcquisitionModel(BaseModel):
     """
 
     if TYPE_CHECKING:
-        # Each leaf model declares `advanced` itself, as its last field, so that
-        # it renders last in the Fractal form — pydantic keeps a redeclared
-        # field in the base's slot, so declaring it here would pin it to slot
-        # #2 everywhere. This block never executes, so no pydantic field is
-        # created; it only tells the type checker that every acquisition model
-        # has the attribute. The default mirrors the leaves' `default_factory`,
-        # so the type checker does not read it as a required argument either.
+        # Not a real pydantic field: each leaf declares `advanced` itself, as its
+        # last field, so it renders last in the Fractal form. This only tells the
+        # type checker that every acquisition model has the attribute.
         advanced: AcquisitionOptions = AcquisitionOptions()
 
     def get_condition_table(self) -> polars.DataFrame | None:

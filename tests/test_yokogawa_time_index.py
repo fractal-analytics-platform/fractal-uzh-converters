@@ -1,22 +1,15 @@
 """Time index normalisation for the Yokogawa converters.
 
-`bts:TimePoint` is a per-*timeline* counter, not a plate-wide frame index. In the
-CV8000 `TimelinesSharedChannel` acquisition three wells are acquired by three
-timelines and carry `TimePoint` 1, 2 and 3 although each holds a single time
-point, so the
-converters used to set `start_t` to 1 and 2 on images that have no `t` axis at
-all.
+`bts:TimePoint` counts *timelines*, not frames: wells acquired by three timelines
+carry `TimePoint` 1, 2 and 3 although each holds a single time point. On a `czyx`
+image that is inert (`Tile.to_roi` drops `start_t`), which is why no snapshot
+moves; it bites as soon as a well genuinely holds several time points, since the
+raw counter leaves the unused indices as empty frames and there is no `reindex_t`
+to compact them.
 
-That much is inert — `Tile.to_roi` iterates over `acquisition_details.axes`, so a
-`czyx` image drops `start_t` — which is why no snapshot moves here. It stops
-being inert as soon as a well genuinely holds several time points: the raw
-counter would then leave the unused indices as empty frames, and unlike channels
-there is no `reindex_t` in the registration pipeline to compact them.
-
-No acquisition in either reference store has more than one time point per well,
-so the multi-time-point cases below are hand-built from the in-repo fixtures by
-rewriting their `.mlf` in `tmp_path`. Every record keeps the original's image
-path — the metadata is what is under test, not the pixels.
+No acquisition in either reference store has more than one time point per well, so
+the multi-time-point cases are hand-built by rewriting an in-repo fixture's `.mlf`
+in `tmp_path`. The metadata is under test, not the pixels.
 """
 
 import re
