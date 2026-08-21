@@ -11,7 +11,7 @@ Migration to `ome-zarr-converters-tools` v1.
   be updated. See `docs/converters/custom_tiff.md`.
 
 ### Chores
-- Migrate to `ngio` 1.1: pin `ngio==1.1.0b1` and take `ome-zarr-converters-tools[s3]`
+- Migrate to `ngio` 1.1: pin `ngio==1.1.0b2` and take `ome-zarr-converters-tools[s3]`
   from its `refactor/ngio-1.1` git branch (both temporary until the final releases;
   the lock drops the `distributed` dependency cluster that ngio 1.x no longer needs).
   No converter code touches ngio directly, so no ngio API changes were needed.
