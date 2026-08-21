@@ -124,6 +124,12 @@ minversion = "8.0"
 testpaths = ["tests"]
 filterwarnings = [
     "error",
+    # TODO: drop once ngio forwards `max_workers` from `get_images` to
+    # `images_paths` — `plate.get_images(max_workers="auto")` still warns on
+    # multi-well plates in ngio 1.1.0a2 despite the opt-in (upstream ngio bug).
+    # Fires via the converters-tools snapshot helper, which already opts in
+    # correctly.
+    "ignore:Plate-wide operations still read one item at a time:ngio.utils.NgioFutureWarning",
     "ignore::zarr.errors.ZarrUserWarning", # required for anndata
     # "ignore::anndata._warnings.ImplicitModificationWarning", # anndata internal index coercion
     "ignore::UserWarning:anndata._io.zarr", # anndata zarr v2→v3 migration notice
