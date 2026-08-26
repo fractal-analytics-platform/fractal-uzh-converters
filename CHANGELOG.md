@@ -11,6 +11,18 @@ Migration to `ome-zarr-converters-tools` v1.
   be updated. See `docs/converters/custom_tiff.md`.
 
 ### Chores
+- Migrate to `ngio` 1.1: pin `ngio==1.1.0b2` and take `ome-zarr-converters-tools[s3]`
+  from its `refactor/ngio-1.1` git branch (both temporary until the final releases;
+  the lock drops the `distributed` dependency cluster that ngio 1.x no longer needs).
+  No converter code touches ngio directly, so no ngio API changes were needed.
+- Drop the deprecated `ngff_version=` argument from all seven
+  `setup_images_for_conversion(...)` calls (deprecated in `ome-zarr-converters-tools`
+  1.0.2; the value is taken from `converter_options.omezarr_options.ngff_version`,
+  which is exactly what was being passed).
+- Temporarily filtered the ngio `NgioFutureWarning` about plate-wide `max_workers`
+  while on ngio 1.1.0a2 (`plate.get_images(max_workers="auto")` warned on multi-well
+  plates despite the opt-in — upstream bug found by this suite, fixed in ngio
+  1.1.0b1 via ngio PR #236); the filter is removed again with the 1.1.0b1 bump.
 - Bump `ome-zarr-converters-tools` to `[s3]>=1.0.0,<2.0.0`. The `[s3]` extra is now
   required: v1 makes `s3fs` optional, so it is pinned here to keep `s3://` inputs working
   (it was previously pulled in transitively).

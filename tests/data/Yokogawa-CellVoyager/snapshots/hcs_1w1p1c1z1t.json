@@ -1,4 +1,15 @@
 {
+  "versions": {
+    "python": "3.14.6",
+    "ome-zarr-converters-tools": "1.0.3.dev8+gb3110a8d1",
+    "ngio": "1.1.0b5",
+    "zarr": "3.2.1",
+    "numpy": "2.5.0",
+    "dask": "2026.6.0",
+    "tifffile": "2026.6.1",
+    "pillow": "12.3.0",
+    "pydantic": "2.12.5"
+  },
   "plates": {
     "hcs_1w1p1c1z1t.zarr": {
       "wells": [
@@ -42,7 +53,7 @@
             "well_ROI_table": {
               "rois": {
                 "image": {
-                  "slice_repr": "[x: 0.0->2560.0, y: 0.0->2160.0, z: 0.0->1.0]",
+                  "slice_repr": "(x: 0.0->2560.0, y: 0.0->2160.0, z: 0.0->1.0)",
                   "finger_print": {
                     "mean": 221.602058,
                     "std": 100.849312,
