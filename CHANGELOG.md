@@ -1,45 +1,33 @@
 # Changelog
 
-## [Unreleased]
+## [v0.8.0]
 
-Migration to `ome-zarr-converters-tools` v1.
+Migration to `ome-zarr-converters-tools` v1 and `ngio` 1.1. Written OME-Zarr output
+is unchanged (the extended real-data suite regenerated no snapshots).
 
 ### API Breaking Changes
 - **CustomTiff `acquisition_details.toml` keys renamed** (follows the v1 field renames):
   `pixelsize` → `xy_pixel_size`, `start_z_coo`/`start_t_coo` → `start_z_space`/`start_t_space`
   (and any other `*_coo` → `*_space`). Existing user `acquisition_details.toml` files must
   be updated. See `docs/converters/custom_tiff.md`.
-
-### Chores
-- Migrate to `ngio` 1.1: pin `ngio==1.1.0b2` and take `ome-zarr-converters-tools[s3]`
-  from its `refactor/ngio-1.1` git branch (both temporary until the final releases;
-  the lock drops the `distributed` dependency cluster that ngio 1.x no longer needs).
-  No converter code touches ngio directly, so no ngio API changes were needed.
-- Drop the deprecated `ngff_version=` argument from all seven
-  `setup_images_for_conversion(...)` calls (deprecated in `ome-zarr-converters-tools`
-  1.0.2; the value is taken from `converter_options.omezarr_options.ngff_version`,
-  which is exactly what was being passed).
-- Temporarily filtered the ngio `NgioFutureWarning` about plate-wide `max_workers`
-  while on ngio 1.1.0a2 (`plate.get_images(max_workers="auto")` warned on multi-well
-  plates despite the opt-in — upstream bug found by this suite, fixed in ngio
-  1.1.0b1 via ngio PR #236); the filter is removed again with the 1.1.0b1 bump.
-- Bump `ome-zarr-converters-tools` to `[s3]>=1.0.0,<2.0.0`. The `[s3]` extra is now
-  required: v1 makes `s3fs` optional, so it is pinned here to keep `s3://` inputs working
-  (it was previously pulled in transitively).
-- Adopt the v1 `AcquisitionDetails` renames in all builders: `pixelsize=` → `xy_pixel_size=`
-  and `start_*_coo=`/`length_*_coo=` → `*_space=` (values unchanged). Import `BackendType`
-  from the package root instead of the private `models._converter_options`.
-- Regenerate `__FRACTAL_MANIFEST__.json` against the v1 `AcquisitionOptions` schema (new
-  built-in filters, `grouping`/tiling split, `remove_*` stage corrections, scheduler
-  `mode`).
-
-## [v0.7.2]
+- Require `ome-zarr-converters-tools[s3]>=1.1.0,<2.0.0` and `ngio>=1.1.0`. The `[s3]`
+  extra is now mandatory because v1 makes `s3fs` optional and `s3://` inputs must keep working.
 
 ### Fix
 - Bug in extended testing using the wrong api
 - Fix typo in the conversion log message (`Successfully`).
 
 ### Chores
+- Drop the `ngff_version=` argument from all seven `setup_images_for_conversion(...)` calls
+  (removed in `ome-zarr-converters-tools` 1.1.0; the value already came from `converter_options`).
+- Adopt the v1 `AcquisitionDetails` renames in all builders: `pixelsize=` → `xy_pixel_size=`
+  and `start_*_coo=`/`length_*_coo=` → `*_space=` (values unchanged). Import `BackendType`
+  from the package root instead of the private `models._converter_options`.
+- Regenerate `__FRACTAL_MANIFEST__.json` against the v1 `AcquisitionOptions` schema (new
+  built-in filters, `grouping`/tiling split, `remove_*` stage corrections, scheduler
+  `mode`).
+- Regenerate `pixi.lock` from PyPI releases only (the previous lock pointed at a local
+  editable path); ngio 1.x no longer pulls in the `distributed` dependency cluster.
 - Load the shared snapshot-testing plugin via `pytest_plugins` in `tests/conftest.py` instead of `-p` in `pytest` `addopts`, matching the sibling converters.
 - Align repository tooling with `ome-zarr-converters-tools`: adopt its `.pre-commit-config.yaml` (`validate-pyproject` v0.25, `crate-ci/typos`, `astral-sh/ruff-pre-commit` v0.15.17, `nbstripout`) with a per-repo `_typos.toml`, add a `chores` pixi task, bump GitHub Actions pins (`checkout` v7, `codecov-action` v7, `action-gh-release` v3, `setup-python` v6), and trim `CLAUDE.md`.
 
