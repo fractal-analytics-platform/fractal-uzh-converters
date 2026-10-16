@@ -147,7 +147,7 @@ exclude_lines = [
 
 [tool.pixi.workspace]
 channels = ["conda-forge"]
-platforms = ["win-64", "osx-arm64", "linux-64"]
+platforms = ["win-64", "osx-arm64", "linux-64", "osx-64"]
 
 [tool.pixi.pypi-dependencies]
 fractal-uzh-converters = { path = ".", editable = true }
