@@ -120,6 +120,7 @@ Controls the output OME-Zarr format.
 |---|---|---|---|
 | `Num Levels` | `int` | `5` | Number of resolution pyramid levels. |
 | `Chunking Strategy` | `ChunkingStrategy` | FOV-based | How to chunk the data on disk (see below). |
+| `Sharding Strategy` | `ShardingStrategy` | `None` | How storage chunks are grouped into shards (see below). Requires `Ngff Version` `"0.5"`. |
 | `Ngff Version` | `str` | `"0.4"` | OME-NGFF specification version to target (`"0.4"` or `"0.5"`). |
 | `Table Backend` | `str` | `"anndata"` | Backend for storing tables. One of: `anndata`, `json`, `csv`, `parquet`. |
 
@@ -146,6 +147,26 @@ Controls the output OME-Zarr format.
     | `Chunk Size for Z` | `10` | Chunk size for the Z dimension. |
     | `Chunk Size for C` | `1` | Chunk size for the C (channel) dimension. |
     | `Chunk Size for T` | `1` | Chunk size for the T (time) dimension. |
+
+**Sharding strategies** (OME-NGFF 0.5 / zarr format 3 only):
+
+=== "None (default)"
+
+    Every chunk is stored as its own object (no sharding).
+
+=== "Multiple of Chunks"
+
+    A fixed number of chunks per axis is grouped into one shard (one object on disk).
+    A shard is the atomic write unit, so prefer the Dask writer modes (which write one
+    shard at a time) or keep shards no larger than a field of view; otherwise every write
+    re-encodes the shards it touches.
+
+    | Field | Default | Description |
+    |---|---|---|
+    | `Chunks per Shard in XY` | `4` | Number of chunks per shard along X and along Y. |
+    | `Chunks per Shard in Z` | `1` | Number of chunks per shard along Z. |
+    | `Chunks per Shard in C` | `1` | Number of chunks per shard along C. |
+    | `Chunks per Shard in T` | `1` | Number of chunks per shard along T. |
 
 
 ## Overwrite Modes
