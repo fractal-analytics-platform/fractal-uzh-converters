@@ -55,8 +55,8 @@ MD does not mark a record as a projection: it writes the projections of a Z stac
 Because one acquisition is read from a single directory and written as a single plate, exactly one of the two must be enabled:
 
 ```python
-z_processing=None                          # the default — raw images
-z_processing={"raw": False, "mip": True}   # projections only
+z_processing = None  # the default — raw images
+z_processing = {"raw": False, "mip": True}  # projections only
 ```
 
 | Selection | Result |
@@ -98,7 +98,10 @@ To combine multiple acquisitions into a single plate, use different `Acquisition
 ## Python API
 
 ```python
-from fractal_uzh_converters import convert_imagexpress_hcs, MDImageXpressHCSaiAcquisitionModel
+from fractal_uzh_converters import (
+    convert_imagexpress_hcs,
+    MDImageXpressHCSaiAcquisitionModel,
+)
 
 acquisitions = [
     MDImageXpressHCSaiAcquisitionModel(

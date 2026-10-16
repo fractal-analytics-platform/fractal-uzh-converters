@@ -1,14 +1,14 @@
 {
   "versions": {
-    "python": "3.14.6",
-    "ome-zarr-converters-tools": "1.0.2",
-    "ngio": "0.5.12",
-    "zarr": "3.2.1",
-    "numpy": "2.5.0",
-    "dask": "2026.6.0",
-    "tifffile": "2026.6.1",
+    "python": "3.14.8",
+    "ome-zarr-converters-tools": "1.1.1",
+    "ngio": "1.1.2",
+    "zarr": "3.4.1",
+    "numpy": "2.5.4",
+    "dask": "2026.8.0",
+    "tifffile": "2026.10.15",
     "pillow": "12.3.0",
-    "pydantic": "2.12.5"
+    "pydantic": "2.14.0"
   },
   "plates": {
     "hcs_2w1p1c1z1t_mip_MIP.zarr": {
@@ -54,7 +54,7 @@
             "well_ROI_table": {
               "rois": {
                 "image": {
-                  "slice_repr": "[x: 0.0->2000.0, y: 0.0->2000.0, z: 0.0->1.0]",
+                  "slice_repr": "(x: 0.0->2000.0, y: 0.0->2000.0, z: 0.0->1.0)",
                   "finger_print": {
                     "mean": 345.898116,
                     "std": 639.472177,
@@ -105,7 +105,7 @@
             "well_ROI_table": {
               "rois": {
                 "image": {
-                  "slice_repr": "[x: 0.0->2000.0, y: 0.0->2000.0, z: 0.0->1.0]",
+                  "slice_repr": "(x: 0.0->2000.0, y: 0.0->2000.0, z: 0.0->1.0)",
                   "finger_print": {
                     "mean": 490.286776,
                     "std": 799.744947,

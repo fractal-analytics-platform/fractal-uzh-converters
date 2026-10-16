@@ -84,10 +84,12 @@ If the microscope stage orientation does not match the expected coordinate syste
 In the Python API a filter is a plain dict:
 
 ```python
-advanced={"filters": [
-    {"name": "Path Regex Filter", "mode": "Exclude", "regex": r"_Median\.zarr"},
-    {"name": "Well Filter", "mode": "Include", "wells": ["A1", "B2"]},
-]}
+advanced = {
+    "filters": [
+        {"name": "Path Regex Filter", "mode": "Exclude", "regex": r"_Median\.zarr"},
+        {"name": "Well Filter", "mode": "Include", "wells": ["A1", "B2"]},
+    ]
+}
 ```
 
 ## Converter Options
@@ -143,8 +145,9 @@ Controls the output OME-Zarr format.
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `Resolution Levels` | `Number of Levels` or `Custom Names` | 5 levels | `Number of Levels` creates that many levels with the default names (`0`, `1`, …); `Custom Names` takes an explicit `Level Names` list, highest resolution first. |
-| `Chunks` | `Same as FOV` or `Fixed Size` | `Same as FOV` | How to chunk the data on disk (see below). |
-| `Ngff Version` | `str` | `"0.4"` | OME-NGFF specification version to target (`"0.4"` or `"0.5"`). |
+| `Chunking Strategy` | `Same as FOV` or `Fixed Size` | `Same as FOV` | How to chunk the data on disk (see below). |
+| `Sharding Strategy` | `No Sharding` or `Multiple of Chunks` | `No Sharding` | How storage chunks are grouped into shards (see below). Requires `NGFF Version` `"0.5"`. |
+| `NGFF Version` | `str` | `"0.4"` | OME-NGFF specification version to target (`"0.4"` or `"0.5"`). |
 | `Table Backend` | `str` | `"csv"` | Backend for storing tables. One of: `anndata`, `json`, `csv`, `parquet`. |
 
 **Chunking strategies:**
@@ -170,6 +173,26 @@ Controls the output OME-Zarr format.
     | `Chunk Size for Z` | `10` | Chunk size for the Z dimension. |
     | `Chunk Size for C` | `1` | Chunk size for the C (channel) dimension. |
     | `Chunk Size for T` | `1` | Chunk size for the T (time) dimension. |
+
+**Sharding strategies** (OME-NGFF 0.5 / zarr format 3 only):
+
+=== "No Sharding (default)"
+
+    Every chunk is stored as its own object (no sharding).
+
+=== "Multiple of Chunks"
+
+    A fixed number of chunks per axis is grouped into one shard (one object on disk).
+    A shard is the atomic write unit, so prefer the Dask writer modes (which write one
+    shard at a time) or keep shards no larger than a field of view; otherwise every write
+    re-encodes the shards it touches.
+
+    | Field | Default | Description |
+    |---|---|---|
+    | `Chunks per Shard in XY` | `4` | Number of chunks per shard along X and along Y. |
+    | `Chunks per Shard in Z` | `1` | Number of chunks per shard along Z. |
+    | `Chunks per Shard in C` | `1` | Number of chunks per shard along C. |
+    | `Chunks per Shard in T` | `1` | Number of chunks per shard along T. |
 
 ### Runtime Settings
 

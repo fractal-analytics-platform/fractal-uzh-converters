@@ -1,10 +1,19 @@
 # Changelog
 
-## [Unreleased]
+## [v0.8.0]
 
-Migration to `ome-zarr-converters-tools` v1.
+Migration to `ome-zarr-converters-tools` v1 and `ngio` 1.1, plus a rework of the Yokogawa
+converters. Written OME-Zarr output is unchanged for Operetta, ScanR, ImageXpress and
+CustomTiff; Yokogawa plates change in channel labels, plate suffixes and vendor metadata.
 
 ### Features
+- Sharded OME-Zarr output: `Converter Options → OME-Zarr Options → Sharding Strategy`
+  (`Multiple of Chunks` groups a fixed number of chunks per axis into one shard). Requires
+  `Ngff Version` `"0.5"`. Available in every task via `ome-zarr-converters-tools` 1.1.0.
+- The Dask writer modes stream the image block by block instead of materialising it first,
+  so peak memory no longer scales with the image size (`ome-zarr-converters-tools` 1.1.0).
+- Conversion errors name the image, tile and source file they concern, with the expected
+  and actual values (`ome-zarr-converters-tools` 1.1.1).
 - Yokogawa (CQ3K, CellVoyager): channel labels, wavelength ids (`A{action}_C{channel}`) and
   colours are now read from the acquisition's `.mes` protocol file (#27).
 - New `z_processing` acquisition option on CQ3K, CellVoyager and MD ImageXpress, selecting
@@ -34,10 +43,15 @@ Migration to `ome-zarr-converters-tools` v1.
   `fractal_uzh_converters.yokogawa.{cq3k,cellvoyager}`**, which unifies the two behind one
   shared parser. Package-root imports are unchanged; the old submodule paths are not.
 - **CustomTiff `acquisition_details.toml` keys renamed** (follows the v1 field renames):
-  `pixelsize` → `xy_pixel_size`, `*_coo` → `*_space`. Existing files must be updated — see
-  `docs/converters/custom_tiff.md`.
+  `pixelsize` → `xy_pixel_size`, `start_z_coo`/`start_t_coo` → `start_z_space`/`start_t_space`
+  (and any other `*_coo` → `*_space`). Existing user `acquisition_details.toml` files must
+  be updated. See `docs/converters/custom_tiff.md`.
 - **`Advanced` is now the last acquisition field** in all seven converters instead of the
   second.
+- Require `ome-zarr-converters-tools[s3]>=1.1.1,<2.0.0` and `ngio>=1.1.2`. The `[s3]`
+  extra is now mandatory because v1 makes `s3fs` optional and `s3://` inputs must keep working.
+  The `ngio` floor is 1.1.2 because earlier 1.1.x releases could silently lose pixels in
+  Dask writes (fixed upstream in `ngio` 1.1.2, required by `ome-zarr-converters-tools` 1.1.0).
 
 ### Fix
 - All converters: strip whitespace from channel labels and wavelength ids — ngio treats
@@ -55,14 +69,23 @@ Migration to `ome-zarr-converters-tools` v1.
   1's geometry is applied to all of them.
 - CQ3K: a single-record `.mlf` now converts, and unknown `bts:` attributes are ignored
   rather than rejected. Both already held on CellVoyager.
+- Bug in extended testing using the wrong api
+- Fix typo in the conversion log message (`Successfully`).
 
 ### Chores
 - All converters: what a converter reports about the input data is now a `warnings.warn`
   under a `ConverterWarning` hierarchy instead of a `logger.warning`, so a caller can
   filter or escalate it; the init tasks keep it visible in the task log.
-- Bump `ome-zarr-converters-tools` to `[s3]>=1.0.2,<2.0.0` and adopt its v1 API. The
-  `[s3]` extra is now required, since v1 makes `s3fs` optional.
-- Regenerate `__FRACTAL_MANIFEST__.json` against the v1 `AcquisitionOptions` schema.
+- Drop the `ngff_version=` argument from all seven `setup_images_for_conversion(...)` calls
+  (removed in `ome-zarr-converters-tools` 1.1.0; the value already came from `converter_options`).
+- Adopt the v1 `AcquisitionDetails` renames in all builders: `pixelsize=` → `xy_pixel_size=`
+  and `start_*_coo=`/`length_*_coo=` → `*_space=` (values unchanged). Import `BackendType`
+  from the package root instead of the private `models._converter_options`.
+- Regenerate `__FRACTAL_MANIFEST__.json` against the v1 `AcquisitionOptions` schema (new
+  built-in filters, `grouping`/tiling split, `remove_*` stage corrections, scheduler
+  `mode`).
+- Regenerate `pixi.lock` from PyPI releases only (the previous lock pointed at a local
+  editable path); ngio 1.x no longer pulls in the `distributed` dependency cluster.
 - Replace the Yokogawa CQ3K test data with BSSE-CQ3000 acquisitions, the previous data not
   being redistributable; add an extended CellVoyager suite and rename the Yokogawa
   extended datasets to the canonical `hcs_…` convention.
@@ -70,6 +93,8 @@ Migration to `ome-zarr-converters-tools` v1.
 - Tests: register the `ConverterWarning` ignore from `conftest.py` instead of the pytest
   ini, which imported the package before coverage started and under-reported coverage by
   ~37 points.
+- Load the shared snapshot-testing plugin via `pytest_plugins` in `tests/conftest.py` instead of `-p` in `pytest` `addopts`, matching the sibling converters.
+- Align repository tooling with `ome-zarr-converters-tools`: adopt its `.pre-commit-config.yaml` (`validate-pyproject` v0.25, `crate-ci/typos`, `astral-sh/ruff-pre-commit` v0.15.17, `nbstripout`) with a per-repo `_typos.toml`, add a `chores` pixi task, bump GitHub Actions pins (`checkout` v7, `codecov-action` v7, `action-gh-release` v3, `setup-python` v6), and trim `CLAUDE.md`.
 
 ### Documentation
 - Document Yokogawa channel handling: where the labels come from, and that an
@@ -77,19 +102,10 @@ Migration to `ome-zarr-converters-tools` v1.
   channels present in the output.
 - Document the Yokogawa vendor-metadata copy on both converter pages, and drop the
   limited-testing caveats now that both converters have an extended test suite.
-- Bring the shared converter-options reference up to date with the v1 schema.
+- Bring the shared converter-options reference up to date with the v1 schema, including
+  the new sharding strategies and runtime settings.
 - Fix `tests/data_intake_instructions.md` and `tests/cleanup_test_data.sh`: snapshots are
   JSON, not YAML, and the extended-test template was outdated.
-
-## [v0.7.2]
-
-### Fix
-- Bug in extended testing using the wrong api
-- Fix typo in the conversion log message (`Successfully`).
-
-### Chores
-- Load the shared snapshot-testing plugin via `pytest_plugins` in `tests/conftest.py` instead of `-p` in `pytest` `addopts`, matching the sibling converters.
-- Align repository tooling with `ome-zarr-converters-tools`: adopt its `.pre-commit-config.yaml` (`validate-pyproject` v0.25, `crate-ci/typos`, `astral-sh/ruff-pre-commit` v0.15.17, `nbstripout`) with a per-repo `_typos.toml`, add a `chores` pixi task, bump GitHub Actions pins (`checkout` v7, `codecov-action` v7, `action-gh-release` v3, `setup-python` v6), and trim `CLAUDE.md`.
 
 ## [0.7.1]
 

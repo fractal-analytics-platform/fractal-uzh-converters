@@ -77,7 +77,7 @@ All functions share the same signature:
 |---|---|---|---|
 | `zarr_dir` | `str` | *required* | Output directory where the OME-Zarr plate(s) will be written. |
 | `acquisitions` | `list[<Model>]` | *required* | List of acquisition objects. Type varies by converter — see each converter page. |
-| `converter_options` | `ConverterOptions \| None` | `None` | Advanced options (tiling, writer mode, chunking, OME-Zarr format). `None` uses the defaults. |
+| `converter_options` | `ConverterOptions \| None` | `None` | Advanced options (tiling, writer mode, chunking, sharding, OME-Zarr format). `None` uses the defaults. |
 | `overwrite` | `OverwriteMode` | `NO_OVERWRITE` | What to do if the output already exists. |
 | `runner` | `RunnerType \| None` | `None` | Execution strategy. `None` runs wells sequentially. |
 

@@ -87,9 +87,9 @@ Most CellVoyager acquisitions carry no `bts:ZImageProcessing` at all and produce
 Note that `Raw` is the only one on by default, so enabling a projection *adds* to the raw stack rather than replacing it:
 
 ```python
-z_processing={"mip": True}                 # Raw + MIP
-z_processing={"raw": False, "mip": True}   # MIP only
-z_processing={}                            # Raw only
+z_processing = {"mip": True}  # Raw + MIP
+z_processing = {"raw": False, "mip": True}  # MIP only
+z_processing = {}  # Raw only
 ```
 
 | Selection | Result |
@@ -103,9 +103,11 @@ z_processing={}                            # Raw only
 A `ZImageProcessing` value outside the four above cannot be named here. To single one out, use a `Path Regex Filter` on the plate name instead:
 
 ```python
-advanced={"filters": [
-    {"name": "Path Regex Filter", "mode": "Exclude", "regex": r"_Median\.zarr"}
-]}
+advanced = {
+    "filters": [
+        {"name": "Path Regex Filter", "mode": "Exclude", "regex": r"_Median\.zarr"}
+    ]
+}
 ```
 
 ## Channels
