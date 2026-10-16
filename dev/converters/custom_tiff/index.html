@@ -1201,16 +1201,16 @@ and <code>start_t_space</code>. Update any existing <code>acquisition_details.to
 <p>Example:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">xy_pixel_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.65</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">z_spacing</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">5.0</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">start_z_space</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;pixel&quot;</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">start_t_space</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;pixel&quot;</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">start_z_space</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"pixel"</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">start_t_space</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"pixel"</span>
 <a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
 <a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="k">[[channels]]</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="n">channel_label</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;DAPI&quot;</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="n">wavelength_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;405&quot;</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="n">channel_label</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"DAPI"</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="n">wavelength_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"405"</span>
 <a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
 <a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="k">[[channels]]</span>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="n">channel_label</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;GFP&quot;</span>
-<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="n">wavelength_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;488&quot;</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="n">channel_label</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"GFP"</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="n">wavelength_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"488"</span>
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Channel order</p>
@@ -1410,14 +1410,14 @@ and <code>start_t_space</code>. Update any existing <code>acquisition_details.to
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
 <a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="n">acquisitions</span> <span class="o">=</span> <span class="p">[</span>
 <a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>    <span class="n">HcsTiffAcquisitionModel</span><span class="p">(</span>
-<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>        <span class="n">path</span><span class="o">=</span><span class="s2">&quot;/path/to/hcs_acquisition&quot;</span><span class="p">,</span>
-<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>        <span class="n">plate_name</span><span class="o">=</span><span class="s2">&quot;my_plate&quot;</span><span class="p">,</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>        <span class="n">path</span><span class="o">=</span><span class="s2">"/path/to/hcs_acquisition"</span><span class="p">,</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>        <span class="n">plate_name</span><span class="o">=</span><span class="s2">"my_plate"</span><span class="p">,</span>
 <a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>        <span class="n">acquisition_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
 <a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>    <span class="p">)</span>
 <a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="p">]</span>
 <a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>
 <a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="n">convert_hcs_tiff</span><span class="p">(</span>
-<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>    <span class="n">zarr_dir</span><span class="o">=</span><span class="s2">&quot;/output/zarr&quot;</span><span class="p">,</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>    <span class="n">zarr_dir</span><span class="o">=</span><span class="s2">"/output/zarr"</span><span class="p">,</span>
 <a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>    <span class="n">acquisitions</span><span class="o">=</span><span class="n">acquisitions</span><span class="p">,</span>
 <a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="p">)</span>
 </code></pre></div>
@@ -1427,13 +1427,13 @@ and <code>start_t_space</code>. Update any existing <code>acquisition_details.to
 <a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
 <a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="n">acquisitions</span> <span class="o">=</span> <span class="p">[</span>
 <a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>    <span class="n">SingleTiffAcquisitionModel</span><span class="p">(</span>
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>        <span class="n">path</span><span class="o">=</span><span class="s2">&quot;/path/to/image.tif&quot;</span><span class="p">,</span>
-<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>        <span class="n">image_name</span><span class="o">=</span><span class="s2">&quot;my_image&quot;</span><span class="p">,</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>        <span class="n">path</span><span class="o">=</span><span class="s2">"/path/to/image.tif"</span><span class="p">,</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>        <span class="n">image_name</span><span class="o">=</span><span class="s2">"my_image"</span><span class="p">,</span>
 <a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>    <span class="p">)</span>
 <a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="p">]</span>
 <a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>
 <a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="n">convert_single_tiff</span><span class="p">(</span>
-<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>    <span class="n">zarr_dir</span><span class="o">=</span><span class="s2">&quot;/output/zarr&quot;</span><span class="p">,</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>    <span class="n">zarr_dir</span><span class="o">=</span><span class="s2">"/output/zarr"</span><span class="p">,</span>
 <a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>    <span class="n">acquisitions</span><span class="o">=</span><span class="n">acquisitions</span><span class="p">,</span>
 <a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="p">)</span>
 </code></pre></div>

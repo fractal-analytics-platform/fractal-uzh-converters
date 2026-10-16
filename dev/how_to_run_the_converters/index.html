@@ -920,14 +920,14 @@
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">acquisitions</span> <span class="o">=</span> <span class="p">[</span>
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    <span class="n">OperettaAcquisitionModel</span><span class="p">(</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>        <span class="n">path</span><span class="o">=</span><span class="s2">&quot;/path/to/operetta/acquisition&quot;</span><span class="p">,</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>        <span class="n">plate_name</span><span class="o">=</span><span class="s2">&quot;my_plate&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>        <span class="n">path</span><span class="o">=</span><span class="s2">"/path/to/operetta/acquisition"</span><span class="p">,</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>        <span class="n">plate_name</span><span class="o">=</span><span class="s2">"my_plate"</span><span class="p">,</span>
 <a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>        <span class="n">acquisition_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
 <a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>    <span class="p">)</span>
 <a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="p">]</span>
 <a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>
 <a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="n">images</span> <span class="o">=</span> <span class="n">convert_operetta</span><span class="p">(</span>
-<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>    <span class="n">zarr_dir</span><span class="o">=</span><span class="s2">&quot;/output/zarr&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>    <span class="n">zarr_dir</span><span class="o">=</span><span class="s2">"/output/zarr"</span><span class="p">,</span>
 <a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>    <span class="n">acquisitions</span><span class="o">=</span><span class="n">acquisitions</span><span class="p">,</span>
 <a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="p">)</span>
 </code></pre></div>
@@ -960,7 +960,7 @@
 <td><code>converter_options</code></td>
 <td><code>ConverterOptions \| None</code></td>
 <td><code>None</code></td>
-<td>Advanced options (tiling, writer mode, chunking, OME-Zarr format). <code>None</code> uses the defaults.</td>
+<td>Advanced options (tiling, writer mode, chunking, sharding, OME-Zarr format). <code>None</code> uses the defaults.</td>
 </tr>
 <tr>
 <td><code>overwrite</code></td>
@@ -982,18 +982,18 @@
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">acquisitions</span> <span class="o">=</span> <span class="p">[</span>
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="n">OperettaAcquisitionModel</span><span class="p">(</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>        <span class="n">path</span><span class="o">=</span><span class="s2">&quot;/data/round1&quot;</span><span class="p">,</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>        <span class="n">plate_name</span><span class="o">=</span><span class="s2">&quot;my_plate&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>        <span class="n">path</span><span class="o">=</span><span class="s2">"/data/round1"</span><span class="p">,</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>        <span class="n">plate_name</span><span class="o">=</span><span class="s2">"my_plate"</span><span class="p">,</span>
 <a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>        <span class="n">acquisition_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
 <a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    <span class="p">),</span>
 <a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>    <span class="n">OperettaAcquisitionModel</span><span class="p">(</span>
-<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>        <span class="n">path</span><span class="o">=</span><span class="s2">&quot;/data/round2&quot;</span><span class="p">,</span>
-<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>        <span class="n">plate_name</span><span class="o">=</span><span class="s2">&quot;my_plate&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>        <span class="n">path</span><span class="o">=</span><span class="s2">"/data/round2"</span><span class="p">,</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>        <span class="n">plate_name</span><span class="o">=</span><span class="s2">"my_plate"</span><span class="p">,</span>
 <a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>        <span class="n">acquisition_id</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
 <a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>    <span class="p">),</span>
 <a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="p">]</span>
 <a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>
-<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="n">convert_operetta</span><span class="p">(</span><span class="n">zarr_dir</span><span class="o">=</span><span class="s2">&quot;/output/zarr&quot;</span><span class="p">,</span> <span class="n">acquisitions</span><span class="o">=</span><span class="n">acquisitions</span><span class="p">)</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="n">convert_operetta</span><span class="p">(</span><span class="n">zarr_dir</span><span class="o">=</span><span class="s2">"/output/zarr"</span><span class="p">,</span> <span class="n">acquisitions</span><span class="o">=</span><span class="n">acquisitions</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="per-converter-examples">Per-Converter Examples</h3>
 <p>Each converter page includes a Python API example with the microscope-specific acquisition model:</p>

@@ -1381,6 +1381,12 @@
 <td>How to chunk the data on disk (see below).</td>
 </tr>
 <tr>
+<td><code>Sharding Strategy</code></td>
+<td><code>ShardingStrategy</code></td>
+<td><code>None</code></td>
+<td>How storage chunks are grouped into shards (see below). Requires <code>Ngff Version</code> <code>"0.5"</code>.</td>
+</tr>
+<tr>
 <td><code>Ngff Version</code></td>
 <td><code>str</code></td>
 <td><code>"0.4"</code></td>
@@ -1461,6 +1467,51 @@
 <td><code>Chunk Size for T</code></td>
 <td><code>1</code></td>
 <td>Chunk size for the T (time) dimension.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<p><strong>Sharding strategies</strong> (OME-NGFF 0.5 / zarr format 3 only):</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">None (default)</label><label for="__tabbed_2_2">Multiple of Chunks</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p>Every chunk is stored as its own object (no sharding).</p>
+</div>
+<div class="tabbed-block">
+<p>A fixed number of chunks per axis is grouped into one shard (one object on disk).
+A shard is the atomic write unit, so prefer the Dask writer modes (which write one
+shard at a time) or keep shards no larger than a field of view; otherwise every write
+re-encodes the shards it touches.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Chunks per Shard in XY</code></td>
+<td><code>4</code></td>
+<td>Number of chunks per shard along X and along Y.</td>
+</tr>
+<tr>
+<td><code>Chunks per Shard in Z</code></td>
+<td><code>1</code></td>
+<td>Number of chunks per shard along Z.</td>
+</tr>
+<tr>
+<td><code>Chunks per Shard in C</code></td>
+<td><code>1</code></td>
+<td>Number of chunks per shard along C.</td>
+</tr>
+<tr>
+<td><code>Chunks per Shard in T</code></td>
+<td><code>1</code></td>
+<td>Number of chunks per shard along T.</td>
 </tr>
 </tbody>
 </table>
