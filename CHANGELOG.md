@@ -1,33 +1,44 @@
 # Changelog
 
-## [Unreleased]
+## [v0.8.0]
 
-Migration to `ome-zarr-converters-tools` v1.
+Migration to `ome-zarr-converters-tools` v1 and `ngio` 1.1. Written OME-Zarr output
+is unchanged (the extended real-data suite regenerated no snapshots).
+
+### Features
+- Sharded OME-Zarr output: `Converter Options → OME-Zarr Options → Sharding Strategy`
+  (`Multiple of Chunks` groups a fixed number of chunks per axis into one shard). Requires
+  `Ngff Version` `"0.5"`. Available in every task via `ome-zarr-converters-tools` 1.1.0.
+- The Dask writer modes stream the image block by block instead of materialising it first,
+  so peak memory no longer scales with the image size (`ome-zarr-converters-tools` 1.1.0).
+- Conversion errors name the image, tile and source file they concern, with the expected
+  and actual values (`ome-zarr-converters-tools` 1.1.1).
 
 ### API Breaking Changes
 - **CustomTiff `acquisition_details.toml` keys renamed** (follows the v1 field renames):
   `pixelsize` → `xy_pixel_size`, `start_z_coo`/`start_t_coo` → `start_z_space`/`start_t_space`
   (and any other `*_coo` → `*_space`). Existing user `acquisition_details.toml` files must
   be updated. See `docs/converters/custom_tiff.md`.
-
-### Chores
-- Bump `ome-zarr-converters-tools` to `[s3]>=1.0.0,<2.0.0`. The `[s3]` extra is now
-  required: v1 makes `s3fs` optional, so it is pinned here to keep `s3://` inputs working
-  (it was previously pulled in transitively).
-- Adopt the v1 `AcquisitionDetails` renames in all builders: `pixelsize=` → `xy_pixel_size=`
-  and `start_*_coo=`/`length_*_coo=` → `*_space=` (values unchanged). Import `BackendType`
-  from the package root instead of the private `models._converter_options`.
-- Regenerate `__FRACTAL_MANIFEST__.json` against the v1 `AcquisitionOptions` schema (new
-  built-in filters, `grouping`/tiling split, `remove_*` stage corrections, scheduler
-  `mode`).
-
-## [v0.7.2]
+- Require `ome-zarr-converters-tools[s3]>=1.1.1,<2.0.0` and `ngio>=1.1.2`. The `[s3]`
+  extra is now mandatory because v1 makes `s3fs` optional and `s3://` inputs must keep working.
+  The `ngio` floor is 1.1.2 because earlier 1.1.x releases could silently lose pixels in
+  Dask writes (fixed upstream in `ngio` 1.1.2, required by `ome-zarr-converters-tools` 1.1.0).
 
 ### Fix
 - Bug in extended testing using the wrong api
 - Fix typo in the conversion log message (`Successfully`).
 
 ### Chores
+- Drop the `ngff_version=` argument from all seven `setup_images_for_conversion(...)` calls
+  (removed in `ome-zarr-converters-tools` 1.1.0; the value already came from `converter_options`).
+- Adopt the v1 `AcquisitionDetails` renames in all builders: `pixelsize=` → `xy_pixel_size=`
+  and `start_*_coo=`/`length_*_coo=` → `*_space=` (values unchanged). Import `BackendType`
+  from the package root instead of the private `models._converter_options`.
+- Regenerate `__FRACTAL_MANIFEST__.json` against the v1 `AcquisitionOptions` schema (new
+  built-in filters, `grouping`/tiling split, `remove_*` stage corrections, scheduler
+  `mode`).
+- Regenerate `pixi.lock` from PyPI releases only (the previous lock pointed at a local
+  editable path); ngio 1.x no longer pulls in the `distributed` dependency cluster.
 - Load the shared snapshot-testing plugin via `pytest_plugins` in `tests/conftest.py` instead of `-p` in `pytest` `addopts`, matching the sibling converters.
 - Align repository tooling with `ome-zarr-converters-tools`: adopt its `.pre-commit-config.yaml` (`validate-pyproject` v0.25, `crate-ci/typos`, `astral-sh/ruff-pre-commit` v0.15.17, `nbstripout`) with a per-repo `_typos.toml`, add a `chores` pixi task, bump GitHub Actions pins (`checkout` v7, `codecov-action` v7, `action-gh-release` v3, `setup-python` v6), and trim `CLAUDE.md`.
 

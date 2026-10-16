@@ -73,7 +73,10 @@ To combine multiple acquisitions into a single plate, use different `Acquisition
 ## Python API
 
 ```python
-from fractal_uzh_converters import convert_imagexpress_hcs, MDImageXpressHCSaiAcquisitionModel
+from fractal_uzh_converters import (
+    convert_imagexpress_hcs,
+    MDImageXpressHCSaiAcquisitionModel,
+)
 
 acquisitions = [
     MDImageXpressHCSaiAcquisitionModel(
