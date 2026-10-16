@@ -2470,9 +2470,9 @@ packages:
   - fsspec
   - imagecodecs
   - lxml
-  - ngio>=1.1.0
+  - ngio>=1.1.2
   - ome-types
-  - ome-zarr-converters-tools[s3]>=1.1.0,<2.0.0
+  - ome-zarr-converters-tools[s3]>=1.1.1,<2.0.0
   - tifffile
   - tqdm
   - xmltodict
