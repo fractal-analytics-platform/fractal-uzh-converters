@@ -563,6 +563,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Metadata">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#copied-into-the-plate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Copied into the plate
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -573,6 +590,51 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Z-Image Processing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#converting-only-some-of-them" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Converting only some of them
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#channels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Channels
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Channels">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#with-projection-plates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        With projection plates
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -770,6 +832,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Metadata">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#copied-into-the-plate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Copied into the plate
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -780,6 +859,51 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Z-Image Processing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#converting-only-some-of-them" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Converting only some of them
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#channels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Channels
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Channels">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#with-projection-plates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        With projection plates
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -831,21 +955,173 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>my_acquisition/
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── MeasurementData.mlf      # Image measurement records (required)
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├── MeasurementDetail.mrf    # Acquisition details and channel info (required)
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── image_001.png
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>├── image_002.png
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>└── ...
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── protocol.mes             # Acquisition protocol (optional, see Channels)
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>├── plate.wpi                # Plate definition (optional)
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>├── plate.wpp                # Plate product (optional)
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>├── image_001.png
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>├── image_002.png
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>└── ...
 </code></pre></div>
 <p>The image file paths are referenced inside <code>MeasurementData.mlf</code> (with <code>.tif</code> extension) and can be in subdirectories relative to the acquisition directory. The actual files may use <code>.png</code> or <code>.tif</code> extension — select the matching extension via the <code>image_extension</code> parameter.</p>
+<p>The <code>.mes</code>, <code>.wpi</code> and <code>.wpp</code> filenames vary per acquisition and are read out of the <code>.mrf</code> — the names above are only examples.</p>
 <h2 id="metadata">Metadata</h2>
-<p>The converter parses two XML files:</p>
+<p>The converter parses up to three XML files:</p>
 <ul>
 <li><strong><code>MeasurementData.mlf</code></strong> — Contains one record per acquired image tile, including well position (row, column), field index, channel, Z-index, timepoint, stage coordinates (X, Y, Z), and the relative path to the image file.</li>
 <li><strong><code>MeasurementDetail.mrf</code></strong> — Contains acquisition-level metadata: pixel dimensions, number of channels, rows/columns/fields/Z-planes/timepoints, and channel details (pixel size, bit depth).</li>
+<li><strong>the <code>.mes</code> protocol file</strong> — Contains the channel definitions. Its filename varies per acquisition and is read out of the <code>.mrf</code>. Optional; see <a href="#channels">Channels</a>.</li>
+</ul>
+<h3 id="copied-into-the-plate">Copied into the plate</h3>
+<p>The converter models only the fraction of the vendor metadata it needs, so the five plate-level files are also copied verbatim into <code>&lt;plate&gt;.zarr/metadata/</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>MyPlate.zarr/
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>└── metadata/
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    ├── MeasurementData.mlf
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    ├── MeasurementDetail.mrf
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    ├── protocol.mes
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    ├── plate.wpi
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    └── plate.wpp
+</code></pre></div>
+<p>The <code>.mlf</code> and <code>.mrf</code> are copied under their fixed names; the <code>.mes</code>, <code>.wpi</code> and <code>.wpp</code> under the names recorded inside the <code>.mrf</code>. Filenames are preserved exactly, spaces and non-ASCII characters included.</p>
+<ul>
+<li><strong>Every plate the acquisition produced gets its own copy</strong>, so each <a href="#z-image-processing">projection plate</a> carries the same five files as the unsuffixed one.</li>
+<li><strong>A file the acquisition does not ship is a warning, not an error.</strong> The conversion itself is unaffected. This is a common case rather than a defect: CV8000 acquisitions routinely name a <code>.wpi</code> in the <code>.mrf</code> that was never written.</li>
+<li>When several acquisitions land in the same plate with identically named files, the second copy becomes <code>&lt;stem&gt;_acq{acquisition_id}&lt;ext&gt;</code> rather than overwriting the first. A byte-identical copy is left alone, so re-running a conversion does not accumulate duplicates.</li>
 </ul>
 <h2 id="z-image-processing">Z-Image Processing</h2>
-<p>Unlike the <a href="../cq3k/">CQ3K converter</a>, the CellVoyager converter does <strong>not</strong> support Z-image processing types (e.g., <code>focus</code>, <code>maximum_projection</code>). A single plate is always produced per acquisition.</p>
+<p>A CellVoyager acquisition can write projections alongside — or instead of — the raw Z slices, tagged <code>bts:ZImageProcessing</code> in the <code>.mlf</code>. Each projection algorithm carries its own channel numbers, so the converter writes one plate per algorithm, suffixing the plate name:</p>
+<table>
+<thead>
+<tr>
+<th><code>ZImageProcessing</code></th>
+<th>Plate suffix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><em>(absent — raw Z slices)</em></td>
+<td><em>(none)</em></td>
+</tr>
+<tr>
+<td><code>Maximum</code></td>
+<td><code>_MIP</code></td>
+</tr>
+<tr>
+<td><code>Minimum</code></td>
+<td><code>_MinIP</code></td>
+</tr>
+<tr>
+<td><code>Sum</code></td>
+<td><code>_SIP</code></td>
+</tr>
+</tbody>
+</table>
+<p>Any other value is used verbatim as the suffix, with a warning.</p>
+<p>The suffixed plates coexist with the unsuffixed one. An acquisition named <code>MyPlate</code> that stores raw slices plus a maximum and a minimum projection produces:</p>
+<ul>
+<li><code>MyPlate.zarr</code> — the raw Z slices</li>
+<li><code>MyPlate_MIP.zarr</code></li>
+<li><code>MyPlate_MinIP.zarr</code></li>
+</ul>
+<p>The split follows the acquisition, not the channel set: an acquisition that max-projects its fluorescence channels and min-projects a brightfield channel yields a <code>_MIP</code> plate and a <code>_MinIP</code> plate, each holding only its own channels.</p>
+<p>Channel labels do <strong>not</strong> carry the algorithm — it is already in the plate name — so a channel keeps the same label across the raw and the projection plates.</p>
+<p>Most CellVoyager acquisitions carry no <code>bts:ZImageProcessing</code> at all and produce the single unsuffixed plate they always have.</p>
+<h3 id="converting-only-some-of-them">Converting only some of them</h3>
+<p><code>Z Processing</code> selects which of these plates are written. Leave it unset — the default — to convert every kind the acquisition contains. Otherwise it is one switch per kind:</p>
+<table>
+<thead>
+<tr>
+<th>Switch</th>
+<th>Default</th>
+<th>Selects</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Raw</code></td>
+<td>on</td>
+<td>the unsuffixed raw-stack plate</td>
+</tr>
+<tr>
+<td><code>MIP</code></td>
+<td>off</td>
+<td><code>_MIP</code></td>
+</tr>
+<tr>
+<td><code>MinIP</code></td>
+<td>off</td>
+<td><code>_MinIP</code></td>
+</tr>
+<tr>
+<td><code>SIP</code></td>
+<td>off</td>
+<td><code>_SIP</code></td>
+</tr>
+</tbody>
+</table>
+<p>Note that <code>Raw</code> is the only one on by default, so enabling a projection <em>adds</em> to the raw stack rather than replacing it:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">z_processing</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"mip"</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>  <span class="c1"># Raw + MIP</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">z_processing</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"raw"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"mip"</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>  <span class="c1"># MIP only</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">z_processing</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Raw only</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Selection</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>unset</td>
+<td>Every kind the acquisition contains.</td>
+</tr>
+<tr>
+<td>nothing enabled</td>
+<td>An error — enable something, or leave the option unset.</td>
+</tr>
+<tr>
+<td>all enabled kinds present</td>
+<td>Exactly those.</td>
+</tr>
+<tr>
+<td>some enabled kinds absent</td>
+<td>The ones that matched, plus a warning naming the rest. One selection stays usable across a batch of mixed acquisitions.</td>
+</tr>
+<tr>
+<td>no enabled kind present</td>
+<td>An error naming what the acquisition actually contains.</td>
+</tr>
+</tbody>
+</table>
+<p>A <code>ZImageProcessing</code> value outside the four above cannot be named here. To single one out, use a <code>Path Regex Filter</code> on the plate name instead:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">advanced</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    <span class="s2">"filters"</span><span class="p">:</span> <span class="p">[</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>        <span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"Path Regex Filter"</span><span class="p">,</span> <span class="s2">"mode"</span><span class="p">:</span> <span class="s2">"Exclude"</span><span class="p">,</span> <span class="s2">"regex"</span><span class="p">:</span> <span class="sa">r</span><span class="s2">"_Median\.zarr"</span><span class="p">}</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    <span class="p">]</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="p">}</span>
+</code></pre></div>
+<h2 id="channels">Channels</h2>
+<p>Channel labels, display colours and wavelength ids come from the acquisition's <code>.mes</code> protocol file, whose filename is recorded in the <code>.mrf</code>. The label is the channel's <code>Target</code> (e.g. <code>405</code>, <code>DAPI</code>), and the wavelength id is <code>A{action}_C{channel}</code> — for example <code>A01_C04</code>. When no <code>.mes</code> is available the label falls back to the wavelength id.</p>
+<p>To override them, fill in <code>Advanced</code> → <code>Channels</code>. <strong>The list is ordered by the instrument's channel number</strong>: element 0 is <code>Ch1</code>, element 1 is <code>Ch2</code>, and so on across the full channel range the protocol declares — it is <em>not</em> a dense list of the channels you can see in the output.</p>
+<p>That distinction matters whenever an acquisition uses a subset of the instrument's channels, which on the CellVoyager includes the case where different wells acquire different channels:</p>
+<blockquote>
+<p>A 5-channel instrument, where one well acquires only <code>Ch1</code> and another only <code>Ch4</code>. The override still needs <strong>four</strong> entries, and it is elements 0 and 3 that end up on the two wells. A 2-entry list — one per channel actually visible — is rejected.</p>
+</blockquote>
+<p>The list must have at least as many entries as the highest channel number the acquisition uses. If it is too short the conversion fails with an error naming the number required, so running once and reading the error is the quickest way to find it. Beyond that:</p>
+<ul>
+<li>Extra entries are discarded.</li>
+<li>Entries past the end of your list keep their <code>.mes</code> metadata.</li>
+<li>Leaving <code>Wavelength ID</code> empty keeps the computed <code>A{action}_C{channel}</code>.</li>
+<li>Leaving the colour on <code>Auto</code> keeps the colour from the <code>.mes</code>.</li>
+</ul>
+<h3 id="with-projection-plates">With projection plates</h3>
+<p>One list covers the <strong>whole acquisition</strong>, every plate included, and it is numbered in the acquisition-wide channel space — not per plate. Because each <a href="#z-image-processing">projection algorithm</a> carries its own channel numbers, the entries are split across plates rather than repeated in each.</p>
+<blockquote>
+<p>An acquisition that min-projects <code>Ch1</code> and max-projects <code>Ch2</code>–<code>Ch5</code> needs one 5-entry list. Element 0 surfaces in <code>MyPlate_MinIP.zarr</code>; elements 1–4 surface in <code>MyPlate_MIP.zarr</code>.</p>
+</blockquote>
+<p>So do not write a separate list per plate, and do not size the list by the channels visible in one plate. Selecting a single plate with <code>Z Processing</code> does relax the requirement to that plate's own channels.</p>
 <h2 id="task-parameters">Task Parameters</h2>
-<p>The CellVoyager init task extends the base acquisition parameters with one additional field:</p>
+<p>The CellVoyager init task extends the base acquisition parameters with two additional fields:</p>
 <table>
 <thead>
 <tr>
@@ -876,38 +1152,40 @@
 </tr>
 <tr>
 <td><code>Image Extension</code></td>
-<td><code>"png"</code> or <code>"tif"</code></td>
-<td><code>"png"</code></td>
+<td><code>".tif"</code> or <code>".png"</code></td>
+<td><code>".tif"</code></td>
 <td>File extension of the actual image files. The metadata always references <code>.tif</code>, but actual files may be <code>.png</code> or <code>.tif</code>.</td>
+</tr>
+<tr>
+<td><code>Z Processing</code></td>
+<td><code>YokogawaZProcessingSelection</code> or <code>null</code></td>
+<td><code>null</code></td>
+<td><a href="#converting-only-some-of-them">Which Z-image processing outputs to convert</a>. Unset converts every kind the acquisition contains.</td>
 </tr>
 <tr>
 <td><code>Advanced</code></td>
 <td><code>AcquisitionOptions</code></td>
 <td><code>{}</code></td>
-<td>Advanced options (condition table, overrides).</td>
+<td>Advanced options (condition table, <a href="#channels">channel overrides</a>, filters).</td>
 </tr>
 </tbody>
 </table>
-<div class="admonition warning">
-<p class="admonition-title">Limited Testing</p>
-<p>This converter has been tested on a limited set of acquisitions. It may not work correctly on all Yokogawa CellVoyager datasets.</p>
-</div>
 <h2 id="python-api">Python API</h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">fractal_uzh_converters</span><span class="w"> </span><span class="kn">import</span> <span class="n">convert_cellvoyager</span><span class="p">,</span> <span class="n">CellVoyagerAcquisitionModel</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">acquisitions</span> <span class="o">=</span> <span class="p">[</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="n">CellVoyagerAcquisitionModel</span><span class="p">(</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>        <span class="n">path</span><span class="o">=</span><span class="s2">"/path/to/cellvoyager/acquisition"</span><span class="p">,</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>        <span class="n">plate_name</span><span class="o">=</span><span class="s2">"my_plate"</span><span class="p">,</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>        <span class="n">acquisition_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>        <span class="n">image_extension</span><span class="o">=</span><span class="s2">".tif"</span><span class="p">,</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="p">)</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="p">]</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="n">convert_cellvoyager</span><span class="p">(</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>    <span class="n">zarr_dir</span><span class="o">=</span><span class="s2">"/output/zarr"</span><span class="p">,</span>
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>    <span class="n">acquisitions</span><span class="o">=</span><span class="n">acquisitions</span><span class="p">,</span>
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">fractal_uzh_converters</span><span class="w"> </span><span class="kn">import</span> <span class="n">convert_cellvoyager</span><span class="p">,</span> <span class="n">CellVoyagerAcquisitionModel</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">acquisitions</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="n">CellVoyagerAcquisitionModel</span><span class="p">(</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>        <span class="n">path</span><span class="o">=</span><span class="s2">"/path/to/cellvoyager/acquisition"</span><span class="p">,</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>        <span class="n">plate_name</span><span class="o">=</span><span class="s2">"my_plate"</span><span class="p">,</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>        <span class="n">acquisition_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>        <span class="n">image_extension</span><span class="o">=</span><span class="s2">".tif"</span><span class="p">,</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>    <span class="p">)</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="p">]</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="n">convert_cellvoyager</span><span class="p">(</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>    <span class="n">zarr_dir</span><span class="o">=</span><span class="s2">"/output/zarr"</span><span class="p">,</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>    <span class="n">acquisitions</span><span class="o">=</span><span class="n">acquisitions</span><span class="p">,</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="p">)</span>
 </code></pre></div>
 <p>See <a href="../../how_to_run_the_converters/">How to Run the Converters</a> for all common parameters and execution details.</p>
 

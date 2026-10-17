@@ -605,6 +605,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#z-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Z Processing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#task-parameters" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -812,6 +823,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#z-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Z Processing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#task-parameters" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -932,9 +954,63 @@
 </tr>
 </tbody>
 </table>
-<p>By default, the converter prefers <code>experiment_z_stack</code> if present, otherwise falls back to <code>experiment</code>. Use the advanced options below to select a different mode.</p>
+<p>By default, the converter prefers <code>experiment_z_stack</code> if present, otherwise falls back to <code>experiment</code>. Use <a href="#z-processing"><code>Z Processing</code></a> to read the projections instead, or <code>Advanced</code> → <code>Convert Montages</code> for the montaged images.</p>
+<h2 id="z-processing">Z Processing</h2>
+<p>MD does not mark a record as a projection: it writes the projections of a Z stack into <code>experiment</code>, and the stack itself into <code>experiment_z_stack</code>. So <code>Z Processing</code> picks which of those two directories is read.</p>
+<table>
+<thead>
+<tr>
+<th>Switch</th>
+<th>Default</th>
+<th>Selects</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Raw</code></td>
+<td>on</td>
+<td><code>experiment_z_stack</code> if present, otherwise <code>experiment</code></td>
+</tr>
+<tr>
+<td><code>MIP</code></td>
+<td>off</td>
+<td><code>experiment</code></td>
+</tr>
+</tbody>
+</table>
+<p>Because one acquisition is read from a single directory and written as a single plate, exactly one of the two must be enabled:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">z_processing</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># the default — raw images</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">z_processing</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"raw"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"mip"</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>  <span class="c1"># projections only</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Selection</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>unset, or <code>Raw</code> only</td>
+<td>The raw images — a Z stack where the acquisition has one.</td>
+</tr>
+<tr>
+<td><code>MIP</code> only</td>
+<td>The contents of <code>experiment</code>. An error if the acquisition has no such directory.</td>
+</tr>
+<tr>
+<td>both enabled</td>
+<td>An error — MD reads one source directory, so convert the acquisition twice instead.</td>
+</tr>
+<tr>
+<td>nothing enabled</td>
+<td>An error — enable one, or leave the option unset.</td>
+</tr>
+</tbody>
+</table>
+<p>Note that <code>MIP</code> simply means "read <code>experiment</code>". On an acquisition with no <code>experiment_z_stack</code> alongside it, that directory holds the raw images rather than projections, and they are converted as they always were.</p>
 <h2 id="task-parameters">Task Parameters</h2>
-<p>The MD ImageXpress init task extends the base acquisition parameters with MD-specific advanced options:</p>
+<p>The MD ImageXpress init task extends the base acquisition parameters with a projection selection and MD-specific advanced options:</p>
 <table>
 <thead>
 <tr>
@@ -964,6 +1040,12 @@
 <td>Acquisition identifier for multi-acquisition plates.</td>
 </tr>
 <tr>
+<td><code>Z Processing</code></td>
+<td><code>MDZProcessingSelection</code> or <code>null</code></td>
+<td><code>null</code></td>
+<td><a href="#z-processing">Which Z-image processing outputs to convert</a>. Unset converts the raw images.</td>
+</tr>
+<tr>
 <td><code>Advanced</code></td>
 <td><code>MDAcquisitionOptions</code></td>
 <td><code>{}</code></td>
@@ -984,12 +1066,6 @@
 </thead>
 <tbody>
 <tr>
-<td><code>Convert Only Projections</code></td>
-<td><code>bool</code></td>
-<td><code>false</code></td>
-<td>Only convert projection images from the <code>experiment</code> directory, ignoring Z-stacks.</td>
-</tr>
-<tr>
 <td><code>Convert Montages</code></td>
 <td><code>bool</code></td>
 <td><code>false</code></td>
@@ -999,28 +1075,28 @@
 </table>
 <div class="admonition warning">
 <p class="admonition-title">Incompatible options</p>
-<p><code>Convert Only Projections</code> and <code>Convert Montages</code> cannot both be enabled when the montage data contains Z-stacks.</p>
+<p><code>Convert Montages</code> takes precedence over <code>Z Processing</code> in choosing the source directory, so enabling it together with <code>MIP</code> is an error when the montage data contains Z-stacks.</p>
 </div>
 <h2 id="multiple-acquisitions-same-plate">Multiple Acquisitions (same plate)</h2>
 <p>To combine multiple acquisitions into a single plate, use different <code>Acquisition Id</code> values while keeping the same <code>Plate Name</code>.</p>
 <h2 id="python-api">Python API</h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">fractal_uzh_converters</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="n">convert_imagexpress_hcs</span><span class="p">,</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="n">MDImageXpressHCSaiAcquisitionModel</span><span class="p">,</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="p">)</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="n">acquisitions</span> <span class="o">=</span> <span class="p">[</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="n">MDImageXpressHCSaiAcquisitionModel</span><span class="p">(</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>        <span class="n">path</span><span class="o">=</span><span class="s2">"/path/to/imagexpress/acquisition"</span><span class="p">,</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>        <span class="n">plate_name</span><span class="o">=</span><span class="s2">"my_plate"</span><span class="p">,</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>        <span class="n">acquisition_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>    <span class="p">)</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="p">]</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="n">convert_imagexpress_hcs</span><span class="p">(</span>
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>    <span class="n">zarr_dir</span><span class="o">=</span><span class="s2">"/output/zarr"</span><span class="p">,</span>
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>    <span class="n">acquisitions</span><span class="o">=</span><span class="n">acquisitions</span><span class="p">,</span>
-<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">fractal_uzh_converters</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    <span class="n">convert_imagexpress_hcs</span><span class="p">,</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="n">MDImageXpressHCSaiAcquisitionModel</span><span class="p">,</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="p">)</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="n">acquisitions</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="n">MDImageXpressHCSaiAcquisitionModel</span><span class="p">(</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>        <span class="n">path</span><span class="o">=</span><span class="s2">"/path/to/imagexpress/acquisition"</span><span class="p">,</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>        <span class="n">plate_name</span><span class="o">=</span><span class="s2">"my_plate"</span><span class="p">,</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>        <span class="n">acquisition_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>    <span class="p">)</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="p">]</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="n">convert_imagexpress_hcs</span><span class="p">(</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>    <span class="n">zarr_dir</span><span class="o">=</span><span class="s2">"/output/zarr"</span><span class="p">,</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>    <span class="n">acquisitions</span><span class="o">=</span><span class="n">acquisitions</span><span class="p">,</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="p">)</span>
 </code></pre></div>
 <p>See <a href="../../how_to_run_the_converters/">How to Run the Converters</a> for all common parameters and execution details.</p>
 

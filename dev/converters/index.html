@@ -489,10 +489,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#stage-corrections" class="md-nav__link">
+  <a href="#stage-orientation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Stage Corrections
+        Stage Orientation
       
     </span>
   </a>
@@ -533,10 +533,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#tiling-mode" class="md-nav__link">
+  <a href="#grouping" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Tiling Mode
+        Grouping
       
     </span>
   </a>
@@ -555,10 +555,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#alignment-corrections" class="md-nav__link">
+  <a href="#stage-position-corrections" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Alignment Corrections
+        Stage Position Corrections
       
     </span>
   </a>
@@ -570,6 +570,17 @@
     <span class="md-ellipsis">
       
         OME-Zarr Options
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#runtime-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime Settings
       
     </span>
   </a>
@@ -925,10 +936,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#stage-corrections" class="md-nav__link">
+  <a href="#stage-orientation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Stage Corrections
+        Stage Orientation
       
     </span>
   </a>
@@ -969,10 +980,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#tiling-mode" class="md-nav__link">
+  <a href="#grouping" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Tiling Mode
+        Grouping
       
     </span>
   </a>
@@ -991,10 +1002,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#alignment-corrections" class="md-nav__link">
+  <a href="#stage-position-corrections" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Alignment Corrections
+        Stage Position Corrections
       
     </span>
   </a>
@@ -1006,6 +1017,17 @@
     <span class="md-ellipsis">
       
         OME-Zarr Options
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#runtime-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime Settings
       
     </span>
   </a>
@@ -1090,7 +1112,7 @@
 </tbody>
 </table>
 <h2 id="acquisition-parameters">Acquisition Parameters</h2>
-<p>Every acquisition object shares these base fields:</p>
+<p>Every acquisition object starts with <code>Path</code> and ends with <code>Advanced</code>, whatever converter-specific fields come in between:</p>
 <table>
 <thead>
 <tr>
@@ -1111,7 +1133,7 @@
 <td><code>Advanced</code></td>
 <td><code>AcquisitionOptions</code></td>
 <td><code>{}</code></td>
-<td>Advanced options including <code>Condition Table Path</code> and acquisition detail overrides.</td>
+<td>Advanced options including <code>Condition Table Path</code> and acquisition detail overrides. See <a href="#acquisition-options-advanced">Acquisition Options (Advanced)</a> below.</td>
 </tr>
 </tbody>
 </table>
@@ -1141,7 +1163,7 @@
 </tr>
 </tbody>
 </table>
-<p>Some HCS converters add further fields (e.g., <code>Layout</code> for ScanR). See the individual converter pages for details.</p>
+<p>Some HCS converters add further fields — <code>Layout</code> for ScanR, <code>Image Extension</code> for CellVoyager, and <code>Z Processing</code> for CQ3K, CellVoyager and MD ImageXpress. See the individual converter pages for details.</p>
 <p>If multiple acquisitions need to be combined into a single plate, simply provide multiple acquisition objects with the same <code>Plate Name</code>, but different <code>Acquisition Id</code> values (e.g. in case of multiplexed experiments).</p>
 <h3 id="single-image-acquisitions">Single-image acquisitions</h3>
 <p>Single-image converters (e.g., Custom TIFF Single Image) add:</p>
@@ -1176,22 +1198,22 @@
 </thead>
 <tbody>
 <tr>
-<td><code>Condition Table Path</code></td>
-<td><code>str</code> or <code>null</code></td>
-<td><code>null</code></td>
-<td>Absolute path to a <a href="../condition_tables/">condition table</a> CSV file.</td>
-</tr>
-<tr>
 <td><code>Channels</code></td>
-<td><code>list[ChannelInfo]</code> or <code>null</code></td>
+<td><code>list[ChannelInfoUI]</code> or <code>null</code></td>
 <td><code>null</code></td>
-<td>Override channel names and colors.</td>
+<td>Override channel names, wavelength ids and colors. The list is positional, and how it is indexed depends on the converter — see the <a href="cq3k/#channels">CQ3K</a> and <a href="cellvoyager/#channels">CellVoyager</a> pages, where it is indexed by the instrument channel number rather than by the channels present in the output.</td>
 </tr>
 <tr>
 <td><code>Pixel Size Information</code></td>
 <td><code>PixelSizeModel</code> or <code>null</code></td>
 <td><code>null</code></td>
 <td>Override pixel size (<code>Pixelsize</code>, <code>Z Spacing</code>, <code>T Spacing</code> in micrometers).</td>
+</tr>
+<tr>
+<td><code>Condition Table Path</code></td>
+<td><code>str</code> or <code>null</code></td>
+<td><code>null</code></td>
+<td>Absolute path to a <a href="../condition_tables/">condition table</a> CSV file.</td>
 </tr>
 <tr>
 <td><code>Axes</code></td>
@@ -1201,13 +1223,13 @@
 </tr>
 <tr>
 <td><code>Data Type</code></td>
-<td><code>str</code> or <code>null</code></td>
-<td><code>null</code></td>
-<td>Override data type: <code>uint8</code>, <code>uint16</code>, or <code>uint32</code>.</td>
+<td><code>DataTypeEnum</code></td>
+<td><code>"autodetect"</code></td>
+<td>Pixel data type of the output: <code>autodetect</code>, <code>uint8</code>, <code>uint16</code> or <code>uint32</code>. <code>autodetect</code> infers it from the input images.</td>
 </tr>
 <tr>
-<td><code>Stage Corrections</code></td>
-<td><code>StageCorrections</code></td>
+<td><code>Stage Orientation</code></td>
+<td><code>StageOrientation</code></td>
 <td><code>{}</code></td>
 <td>Flip or swap stage axes (see below).</td>
 </tr>
@@ -1215,11 +1237,11 @@
 <td><code>Filters</code></td>
 <td><code>list</code></td>
 <td><code>[]</code></td>
-<td>Filters to include/exclude specific tiles.</td>
+<td>Filters selecting which tiles are converted (see below).</td>
 </tr>
 </tbody>
 </table>
-<h4 id="stage-corrections">Stage Corrections</h4>
+<h4 id="stage-orientation">Stage Orientation</h4>
 <p>If the microscope stage orientation does not match the expected coordinate system, you can apply corrections:</p>
 <table>
 <thead>
@@ -1252,16 +1274,70 @@
 </tbody>
 </table>
 <h4 id="filters">Filters</h4>
-<p>You can filter tiles during conversion using the <code>Filters</code> list:</p>
-<ul>
-<li><strong>Well Filter</strong> — Remove specific wells by ID (e.g., <code>["A1", "B2"]</code>).</li>
-<li><strong>Path Regex Include Filter</strong> — Only include tiles whose file path matches a regex.</li>
-<li><strong>Path Regex Exclude Filter</strong> — Exclude tiles whose file path matches a regex.</li>
-</ul>
+<p><code>Filters</code> is a list of filter objects, each identified by its <code>Name</code>. Most of them take a <code>Mode</code> of <code>Include</code> (keep only the matching tiles) or <code>Exclude</code> (drop them), defaulting to <code>Include</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Mode</th>
+<th>Selects on</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Path Regex Filter</code></td>
+<td>yes</td>
+<td><code>Regex</code> matched against the tile's file path.</td>
+</tr>
+<tr>
+<td><code>Well Filter</code></td>
+<td>yes</td>
+<td><code>Wells</code> — a list of well IDs (e.g. <code>["A1", "B2"]</code>). Plates only.</td>
+</tr>
+<tr>
+<td><code>Acquisition Filter</code></td>
+<td>yes</td>
+<td><code>Acquisitions</code> — a list of acquisition indices. Plates only.</td>
+</tr>
+<tr>
+<td><code>Channel Filter</code></td>
+<td>yes</td>
+<td><code>Channel Labels</code> — a list of channel labels.</td>
+</tr>
+<tr>
+<td><code>FOV Name Filter</code></td>
+<td>yes</td>
+<td><code>Regex</code> matched against the field of view name.</td>
+</tr>
+<tr>
+<td><code>Attribute Filter</code></td>
+<td>yes</td>
+<td><code>Key</code> and <code>Values</code> — any tile attribute.</td>
+</tr>
+<tr>
+<td><code>Z Range Filter</code></td>
+<td>no</td>
+<td><code>Min Z</code> / <code>Max Z</code> — keeps tiles whose starting Z position lies in the range.</td>
+</tr>
+<tr>
+<td><code>Time Range Filter</code></td>
+<td>no</td>
+<td><code>Min T</code> / <code>Max T</code> — keeps tiles whose starting time point lies in the range.</td>
+</tr>
+</tbody>
+</table>
+<p>In the Python API a filter is a plain dict:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">advanced</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="s2">"filters"</span><span class="p">:</span> <span class="p">[</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"Path Regex Filter"</span><span class="p">,</span> <span class="s2">"mode"</span><span class="p">:</span> <span class="s2">"Exclude"</span><span class="p">,</span> <span class="s2">"regex"</span><span class="p">:</span> <span class="sa">r</span><span class="s2">"_Median\.zarr"</span><span class="p">},</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        <span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"Well Filter"</span><span class="p">,</span> <span class="s2">"mode"</span><span class="p">:</span> <span class="s2">"Include"</span><span class="p">,</span> <span class="s2">"wells"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"A1"</span><span class="p">,</span> <span class="s2">"B2"</span><span class="p">]},</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="p">]</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">}</span>
+</code></pre></div>
 <h2 id="converter-options">Converter Options</h2>
-<p>The <code>Converter Options</code> parameter controls how tiles are assembled, written, and stored. The defaults work well for most cases — only adjust these if you have specific requirements.</p>
-<h3 id="tiling-mode">Tiling Mode</h3>
-<p>Controls how individual fields of view (FOVs) are assembled into the final image.</p>
+<p>The <code>Converter Options</code> parameter controls how tiles are assembled, written, and stored. The defaults work well for most cases — only adjust these if you have specific requirements. It has five sections: <code>Writer Mode</code>, <code>Grouping</code>, <code>Stage Position Corrections</code>, <code>OME-Zarr Options</code> and <code>Runtime Settings</code>.</p>
+<h3 id="grouping">Grouping</h3>
+<p>Controls how individual fields of view (FOVs) are turned into output images.</p>
 <table>
 <thead>
 <tr>
@@ -1271,12 +1347,31 @@
 </thead>
 <tbody>
 <tr>
+<td><code>Mosaic</code> (default)</td>
+<td>Aggregate all FOVs of an acquisition into one OME-Zarr image, arranged by the nested <code>Tiling Strategy</code>.</td>
+</tr>
+<tr>
+<td><code>Per-FOV</code></td>
+<td>Write each FOV as its own OME-Zarr image — no mosaic, and no tiling strategy.</td>
+</tr>
+</tbody>
+</table>
+<p>Under <code>Mosaic</code>, <code>Tiling Strategy</code> picks how the FOVs are arranged:</p>
+<table>
+<thead>
+<tr>
+<th>Strategy</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
 <td><code>Auto</code> (default)</td>
-<td>Automatically picks <code>Snap to Grid</code> if positions align to a grid, otherwise falls back to <code>Snap to Corners</code>.</td>
+<td>Uses <code>Snap to Grid</code> if the positions align to a grid, otherwise falls back to <code>Snap to Corners</code>. Takes a <code>Tiling Tolerance (in pixels)</code>, default <code>1</code>.</td>
 </tr>
 <tr>
 <td><code>Snap to Grid</code></td>
-<td>Tiles images onto a regular grid. Only works if stage positions align to a grid (with possible overlap).</td>
+<td>Tiles images onto a regular grid. Only works if stage positions align to a grid (with possible overlap). Also takes a tolerance.</td>
 </tr>
 <tr>
 <td><code>Snap to Corners</code></td>
@@ -1285,10 +1380,6 @@
 <tr>
 <td><code>Inplace</code></td>
 <td>Writes tiles at their original stage positions without snapping. May produce artifacts if stage positions are imprecise.</td>
-</tr>
-<tr>
-<td><code>No Tiling</code></td>
-<td>Each FOV is written as a separate OME-Zarr image (no stitching).</td>
 </tr>
 </tbody>
 </table>
@@ -1324,8 +1415,8 @@
 </tr>
 </tbody>
 </table>
-<h3 id="alignment-corrections">Alignment Corrections</h3>
-<p>Corrects for minor stage positioning errors across FOVs.</p>
+<h3 id="stage-position-corrections">Stage Position Corrections</h3>
+<p>Corrections applied to the stage positions before the image is written.</p>
 <table>
 <thead>
 <tr>
@@ -1337,22 +1428,34 @@
 </thead>
 <tbody>
 <tr>
-<td><code>Align XY</code></td>
-<td><code>bool</code></td>
-<td><code>false</code></td>
-<td>Align FOV positions in the XY plane.</td>
+<td><code>Remove XY Offset</code></td>
+<td><code>Keep</code> or <code>Global</code></td>
+<td><code>Global</code></td>
+<td><code>Global</code> shifts all positions together so the image XY origin is 0. <code>Keep</code> uses them as-is, which fails on a negative position and pads the origin on a positive one.</td>
 </tr>
 <tr>
-<td><code>Align Z</code></td>
-<td><code>bool</code></td>
-<td><code>false</code></td>
-<td>Align FOV positions along the Z axis.</td>
+<td><code>Remove Z Offset</code></td>
+<td><code>Keep</code>, <code>Per-FOV</code> or <code>Global</code></td>
+<td><code>Global</code></td>
+<td>As above for Z; <code>Per-FOV</code> shifts each field of view independently to Z origin 0.</td>
 </tr>
 <tr>
-<td><code>Align T</code></td>
+<td><code>Remove T Offset</code></td>
+<td><code>Keep</code> or <code>Global</code></td>
+<td><code>Global</code></td>
+<td>As above for the time axis.</td>
+</tr>
+<tr>
+<td><code>Remove XY Jitter</code></td>
 <td><code>bool</code></td>
-<td><code>false</code></td>
-<td>Align FOV positions along the T axis.</td>
+<td><code>true</code></td>
+<td>Correct minor stage positioning errors across FOVs.</td>
+</tr>
+<tr>
+<td><code>Reindex Channels</code></td>
+<td><code>bool</code></td>
+<td><code>true</code></td>
+<td>Pack the channels present in the acquisition into a dense 0-based axis. Disable it to keep the instrument's channel numbering, which writes the channels the acquisition did not use as empty planes.</td>
 </tr>
 </tbody>
 </table>
@@ -1369,25 +1472,25 @@
 </thead>
 <tbody>
 <tr>
-<td><code>Num Levels</code></td>
-<td><code>int</code></td>
-<td><code>5</code></td>
-<td>Number of resolution pyramid levels.</td>
+<td><code>Resolution Levels</code></td>
+<td><code>Number of Levels</code> or <code>Custom Names</code></td>
+<td>5 levels</td>
+<td><code>Number of Levels</code> creates that many levels with the default names (<code>0</code>, <code>1</code>, …); <code>Custom Names</code> takes an explicit <code>Level Names</code> list, highest resolution first.</td>
 </tr>
 <tr>
 <td><code>Chunking Strategy</code></td>
-<td><code>ChunkingStrategy</code></td>
-<td>FOV-based</td>
+<td><code>Same as FOV</code> or <code>Fixed Size</code></td>
+<td><code>Same as FOV</code></td>
 <td>How to chunk the data on disk (see below).</td>
 </tr>
 <tr>
 <td><code>Sharding Strategy</code></td>
-<td><code>ShardingStrategy</code></td>
-<td><code>None</code></td>
-<td>How storage chunks are grouped into shards (see below). Requires <code>Ngff Version</code> <code>"0.5"</code>.</td>
+<td><code>No Sharding</code> or <code>Multiple of Chunks</code></td>
+<td><code>No Sharding</code></td>
+<td>How storage chunks are grouped into shards (see below). Requires <code>NGFF Version</code> <code>"0.5"</code>.</td>
 </tr>
 <tr>
-<td><code>Ngff Version</code></td>
+<td><code>NGFF Version</code></td>
 <td><code>str</code></td>
 <td><code>"0.4"</code></td>
 <td>OME-NGFF specification version to target (<code>"0.4"</code> or <code>"0.5"</code>).</td>
@@ -1395,7 +1498,7 @@
 <tr>
 <td><code>Table Backend</code></td>
 <td><code>str</code></td>
-<td><code>"anndata"</code></td>
+<td><code>"csv"</code></td>
 <td>Backend for storing tables. One of: <code>anndata</code>, <code>json</code>, <code>csv</code>, <code>parquet</code>.</td>
 </tr>
 </tbody>
@@ -1474,7 +1577,7 @@
 </div>
 </div>
 <p><strong>Sharding strategies</strong> (OME-NGFF 0.5 / zarr format 3 only):</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">None (default)</label><label for="__tabbed_2_2">Multiple of Chunks</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">No Sharding (default)</label><label for="__tabbed_2_2">Multiple of Chunks</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <p>Every chunk is stored as its own object (no sharding).</p>
@@ -1518,6 +1621,39 @@ re-encodes the shards it touches.</p>
 </div>
 </div>
 </div>
+<h3 id="runtime-settings">Runtime Settings</h3>
+<p>How the conversion itself is executed. These do not change the output, only how it is produced.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Use Zarrs Codec Pipeline</code></td>
+<td><code>bool</code></td>
+<td><code>false</code></td>
+<td>Read and write image data with the <code>zarrs</code> Rust backend, which is usually faster. Requires the optional <code>zarrs</code> dependency.</td>
+</tr>
+<tr>
+<td><code>Dask Scheduler</code></td>
+<td><code>Default</code>, <code>Threads</code>, <code>Processes</code> or <code>Synchronous</code></td>
+<td><code>Default</code></td>
+<td>How the work is parallelized. <code>Default</code> leaves the environment's own settings unchanged; <code>Synchronous</code> runs sequentially.</td>
+</tr>
+<tr>
+<td><code>Temporary JSON Options</code></td>
+<td><code>TempJsonOptions</code></td>
+<td>see below</td>
+<td>Where and when intermediate conversion data is stored on disk.</td>
+</tr>
+</tbody>
+</table>
+<p><code>Temporary JSON Options</code> takes a <code>Temporary Storage URL</code> (default <code>{zarr_dir}/_tmp_json</code>), a <code>Serialization</code> mode (<code>Auto</code>, <code>Memory</code> or <code>JSON</code>) and a <code>Max In-Memory Bytes</code> threshold (default 10 MiB) above which <code>Auto</code> spills to disk.</p>
 <h2 id="overwrite-modes">Overwrite Modes</h2>
 <p>All converters support three overwrite modes when the output plate already exists:</p>
 <ul>
@@ -1530,7 +1666,8 @@ This mode can be used to incrementally add acquisitions to a plate without repro
 <ul>
 <li><a href="operetta/">Revity Operetta / Opera Phenix</a></li>
 <li><a href="scanr/">Evident ScanR</a></li>
-<li><a href="cq3k/">Yokogawa CQ3K / CellVoyager</a></li>
+<li><a href="cq3k/">Yokogawa CQ3K</a></li>
+<li><a href="cellvoyager/">Yokogawa CellVoyager</a></li>
 <li><a href="md_imagexpress/">Molecular Devices ImageXpress HCS.ai</a></li>
 <li><a href="custom_tiff/">Custom TIFF (HCS &amp; Single Image)</a></li>
 </ul>

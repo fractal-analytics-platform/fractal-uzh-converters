@@ -713,6 +713,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -936,6 +947,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1091,8 +1113,9 @@
 
 <h1 id="changelog">Changelog</h1>
 <h2 id="v080">[v0.8.0]</h2>
-<p>Migration to <code>ome-zarr-converters-tools</code> v1 and <code>ngio</code> 1.1. Written OME-Zarr output
-is unchanged (the extended real-data suite regenerated no snapshots).</p>
+<p>Migration to <code>ome-zarr-converters-tools</code> v1 and <code>ngio</code> 1.1, plus a rework of the Yokogawa
+converters. Written OME-Zarr output is unchanged for Operetta, ScanR, ImageXpress and
+CustomTiff; Yokogawa plates change in channel labels, plate suffixes and vendor metadata.</p>
 <h3 id="features">Features</h3>
 <ul>
 <li>Sharded OME-Zarr output: <code>Converter Options → OME-Zarr Options → Sharding Strategy</code>
@@ -1102,13 +1125,41 @@ is unchanged (the extended real-data suite regenerated no snapshots).</p>
   so peak memory no longer scales with the image size (<code>ome-zarr-converters-tools</code> 1.1.0).</li>
 <li>Conversion errors name the image, tile and source file they concern, with the expected
   and actual values (<code>ome-zarr-converters-tools</code> 1.1.1).</li>
+<li>Yokogawa (CQ3K, CellVoyager): channel labels, wavelength ids (<code>A{action}_C{channel}</code>) and
+  colours are now read from the acquisition's <code>.mes</code> protocol file (#27).</li>
+<li>New <code>z_processing</code> acquisition option on CQ3K, CellVoyager and MD ImageXpress, selecting
+  which Z-image processing outputs to convert without resorting to a path regex filter.</li>
+<li>Yokogawa (CQ3K, CellVoyager): the acquisition's <code>.mlf</code>, <code>.mrf</code>, <code>.mes</code>, <code>.wpi</code> and <code>.wpp</code>
+  are copied verbatim into <code>&lt;plate&gt;.zarr/metadata/</code>, so the vendor metadata the converters
+  do not model travels with the converted plate (#46).</li>
 </ul>
 <h3 id="api-breaking-changes">API Breaking Changes</h3>
 <ul>
+<li><strong>CellVoyager acquisitions tagged <code>bts:ZImageProcessing</code> now split into one plate per
+  algorithm</strong> (<code>_MIP</code>/<code>_MinIP</code>/<code>_SIP</code>), with the same <code>z_processing</code> selection as CQ3K;
+  the attribute was previously dropped, overlapping the tiles of both plates.</li>
+<li><strong><code>z_processing</code> is now a top-level acquisition field</strong> on CQ3K, CellVoyager and MD
+  ImageXpress instead of an advanced option, sharing one <code>Z Processing Selection</code> shape
+  per converter; the Yokogawa switch <code>Z slices</code> is renamed <code>Raw</code>.</li>
+<li><strong>MD ImageXpress <code>advanced.convert_only_projections</code> is removed</strong> in favour of
+  <code>z_processing</code>, where <code>MIP</code> reads <code>experiment</code> and <code>Raw</code> prefers <code>experiment_z_stack</code>;
+  the two cannot be enabled together, since MD reads a single source directory.</li>
+<li><strong>Yokogawa default channel labels are no longer <code>channel_N</code></strong> but the <code>.mes</code> channel
+  target, falling back to the wavelength id when no <code>.mes</code> is available. With
+  <code>reindex_channels</code> disabled, instrument channels the acquisition did not use are now
+  written as empty planes.</li>
+<li><strong>CQ3K projection plates are now suffixed <code>_MIP</code>/<code>_MinIP</code>/<code>_SIP</code></strong> instead of the raw
+  <code>bts:ZImageProcessing</code> values <code>_Maximum</code>/<code>_Minimum</code>/<code>_Sum</code>; an unrecognised value is
+  still used verbatim (#45).</li>
+<li><strong><code>fractal_uzh_converters.{cq3k,cellvoyager}</code> move to
+  <code>fractal_uzh_converters.yokogawa.{cq3k,cellvoyager}</code></strong>, which unifies the two behind one
+  shared parser. Package-root imports are unchanged; the old submodule paths are not.</li>
 <li><strong>CustomTiff <code>acquisition_details.toml</code> keys renamed</strong> (follows the v1 field renames):
   <code>pixelsize</code> → <code>xy_pixel_size</code>, <code>start_z_coo</code>/<code>start_t_coo</code> → <code>start_z_space</code>/<code>start_t_space</code>
   (and any other <code>*_coo</code> → <code>*_space</code>). Existing user <code>acquisition_details.toml</code> files must
   be updated. See <code>docs/converters/custom_tiff.md</code>.</li>
+<li><strong><code>Advanced</code> is now the last acquisition field</strong> in all seven converters instead of the
+  second.</li>
 <li>Require <code>ome-zarr-converters-tools[s3]&gt;=1.1.1,&lt;2.0.0</code> and <code>ngio&gt;=1.1.2</code>. The <code>[s3]</code>
   extra is now mandatory because v1 makes <code>s3fs</code> optional and <code>s3://</code> inputs must keep working.
   The <code>ngio</code> floor is 1.1.2 because earlier 1.1.x releases could silently lose pixels in
@@ -1116,11 +1167,29 @@ is unchanged (the extended real-data suite regenerated no snapshots).</p>
 </ul>
 <h3 id="fix">Fix</h3>
 <ul>
+<li>All converters: strip whitespace from channel labels and wavelength ids — ngio treats
+  <code>"DAPI"</code> and <code>"DAPI "</code> as two distinct channels, so a stray space silently broke
+  per-name channel matching downstream.</li>
+<li>Yokogawa: channel indices are now 0-based, so an <code>advanced.channels</code> override maps its
+  first entry to <code>Ch1</code> instead of failing (#27).</li>
+<li>Yokogawa: build one <code>AcquisitionDetails</code> per plate rather than per field of view, so
+  fields merged into a single image cannot disagree on it.</li>
+<li>Yokogawa: each well's <code>bts:TimePoint</code> values map onto a dense 0-based time axis; the raw
+  value counts timelines, so it left leading frames empty.</li>
+<li>Yokogawa: a <code>bts:Type="ERR"</code> record no longer makes the whole <code>.mlf</code> unparsable. Such
+  records are skipped, with one warning per acquisition (#41).</li>
+<li>Yokogawa: warn when the <code>.mrf</code> channels disagree on pixel size or frame size — channel
+  1's geometry is applied to all of them.</li>
+<li>CQ3K: a single-record <code>.mlf</code> now converts, and unknown <code>bts:</code> attributes are ignored
+  rather than rejected. Both already held on CellVoyager.</li>
 <li>Bug in extended testing using the wrong api</li>
 <li>Fix typo in the conversion log message (<code>Successfully</code>).</li>
 </ul>
 <h3 id="chores">Chores</h3>
 <ul>
+<li>All converters: what a converter reports about the input data is now a <code>warnings.warn</code>
+  under a <code>ConverterWarning</code> hierarchy instead of a <code>logger.warning</code>, so a caller can
+  filter or escalate it; the init tasks keep it visible in the task log.</li>
 <li>Drop the <code>ngff_version=</code> argument from all seven <code>setup_images_for_conversion(...)</code> calls
   (removed in <code>ome-zarr-converters-tools</code> 1.1.0; the value already came from <code>converter_options</code>).</li>
 <li>Adopt the v1 <code>AcquisitionDetails</code> renames in all builders: <code>pixelsize=</code> → <code>xy_pixel_size=</code>
@@ -1131,8 +1200,27 @@ is unchanged (the extended real-data suite regenerated no snapshots).</p>
   <code>mode</code>).</li>
 <li>Regenerate <code>pixi.lock</code> from PyPI releases only (the previous lock pointed at a local
   editable path); ngio 1.x no longer pulls in the <code>distributed</code> dependency cluster.</li>
+<li>Replace the Yokogawa CQ3K test data with BSSE-CQ3000 acquisitions, the previous data not
+  being redistributable; add an extended CellVoyager suite and rename the Yokogawa
+  extended datasets to the canonical <code>hcs_…</code> convention.</li>
+<li>Tests: rename the stale <code>init_task_kwargs</code> parametrize variable to <code>api_kwargs</code>.</li>
+<li>Tests: register the <code>ConverterWarning</code> ignore from <code>conftest.py</code> instead of the pytest
+  ini, which imported the package before coverage started and under-reported coverage by
+  ~37 points.</li>
 <li>Load the shared snapshot-testing plugin via <code>pytest_plugins</code> in <code>tests/conftest.py</code> instead of <code>-p</code> in <code>pytest</code> <code>addopts</code>, matching the sibling converters.</li>
 <li>Align repository tooling with <code>ome-zarr-converters-tools</code>: adopt its <code>.pre-commit-config.yaml</code> (<code>validate-pyproject</code> v0.25, <code>crate-ci/typos</code>, <code>astral-sh/ruff-pre-commit</code> v0.15.17, <code>nbstripout</code>) with a per-repo <code>_typos.toml</code>, add a <code>chores</code> pixi task, bump GitHub Actions pins (<code>checkout</code> v7, <code>codecov-action</code> v7, <code>action-gh-release</code> v3, <code>setup-python</code> v6), and trim <code>CLAUDE.md</code>.</li>
+</ul>
+<h3 id="documentation">Documentation</h3>
+<ul>
+<li>Document Yokogawa channel handling: where the labels come from, and that an
+  <code>advanced.channels</code> override is indexed by instrument channel number rather than by the
+  channels present in the output.</li>
+<li>Document the Yokogawa vendor-metadata copy on both converter pages, and drop the
+  limited-testing caveats now that both converters have an extended test suite.</li>
+<li>Bring the shared converter-options reference up to date with the v1 schema, including
+  the new sharding strategies and runtime settings.</li>
+<li>Fix <code>tests/data_intake_instructions.md</code> and <code>tests/cleanup_test_data.sh</code>: snapshots are
+  JSON, not YAML, and the extended-test template was outdated.</li>
 </ul>
 <h2 id="071">[0.7.1]</h2>
 <h3 id="fix_1">Fix</h3>
