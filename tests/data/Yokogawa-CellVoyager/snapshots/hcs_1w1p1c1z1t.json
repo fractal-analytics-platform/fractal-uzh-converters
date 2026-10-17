@@ -36,10 +36,10 @@
             0.1625
           ],
           "channel_labels": [
-            "channel_0"
+            "A01_C01"
           ],
           "wavelength_ids": [
-            "channel_0"
+            "A01_C01"
           ],
           "types": {
             "is_3D": false

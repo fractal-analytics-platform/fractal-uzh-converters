@@ -11,6 +11,8 @@ Fractal UZH Converters is a collection of [Fractal](https://fractal-analytics-pl
 | CQ3K | Yokogawa | `Convert Yokogawa CQ3K Plate to OME-Zarr` |
 | CellVoyager | Yokogawa | `Convert Yokogawa CellVoyager Plate to OME-Zarr` |
 | ImageXpress HCS.ai | Molecular Devices | `Convert MD ImageXpress HCS.ai Plate to OME-Zarr` |
+| Any (plain TIFF) | — | `Convert Custom TIFF HCS Plate to OME-Zarr` |
+| Any (plain TIFF) | — | `Convert Custom TIFF Images to OME-Zarr` |
 
 Each converter reads the microscope's native metadata and image files, then produces a well-structured OME-Zarr HCS plate that can be viewed in tools like [napari](https://napari.org/) or processed with downstream Fractal tasks.
 

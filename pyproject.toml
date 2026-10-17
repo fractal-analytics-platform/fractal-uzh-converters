@@ -44,7 +44,7 @@ requires-python = ">=3.11,<3.15"
 dependencies = [
     "ome-zarr-converters-tools[s3]>=1.1.1,<2.0.0",
     "fractal-task-tools>=0.5.0,<0.6.0",
-    "ngio>=1.1.2",
+    "ngio>=1.1.2,<1.3",
     "fsspec",
     "zarrs",
     "tqdm",
@@ -118,6 +118,8 @@ minversion = "8.0"
 testpaths = ["tests"]
 filterwarnings = [
     "error",
+    # NB: the ignore for the converters' own ConverterWarning lives in
+    # `tests/conftest.py`, not here — see the comment there.
     "ignore::zarr.errors.ZarrUserWarning", # required for anndata
     # "ignore::anndata._warnings.ImplicitModificationWarning", # anndata internal index coercion
     "ignore::UserWarning:anndata._io.zarr", # anndata zarr v2→v3 migration notice

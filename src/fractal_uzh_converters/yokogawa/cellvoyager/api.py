@@ -1,4 +1,4 @@
-"""Python API for CQ3K converters."""
+"""Python API for CellVoyager converters."""
 
 from ome_zarr_converters_tools import (
     ConverterOptions,
@@ -11,24 +11,28 @@ from ome_zarr_converters_tools.fractal import ImageListUpdateDict
 from fractal_uzh_converters.common.image_in_plate_compute_task import (
     image_in_plate_compute_task,
 )
-from fractal_uzh_converters.cq3k._utils import CQ3KAcquisitionModel
-from fractal_uzh_converters.cq3k.convert_cq3k_init_task import convert_cq3k_init_task
+from fractal_uzh_converters.yokogawa.cellvoyager._utils import (
+    CellVoyagerAcquisitionModel,
+)
+from fractal_uzh_converters.yokogawa.cellvoyager.convert_cellvoyager_init_task import (
+    convert_cellvoyager_init_task,
+)
 
 
-def convert_cq3k(
+def convert_cellvoyager(
     *,
     zarr_dir: str,
-    acquisitions: list[CQ3KAcquisitionModel],
+    acquisitions: list[CellVoyagerAcquisitionModel],
     converter_options: ConverterOptions | None = None,
     overwrite: OverwriteMode = OverwriteMode.NO_OVERWRITE,
     runner: RunnerType | None = None,
 ) -> list[ImageListUpdateDict]:
-    """Convert a CQ3K dataset to OME-Zarr.
+    """Convert a CellVoyager dataset to OME-Zarr.
 
     Args:
         zarr_dir (str): Directory to store the Zarr files.
-        acquisitions (list[CQ3KAcquisitionModel]): List of raw acquisitions to convert
-            to OME-Zarr.
+        acquisitions (list[CellVoyagerAcquisitionModel]): List of raw acquisitions to
+            convert to OME-Zarr.
         converter_options (ConverterOptions | None): Advanced converter options.
         overwrite (OverwriteMode): Overwrite mode for existing data.
             - "No Overwrite": Do not overwrite existing data.
@@ -50,7 +54,7 @@ def convert_cq3k(
         "overwrite": overwrite,
     }
     return exec_compound_task(
-        init_task_fn=convert_cq3k_init_task,
+        init_task_fn=convert_cellvoyager_init_task,
         compute_task_fn=image_in_plate_compute_task,
         init_task_kwargs=init_task_kwargs,
         runner=runner,

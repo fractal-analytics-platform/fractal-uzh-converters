@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<bts:MeasurementSetting bts:Version="1.0" bts:ProductID="10" bts:Application="" bts:Columns="12" bts:Rows="8" xmlns:bts="http://www.yokogawa.co.jp/BTS/BTSSchema/1.0">
+  <bts:Timelapse>
+    <bts:Timeline bts:Name="Time Line 1" bts:InitialTime="0" bts:Period="600" bts:Interval="600" bts:ExpectedTime="600" bts:Color="#ff44ee66" bts:OverrideExpectedTime="true">
+      <bts:WellSequence bts:IsSelected="true">
+        <bts:TargetWell bts:Column="5" bts:Row="3">true</bts:TargetWell>
+        <bts:TargetWell bts:Column="9" bts:Row="6">true</bts:TargetWell>
+      </bts:WellSequence>
+      <bts:PointSequence bts:Method="FixedPosition">
+        <bts:FixedPosition bts:IsProportional="false">
+          <bts:Point bts:X="-1460.8" bts:Y="-1303.2" />
+        </bts:FixedPosition>
+      </bts:PointSequence>
+      <bts:ActionList>
+        <bts:ActionAcquire3D bts:XOffset="0" bts:YOffset="0" bts:AFShiftBase="27.5" bts:TopDistance="47.5" bts:BottomDistance="-47.5" bts:SliceLength="3" bts:UseSoftFocus="false" bts:ImageProcessing="Maximum">
+          <bts:Ch>1</bts:Ch>
+        </bts:ActionAcquire3D>
+      </bts:ActionList>
+    </bts:Timeline>
+  </bts:Timelapse>
+  <bts:LightSourceList bts:UseCalibratedLaserPower="true">
+    <bts:LightSource bts:Name="Ch1_405nm/100mW_100" bts:Type="Laser" bts:WaveLength="405" bts:Power="100" />
+  </bts:LightSourceList>
+  <bts:ChannelList>
+    <bts:Channel bts:Ch="1" bts:Target="Ch1_ConfocalFluorescence_405nm/100mW_BP447/60" bts:ObjectiveID="20000" bts:Objective="UPLXAPO20X" bts:Magnification="20" bts:MethodID="1" bts:Method="405/488/561/640/Lamp" bts:FilterID="1" bts:Acquisition="BP447/60" bts:ExposureTime="50" bts:Binning="1" bts:Color="#FF00FFFF" bts:MinLevel="0" bts:MaxLevel="1" bts:Kind="ConfocalFluorescence" bts:CameraType="DCAM">
+      <bts:LightSourceName>Ch1_405nm/100mW_100</bts:LightSourceName>
+    </bts:Channel>
+  </bts:ChannelList>
+</bts:MeasurementSetting>

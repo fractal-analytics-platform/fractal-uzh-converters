@@ -7,14 +7,6 @@ try:
 except PackageNotFoundError:
     __version__ = "uninstalled"
 
-from fractal_uzh_converters.cellvoyager import (
-    CellVoyagerAcquisitionModel,
-    convert_cellvoyager,
-)
-from fractal_uzh_converters.cq3k import (
-    CQ3KAcquisitionModel,
-    convert_cq3k,
-)
 from fractal_uzh_converters.custom_tiff import (
     HcsTiffAcquisitionModel,
     SingleTiffAcquisitionModel,
@@ -33,6 +25,12 @@ from fractal_uzh_converters.operetta import (
 from fractal_uzh_converters.scanr import (
     ScanRAcquisitionModel,
     convert_scanr,
+)
+from fractal_uzh_converters.yokogawa import (
+    CellVoyagerAcquisitionModel,
+    CQ3KAcquisitionModel,
+    convert_cellvoyager,
+    convert_cq3k,
 )
 
 __all__ = [

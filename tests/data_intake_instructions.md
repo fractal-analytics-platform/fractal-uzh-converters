@@ -8,13 +8,15 @@ New extended test datasets exist but are not yet formatted to match the `hcs_{W}
 
 ## Converter Reference Table
 
-| Instrument | Init Task Module Path | data-extended subfolder | Extended test file | Test function name |
+The extended tests call the public converter API function (`api_fn=`), not the init task.
+
+| Instrument | Converter API function | data-extended subfolder | Extended test file | Test function name |
 |---|---|---|---|---|
-| Evident ScanR | `fractal_uzh_converters.scanr.convert_scanr_init_task.convert_scanr_init_task` | `Evident-scanR/` | `test_evident_scanr_extended.py` | `test_scanr_extended` |
-| Yokogawa CQ3K | `fractal_uzh_converters.cq3k.convert_cq3k_init_task.convert_cq3k_init_task` | `Yokogawa-CQ3K/` | `test_yokogawa_cq3k_extended.py` | `test_cq3k_extended` |
-| Revvity Operetta | `fractal_uzh_converters.operetta.convert_operetta_init_task.convert_operetta_init_task` | `Revvity-Operetta/` | `test_revvity_operetta_extended.py` | `test_operetta_extended` |
-| Yokogawa CellVoyager | `fractal_uzh_converters.cellvoyager.convert_cellvoyager_init_task.convert_cellvoyager_init_task` | `Yokogawa-CellVoyager/` | `test_yokogawa_cellvoyager_extended.py` | `test_cellvoyager_extended` |
-| Molecular Devices ImageXpress | `fractal_uzh_converters.imagexpress_hcs.convert_imagexpress_hcs_init_task.convert_imagexpress_hcs_init_task` | `MolecularDevices-ImageXpressHCSai/` | `test_molecular_devices_imagexpress_extended.py` | `test_imagexpress_hcs_extended` |
+| Evident ScanR | `from fractal_uzh_converters.scanr import convert_scanr` | `Evident-scanR/` | `test_evident_scanr_extended.py` | `test_scanr_extended` |
+| Yokogawa CQ3K | `from fractal_uzh_converters.yokogawa.cq3k import convert_cq3k` | `Yokogawa-CQ3K/` | `test_yokogawa_cq3k_extended.py` | `test_cq3k_extended` |
+| Revvity Operetta | `from fractal_uzh_converters.operetta import convert_operetta` | `Revvity-Operetta/` | `test_revvity_operetta_extended.py` | `test_operetta_extended` |
+| Yokogawa CellVoyager | `from fractal_uzh_converters.yokogawa.cellvoyager import convert_cellvoyager` | `Yokogawa-CellVoyager/` | `test_yokogawa_cellvoyager_extended.py` | `test_cellvoyager_extended` |
+| Molecular Devices ImageXpress | `from fractal_uzh_converters.imagexpress_hcs import convert_imagexpress_hcs` | `MolecularDevices-ImageXpressHCSai/` | `test_molecular_devices_imagexpress_extended.py` | `test_imagexpress_hcs_extended` |
 
 ---
 
@@ -26,7 +28,7 @@ All dataset directories follow the pattern:
 hcs_{W}w{P}p{C}c{Z}z{T}t_{Descriptor}
 ```
 
-| Token | Meaning | Source in snapshot YAML |
+| Token | Meaning | Source in the snapshot JSON |
 |---|---|---|
 | `{W}` | Number of wells | `len(plates[plate].wells)` |
 | `{P}` | Fields of view per well | `len(images[img].tables.FOV_ROI_table.rois)` — use `1` if table absent |
@@ -35,8 +37,15 @@ hcs_{W}w{P}p{C}c{Z}z{T}t_{Descriptor}
 | `{T}` | Number of time points | `images[img].shape` at `axes.index('t')`, or `1` if `t` not in axes |
 | `{Descriptor}` | Human-readable variant | Inferred from acquisition characteristics (see below) |
 
+**None of these is guaranteed uniform.** A converter may prune unacquired channels per
+image, wells may hold different field counts, and one acquisition may produce several
+plates with different shapes (the CQ3K converter emits one plate per Z-projection
+algorithm, each carrying its own channel subset and `Z = 1` for the projections). **Take
+each token as the maximum over every image of every plate the acquisition produces**, and
+record the variation in the store `README.md` row.
+
 **Descriptor guidance** — use PascalCase words separated by underscores to describe what makes the dataset distinctive. It is
-usually written in the raw folder name, and can not be reliably parsed from the snapshot YAML. Examples include:
+usually written in the raw folder name, and can not be reliably parsed from the snapshot JSON. Examples include:
 - Projection type: `MIP`, `SUM`, `MIP_SUM`, `MIP_Slice`, `MIP_SUM_Slice`
 - Tiling arrangement: `Centered`, `Grid`
 - Resolution level: `FP` (field precision / reduced res), `SP` (super/standard res)
@@ -62,18 +71,15 @@ tests/data-extended/{InstrumentDir}/
 └── output/
 ```
 
-b. Create `tests/test_{instrument}_extended.py` by copying the template below, replacing the three instrument-specific values (import path, `SNAPSHOT_DIR`, `RAW_DIR`, test function name):
+b. Create `tests/test_{instrument}_extended.py` by copying an existing extended test file — `tests/test_yokogawa_cq3k_extended.py` is the reference — and replacing the instrument-specific values (the `convert_*` import, `SNAPSHOT_DIR`, `RAW_DIR`, the test function name):
 
 ```python
 from pathlib import Path
 
 import pytest
+from ome_zarr_converters_tools.testing import run_converter_test
 
-from fractal_uzh_converters.{module}.{init_task_module} import (
-    {init_task_fn},
-)
-
-from .utils import run_converter_test
+from fractal_uzh_converters.{module} import {convert_fn}
 
 EXTENDED_DATA_DIR = Path(__file__).parent / "data-extended"
 SNAPSHOT_DIR = EXTENDED_DATA_DIR / "{InstrumentDir}" / "snapshots"
@@ -84,14 +90,10 @@ _DATASETS: list[str] = []
 
 @pytest.mark.extended
 @pytest.mark.parametrize(
-    "init_task_kwargs, snapshot_name",
+    "api_kwargs, snapshot_name",
     [
         (
-            {
-                "acquisitions": [
-                    {"path": str(RAW_DIR / name), "acquisition_id": 0}
-                ]
-            },
+            {"acquisitions": [{"path": str(RAW_DIR / name), "acquisition_id": 0}]},
             name,
         )
         for name in _DATASETS
@@ -99,18 +101,25 @@ _DATASETS: list[str] = []
 )
 def test_{instrument}_extended(
     tmp_path: Path,
-    init_task_kwargs: dict,
+    api_kwargs: dict,
     snapshot_name: str,
     update_snapshots: bool,
+    converter_options,
 ):
     run_converter_test(
         tmp_path=tmp_path,
-        init_task_fn={init_task_fn},
-        init_task_kwargs=init_task_kwargs,
-        snapshot_path=SNAPSHOT_DIR / f"{snapshot_name}.yaml",
+        api_fn={convert_fn},
+        api_kwargs=api_kwargs,
+        snapshot_path=SNAPSHOT_DIR / f"{snapshot_name}.json",
         update_snapshots=update_snapshots,
+        converter_options=converter_options,
     )
 ```
+
+`run_converter_test`, the `--extended` / `--update-snapshots` options, the `extended`
+marker and the `update_snapshots` fixture all come from
+`ome_zarr_converters_tools.testing` (the plugin is loaded via `pytest_plugins` in
+`tests/conftest.py`). `converter_options` is a local fixture defined there.
 
 ---
 
@@ -134,7 +143,7 @@ pixi run -e test pytest tests/test_{instrument}_extended.py \
 ```
 
 This produces:
-- `tests/data-extended/{InstrumentDir}/snapshots/{tmp_name}.yaml` — the snapshot
+- `tests/data-extended/{InstrumentDir}/snapshots/{tmp_name}.json` — the snapshot
 - `tests/data-extended/{InstrumentDir}/output/{tmp_name}/` — the zarr output (kept for inspection)
 
 If the converter fails, debug the raw data format before continuing.
@@ -143,30 +152,44 @@ If the converter fails, debug the raw data format before continuing.
 
 ### Step 3 — Parse the snapshot to derive `{W}`, `{P}`, `{C}`, `{Z}`, `{T}`
 
-Open `tests/data-extended/{InstrumentDir}/snapshots/{tmp_name}.yaml` and read:
+Open `tests/data-extended/{InstrumentDir}/snapshots/{tmp_name}.json` and read:
 
-```yaml
-plates:
-  {plate_name}.zarr:
-    wells:              # → W = len(this list)
-      - ...
-    images:
-      Row/Col/0:
-        axes: [c, z, y, x]     # or [t, c, z, y, x]
-        shape: [C, Z, Y, X]    # or [T, C, Z, Y, X]
-        tables:
-          FOV_ROI_table:
-            rois:              # → P = len(rois); absent → P = 1
-              FOV_1: ...
-              FOV_2: ...
+```jsonc
+{
+  "versions": { ... },              // library versions, not used for naming
+  "plates": {
+    "{plate_name}.zarr": {
+      "wells": ["C/05", "F/09"],    // → W = len(this list)
+      "images": {
+        "C/05/0": {
+          "axes":  ["c", "z", "y", "x"],   // or ["t", "c", "z", "y", "x"]
+          "shape": [1, 1, 2000, 2000],
+          "tables": {
+            "FOV_ROI_table": {
+              "rois": {             // → P = len(rois); key absent → P = 1
+                "FOV_1": { ... },
+                "FOV_2": { ... }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
 ```
 
-- **W**: `len(plates[plate].wells)`  
-  Use the value from the first plate. If multiple plates exist (e.g., MIP + SUM), they should have the same W.
-- **P**: `len(plates[plate].images[img].tables.FOV_ROI_table.rois)` for any image. If `FOV_ROI_table` is absent → `P = 1`.
-- **C**: `shape[axes.index('c')]`
-- **Z**: `shape[axes.index('z')]` — for projection-only datasets this will be `1`
-- **T**: `shape[axes.index('t')]` if `'t'` in axes, else `1`
+Per the rule above, each token is the **maximum** over every image of every plate:
+
+- **W**: `len(plates[plate]["wells"])`
+- **P**: `len(plates[plate]["images"][img]["tables"]["FOV_ROI_table"]["rois"])`. If `FOV_ROI_table` is absent → `P = 1`.
+- **C**: `shape[axes.index("c")]`
+- **Z**: `shape[axes.index("z")]` — for projection-only datasets this will be `1`
+- **T**: `shape[axes.index("t")]` if `"t"` in axes, else `1`
+
+Do not eyeball this. Derive the tokens with a script and assert they match the folder name
+you chose, then note in the store `README.md` wherever a value actually varies — which
+well has fewer fields, which plate has fewer channels.
 
 Construct the canonical name: `hcs_{W}w{P}p{C}c{Z}z{T}t_{Descriptor}`
 
@@ -212,7 +235,7 @@ If the `README.md` does not yet exist for the instrument, create it following th
 ## Dataset Structure
 
 - *./raw*: Contains the original microscopy data in the original format.
-- *./snapshots*: Contains snapshot `.yaml` files used for automated testing.
+- *./snapshots*: Contains snapshot `.json` files used for automated testing.
 ```
 
 ---
@@ -221,7 +244,7 @@ If the `README.md` does not yet exist for the instrument, create it following th
 
 In the extended test file:
 - Replace `"{tmp_name}"` → `"{canonical_name}"` in `_DATASETS`
-- Delete the old snapshot: `tests/data-extended/{InstrumentDir}/snapshots/{tmp_name}.yaml`
+- Delete the old snapshot: `tests/data-extended/{InstrumentDir}/snapshots/{tmp_name}.json`
 - Delete the old output dir: `tests/data-extended/{InstrumentDir}/output/{tmp_name}/`
 
 Re-run with the canonical name:
@@ -251,7 +274,11 @@ All tests — including the new one — must pass.
 ## Edge Cases
 
 **Multiple plates per dataset** (e.g., CQ3K with MIP + SUM + Slice):  
-The snapshot YAML will have multiple entries under `plates:`. W, P, C, T are read from any one plate (they match). Z may differ between plates (projections = 1, slices = N) — use the slice count for the canonical name's `{Z}`, or use `1` if only projections exist.
+The snapshot JSON will have multiple entries under `"plates"`, and they do **not** all
+have the same shape. `Z` differs (projections = 1, slices = N) and so does `C`, because
+each projection algorithm carries its own `bts:Ch` numbers — in
+`hcs_3w2p4c1z1t_Channels_MIP_MinIP` the `_MIP` plate has 4 channels and the `_MinIP` plate
+has 1. Take the maximum across plates for every token, as above.
 
 **No `FOV_ROI_table`** (single-FOV wells):  
 `P = 1`. The `well_ROI_table` with an `image` ROI will be the only table.

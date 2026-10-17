@@ -1,7 +1,7 @@
 """Utility functions for Evident ScanR data."""
 
-import logging
 import re
+import warnings
 from typing import Literal, NamedTuple
 
 import numpy as np
@@ -9,6 +9,7 @@ import polars
 from ome_types import from_xml
 from ome_zarr_converters_tools import (
     AcquisitionDetails,
+    AcquisitionOptions,
     ChannelInfo,
     ConverterOptions,
     DefaultImageLoader,
@@ -20,11 +21,14 @@ from ome_zarr_converters_tools import (
     join_url_paths,
     tiles_aggregation_pipeline,
 )
-from pydantic import field_validator
+from pydantic import Field, field_validator
 
 from fractal_uzh_converters.common import (
     STANDARD_ROWS_NAMES,
+    ChannelMetadataWarning,
+    GeometryWarning,
     HCSBaseAcquisitionModel,
+    clean_channel_string,
     get_attributes_from_condition_table,
 )
 
@@ -48,8 +52,6 @@ STANDARD_PLATES_LAYOUTS: dict[AVAILABLE_PLATE_LAYOUTS, dict[str, int]] = {
     },
 }
 
-logger = logging.getLogger(__name__)
-
 
 class ScanRAcquisitionModel(HCSBaseAcquisitionModel):
     """Acquisition details for the Evident ScanR microscope data."""
@@ -63,6 +65,10 @@ class ScanRAcquisitionModel(HCSBaseAcquisitionModel):
 
     layout: AVAILABLE_PLATE_LAYOUTS = "96-well"
     """Plate layout type."""
+    advanced: AcquisitionOptions = Field(default_factory=AcquisitionOptions)
+    """
+    Advanced acquisition options.
+    """
 
     @field_validator("path", mode="before")
     def validate_path(cls, v):
@@ -115,13 +121,21 @@ def _extract_well_position_id(
 
 def _get_channel_names(image) -> list[str] | None:
     try:
-        parsed_channels = [channel.name for channel in image.pixels.channels]
-        if all(name is not None for name in parsed_channels):
-            return parsed_channels
-        else:
+        # A blank or all-whitespace `Channel/@Name` is treated exactly like a
+        # missing one: the whole list is dropped and the library falls back to
+        # its default `channel_N` naming.
+        parsed_channels = [
+            clean_channel_string(channel.name) for channel in image.pixels.channels
+        ]
+        if any(name is None for name in parsed_channels):
             return None
+        return [name for name in parsed_channels if name is not None]
     except Exception as e:
-        logger.warning(f"Could not parse channel names: {e}")
+        warnings.warn(
+            f"Could not parse channel names: {e}",
+            ChannelMetadataWarning,
+            stacklevel=2,
+        )
         return None
 
 
@@ -166,9 +180,11 @@ def build_acquisition_details(
     pixelsize_x = image_meta.pixels.physical_size_x or 1
     pixelsize_y = image_meta.pixels.physical_size_y or 1
     if not np.isclose(pixelsize_x, pixelsize_y):
-        logger.warning(
+        warnings.warn(
             f"Physical size x ({pixelsize_x}) and y ({pixelsize_y}) are not equal. "
-            "Using x size for pixelsize."
+            "Using x size for pixelsize.",
+            GeometryWarning,
+            stacklevel=2,
         )
 
     channel_names = _get_channel_names(image_meta)

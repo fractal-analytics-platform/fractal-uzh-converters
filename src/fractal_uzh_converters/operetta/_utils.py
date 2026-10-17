@@ -1,12 +1,14 @@
 """Utility functions for Operetta data."""
 
 import logging
+import warnings
 from typing import Any
 
 import numpy as np
 import xmltodict
 from ome_zarr_converters_tools import (
     AcquisitionDetails,
+    AcquisitionOptions,
     AttributeType,
     ChannelInfo,
     ConverterOptions,
@@ -24,7 +26,9 @@ from pydantic import BaseModel, Field, field_validator
 
 from fractal_uzh_converters.common import (
     STANDARD_ROWS_NAMES,
+    GeometryWarning,
     HCSBaseAcquisitionModel,
+    clean_channel_string,
     get_attributes_from_condition_table,
 )
 
@@ -46,6 +50,10 @@ class OperettaAcquisitionModel(HCSBaseAcquisitionModel):
     Path to the acquisition directory. For Operetta, this should be the base directory
     of the acquisition or the "{acquisition_dir}/Images" directory containing the tiff
     files and metadata.ome.xml file.
+    """
+    advanced: AcquisitionOptions = Field(default_factory=AcquisitionOptions)
+    """
+    Advanced acquisition options.
     """
 
     @field_validator("path", mode="before")
@@ -177,7 +185,11 @@ def _get_z_spacing(images: list[OperettaImageMeta]) -> float:
         return 1.0
     delta_z = np.diff(z_positions)
     if not np.allclose(delta_z, delta_z[0]):
-        logger.warning("Z spacing is not constant, using mean value.")
+        warnings.warn(
+            "Z spacing is not constant, using mean value.",
+            GeometryWarning,
+            stacklevel=2,
+        )
     return float(np.mean(delta_z))
 
 
@@ -187,17 +199,25 @@ def _is_time_series(images: list[OperettaImageMeta]) -> bool:
     return len(timepoints) > 1
 
 
-def _channel_names(images: list[OperettaImageMeta]) -> list[str]:
-    """Get unique channel names from image records."""
+def _channel_names(images: list[OperettaImageMeta]) -> list[str | None]:
+    """Get unique channel names from image records.
+
+    A `ChannelName` that is blank or all whitespace yields `None`, so the caller
+    falls back to the wavelength id rather than naming the channel `""`.
+    """
     channel_names = {}
     for img in images:
         if img.channel_id not in channel_names:
-            channel_names[img.channel_id] = img.channel_name
+            channel_names[img.channel_id] = clean_channel_string(img.channel_name)
     return [channel_names[ch_id] for ch_id in sorted(channel_names.keys())]
 
 
-def _wavelength_ids(images: list[OperettaImageMeta]) -> list[str | None]:
-    """Get unique wavelength IDs from image records."""
+def _wavelength_ids(images: list[OperettaImageMeta]) -> list[str]:
+    """Get unique wavelength IDs from image records.
+
+    Always a non-empty string: `MainEmissionWavelength` is a required XML
+    attribute, which is what makes it a usable fallback for a blank channel name.
+    """
     wavelength_ids = {}
     for img in images:
         if img.channel_id not in wavelength_ids:
@@ -234,13 +254,17 @@ def build_acquisition_details(
     is_time_series = _is_time_series(images)
 
     if not np.isclose(pixelsize_x, pixelsize_y):
-        logger.warning(
+        warnings.warn(
             f"Physical size x ({pixelsize_x}) and y ({pixelsize_y}) are not equal. "
-            "Using x size for pixelsize."
+            "Using x size for pixelsize.",
+            GeometryWarning,
+            stacklevel=2,
         )
     axes = default_axes_builder(is_time_series=is_time_series)
     channels = [
-        ChannelInfo(channel_label=ch_name, wavelength_id=w_id)
+        # The wavelength id is derived from a required XML attribute and is
+        # never blank, so it is the fallback for an unnamed channel.
+        ChannelInfo(channel_label=ch_name or w_id, wavelength_id=w_id)
         for (ch_name, w_id) in zip(channel_names, wavelength_ids, strict=True)
     ]
     acquisition_detail = AcquisitionDetails(

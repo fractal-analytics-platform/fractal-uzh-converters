@@ -1,0 +1,150 @@
+"""Splitting a Yokogawa acquisition into one plate per Z-image processing kind.
+
+A `.mlf` can interleave raw Z slices with projections computed on the
+instrument, tagged by `bts:ZImageProcessing`. They share the well, field of view
+and channel numbering, so converting them into one plate would overlap their
+tiles; each kind is written as its own plate instead, suffixed by the
+abbreviation of its algorithm.
+"""
+
+import warnings
+
+from pydantic import Field
+
+from fractal_uzh_converters.common import ConverterWarning, ZProcessingSelection
+
+#: `bts:ZImageProcessing` values, mapped to the conventional imaging abbreviations.
+#: Anything else is used verbatim, with a warning.
+_Z_PROCESSING_SUFFIXES = {"Maximum": "MIP", "Minimum": "MinIP", "Sum": "SIP"}
+
+#: The token of the raw-slice plate, which carries no name suffix.
+_RAW = "Raw"
+
+
+class YokogawaZProcessingSelection(ZProcessingSelection):
+    """Which Z-image processing outputs to convert."""
+
+    mip: bool = Field(default=False, title="MIP")
+    """Convert the maximum intensity projection."""
+    min_ip: bool = Field(default=False, title="MinIP")
+    """Convert the minimum intensity projection."""
+    sip: bool = Field(default=False, title="SIP")
+    """Convert the sum intensity projection."""
+
+
+#: `YokogawaZProcessingSelection` field -> the token it selects. Also the set of
+#: tokens a selection is able to name at all.
+_Z_PROCESSING_TOKENS = {
+    "raw": _RAW,
+    "mip": "MIP",
+    "min_ip": "MinIP",
+    "sip": "SIP",
+}
+
+
+def _z_processing_token(z_type: str | None) -> str:
+    """The selection token for one `bts:ZImageProcessing` value.
+
+    Doubles as the plate name suffix. Resolve once per distinct `z_type` — an
+    unrecognised value warns here.
+    """
+    if z_type is None:
+        return _RAW
+    token = _Z_PROCESSING_SUFFIXES.get(z_type)
+    if token is None:
+        warnings.warn(
+            f"Unknown z image processing type '{z_type}'. Using it verbatim as the "
+            "plate name suffix.",
+            ConverterWarning,
+            stacklevel=2,
+        )
+        token = z_type
+    return token
+
+
+def _select_z_processing(
+    *,
+    plates_tokens: dict[str | None, str],
+    selection: YokogawaZProcessingSelection | None,
+    acquisition_dir: str,
+) -> set[str | None]:
+    """The `z_image_processing` groups to convert, given the user's selection.
+
+    No selection keeps everything. A selected kind the acquisition lacks only warns,
+    so one selection stays usable across a batch; a selection matching *nothing*
+    raises, rather than producing an empty output whose cause surfaces later from
+    the library without naming the option responsible.
+
+    Args:
+        plates_tokens: `{z_image_processing: token}` for this acquisition.
+        selection: The user's `z_processing`, or `None` for all of them.
+        acquisition_dir: Named in the errors, since a batch fails one acquisition at
+            a time.
+
+    Returns:
+        The `z_image_processing` values to keep.
+
+    Raises:
+        ValueError: If nothing is enabled, or if the selection matches none of the
+            parsed plates. The two have different fixes, so they are reported apart.
+    """
+    if selection is None:
+        return set(plates_tokens)
+
+    selected = {
+        token
+        for field, token in _Z_PROCESSING_TOKENS.items()
+        if getattr(selection, field)
+    }
+    if not selected:
+        raise ValueError(
+            "`z_processing` enables nothing, so there is nothing to convert in "
+            f"{acquisition_dir}. Enable at least one output, or leave the option "
+            "unset to convert everything the acquisition contains."
+        )
+
+    available = set(plates_tokens.values())
+    kept = {z_type for z_type, token in plates_tokens.items() if token in selected}
+    if not kept:
+        raise ValueError(
+            f"`z_processing` enables {sorted(selected)} but {acquisition_dir} "
+            f"contains only {sorted(available)}. Clear the option to convert "
+            "everything the acquisition contains."
+        )
+
+    missing = sorted(selected - available)
+    if missing:
+        warnings.warn(
+            f"`z_processing` enables {missing}, which {acquisition_dir} does not "
+            "contain. Converting the rest of the selection.",
+            ConverterWarning,
+            stacklevel=2,
+        )
+
+    # An unrecognised `bts:ZImageProcessing` value keeps its raw string as the token,
+    # so no field of `YokogawaZProcessingSelection` can name it.
+    unnameable = sorted(
+        token
+        for z_type, token in plates_tokens.items()
+        if z_type not in kept and token not in _Z_PROCESSING_TOKENS.values()
+    )
+    if unnameable:
+        warnings.warn(
+            f"Skipping the unrecognised z image processing type(s) {unnameable}, "
+            "which `z_processing` cannot name. Use a `Path Regex Filter` on the "
+            "plate name to select them.",
+            ConverterWarning,
+            stacklevel=2,
+        )
+    return kept
+
+
+def _plate_name(base_name: str, token: str) -> str:
+    """Plate name for one `z_image_processing` group.
+
+    Each projection algorithm is written as its own plate; the raw-slice plate
+    carries no suffix and can coexist with them.
+    """
+    if token == _RAW:
+        return base_name
+    return f"{base_name}_{token}"
