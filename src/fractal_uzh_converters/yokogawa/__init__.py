@@ -8,6 +8,10 @@ the vendor-file copy (`_source_metadata.py`) are shared. `cq3k/` and
 entry point, the Python API and the Fractal init task.
 """
 
+from fractal_uzh_converters.yokogawa._channels import (
+    YokogawaAcquisitionOptions,
+    YokogawaChannelInfoUI,
+)
 from fractal_uzh_converters.yokogawa.cellvoyager import (
     CellVoyagerAcquisitionModel,
     convert_cellvoyager,
@@ -20,6 +24,8 @@ from fractal_uzh_converters.yokogawa.cq3k import (
 __all__ = [
     "CQ3KAcquisitionModel",
     "CellVoyagerAcquisitionModel",
+    "YokogawaAcquisitionOptions",
+    "YokogawaChannelInfoUI",
     "convert_cellvoyager",
     "convert_cq3k",
 ]

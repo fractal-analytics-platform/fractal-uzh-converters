@@ -11,8 +11,8 @@
 ### Channels
 
 - Channel labels, colors and wavelength ids (`A{action}_C{channel}`) are read from the acquisition's `.mes` protocol file, whose name is recorded in the `.mrf`. Without a `.mes`, the label is the wavelength id.
-- To override them, `Advanced` → `Channels` is ordered by the **instrument channel number**: element 0 is `Ch1`, element 1 is `Ch2`, over the full range the protocol declares — not one entry per channel visible in the output. It must be at least as long as the highest channel the acquisition uses; the error names that number if it is too short.
-- One list covers the whole acquisition, projection plates included: each projection algorithm carries its own channel numbers, so the entries are split across plates rather than repeated in each.
+- To override them, add one entry per channel to change under `Advanced` → `Channels`, each with a `Channel Key` — the instrument's `bts:Ch` channel number, the `C` number of the default wavelength id. Channels without an entry keep their `.mes` metadata. A key the protocol does not declare is an error; one it declares but the acquisition never used is accepted. An acquired channel left without an entry is only a warning.
+- One list covers the whole acquisition, projection plates included: channel numbers are acquisition-wide, so an entry surfaces in whichever plate acquires that channel.
 
 ### Metadata
 

@@ -45,6 +45,8 @@ from fractal_uzh_converters import (
     SingleTiffAcquisitionModel,
     # Converter-specific advanced options
     MDAcquisitionOptions,
+    YokogawaAcquisitionOptions,
+    YokogawaChannelInfoUI,
 )
 ```
 

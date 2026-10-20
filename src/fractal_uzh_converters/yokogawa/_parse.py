@@ -39,12 +39,11 @@ from fractal_uzh_converters.common import (
 from fractal_uzh_converters.yokogawa._channels import (
     ChannelGeometry,
     TimeIndex,
-    apply_channel_overrides,
     build_time_index,
-    max_acquired_channel,
     read_mes_channels,
     resolve_channels,
     warn_on_channel_geometry_mismatch,
+    warn_on_unlisted_acquired_channels,
 )
 from fractal_uzh_converters.yokogawa._records import (
     ImageMeasurementRecord,
@@ -143,7 +142,6 @@ def build_acquisition_details(
     detail: MeasurementDetail,
     acquisition_model: HCSBaseAcquisitionModel,
     channels: list[ChannelInfo],
-    max_acquired_ch: int,
     time_index: TimeIndex,
 ) -> AcquisitionDetails:
     """Build AcquisitionDetails from the Yokogawa metadata.
@@ -158,8 +156,6 @@ def build_acquisition_details(
         acquisition_model: The acquisition input model.
         channels: One entry per instrument channel slot, from `resolve_channels`.
             Shared by every plate of the acquisition.
-        max_acquired_ch: Highest `bts:Ch` actually acquired, used to reject an
-            `advanced.channels` override that is too short.
         time_index: This plate's time axis, from `build_time_index`.
     """
     first_channel = _measurement_channels(detail)[0]
@@ -193,18 +189,12 @@ def build_acquisition_details(
         start_t_space="pixel",
         length_t_space="pixel",
     )
-    # Update with advanced options
-    acquisition_detail = acquisition_model.advanced.update_acquisition_details(
+    # Update with advanced options. `YokogawaAcquisitionOptions` merges the user's
+    # `channels` entries by `bts:Ch` onto the resolved list, keeping it indexed by
+    # `bts:Ch - 1`.
+    return acquisition_model.advanced.update_acquisition_details(
         acquisition_details=acquisition_detail
     )
-    # `update_acquisition_details` replaced `channels` wholesale; merge the user's
-    # list back onto the resolved ones so it stays indexed by `bts:Ch - 1`.
-    acquisition_detail.channels = apply_channel_overrides(
-        resolved=channels,
-        overrides=acquisition_model.advanced.channels,
-        max_acquired_ch=max_acquired_ch,
-    )
-    return acquisition_detail
 
 
 def _build_tiles(
@@ -373,8 +363,8 @@ def parse_yokogawa_metadata(
     plates_groups = {
         key: records for key, records in plates_groups.items() if key[0] in kept
     }
-    # Kept records only, so selecting a single plate also relaxes the required
-    # `advanced.channels` length to that plate's highest `bts:Ch`.
+    # Kept records only, so a deselected plate's channels do not count as acquired
+    # and get no action index in their wavelength id.
     image_records = [
         record for records in plates_records.values() for record in records
     ]
@@ -391,9 +381,11 @@ def parse_yokogawa_metadata(
         acquired=acquired,
         mrf_channel_count=len(_measurement_channels(detail)),
     )
-    # Acquisition-wide too, so a too-short `advanced.channels` list fails
-    # identically on every plate.
-    max_acquired_ch = max_acquired_channel(acquired)
+    # Acquisition-wide as well, so the warning names the union over all plates.
+    warn_on_unlisted_acquired_channels(
+        overrides=acquisition_model.advanced.channels,
+        acquired=acquired,
+    )
 
     # Per plate: each is its own collection, so a projection acquired at fewer time
     # points than the raw slices gets its own dense time axis.
@@ -412,7 +404,6 @@ def parse_yokogawa_metadata(
             detail=detail,
             acquisition_model=acquisition_model,
             channels=channels,
-            max_acquired_ch=max_acquired_ch,
             time_index=plates_time_indices[z_type],
         )
         for z_type, records in plates_records.items()

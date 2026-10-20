@@ -33,9 +33,11 @@ CELLVOYAGER_RAW_DIR = DATA_DIR / "Yokogawa-CellVoyager" / "raw"
 CQ3K_EXTENDED_RAW_DIR = EXTENDED_DATA_DIR / "Yokogawa-CQ3K" / "raw"
 CELLVOYAGER_EXTENDED_RAW_DIR = EXTENDED_DATA_DIR / "Yokogawa-CellVoyager" / "raw"
 
-# Both in-repo fixtures acquire a single channel (Ch1), so a one-entry override
-# is full length and maps to `start_c == 0`.
-_SINGLE_CHANNEL_OVERRIDE = [{"channel_label": "DAPI", "wavelength_id": "A01_C01"}]
+# Both in-repo fixtures acquire a single channel (Ch1); the entry is keyed to it
+# and must land on `start_c == 0`.
+_SINGLE_CHANNEL_OVERRIDE = [
+    {"key": 1, "channel_label": "DAPI", "wavelength_id": "A01_C01"}
+]
 
 
 def _count_acquisition_details_calls(monkeypatch) -> list:
@@ -56,7 +58,7 @@ def _count_acquisition_details_calls(monkeypatch) -> list:
 
 
 def test_cq3k_channel_override(tmp_path: Path, converter_options):
-    """A full-length `advanced.channels` list is applied instead of raising."""
+    """An `advanced.channels` entry keyed to Ch1 is applied instead of raising."""
     zarr_dir = tmp_path / "output"
     zarr_dir.mkdir()
 
@@ -80,7 +82,7 @@ def test_cq3k_channel_override(tmp_path: Path, converter_options):
 
 
 def test_cellvoyager_channel_override(tmp_path: Path, converter_options):
-    """A full-length `advanced.channels` list is applied instead of raising."""
+    """An `advanced.channels` entry keyed to Ch1 is applied instead of raising."""
     zarr_dir = tmp_path / "output"
     zarr_dir.mkdir()
 
@@ -123,9 +125,13 @@ def test_cq3k_builds_one_acquisition_details_per_plate(monkeypatch, converter_op
 # Neither in-repo fixture has more than one field of view per well, so the
 # `add_tile` merge path needs the extended datasets. Both `.mrf` files declare
 # five channels; the acquired subsets are Ch1 / Ch2-5 (CQ3K) and Ch2-4
-# (CellVoyager), all of which must index into a five-entry override.
+# (CellVoyager), all of which are covered by one entry per channel.
 _FIVE_CHANNEL_OVERRIDE = [
-    {"channel_label": f"channel_{i}", "wavelength_id": f"A01_C{i + 1:02d}"}
+    {
+        "key": i + 1,
+        "channel_label": f"channel_{i}",
+        "wavelength_id": f"A01_C{i + 1:02d}",
+    }
     for i in range(5)
 ]
 

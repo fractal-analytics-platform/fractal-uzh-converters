@@ -16,6 +16,9 @@ CustomTiff; Yokogawa plates change in channel labels, plate suffixes and vendor 
   and actual values (`ome-zarr-converters-tools` 1.1.1).
 - Yokogawa (CQ3K, CellVoyager): channel labels, wavelength ids (`A{action}_C{channel}`) and
   colours are now read from the acquisition's `.mes` protocol file (#27).
+- Yokogawa (CQ3K, CellVoyager): `advanced.channels` entries carry a `Channel Key` (the `bts:Ch`
+  channel number), so channels the protocol declares but the acquisition never used need no
+  placeholder entry; an acquired channel left without an entry is reported as a warning.
 - New `z_processing` acquisition option on CQ3K, CellVoyager and MD ImageXpress, selecting
   which Z-image processing outputs to convert without resorting to a path regex filter.
 - Yokogawa (CQ3K, CellVoyager): the acquisition's `.mlf`, `.mrf`, `.mes`, `.wpi` and `.wpp`
@@ -23,6 +26,9 @@ CustomTiff; Yokogawa plates change in channel labels, plate suffixes and vendor 
   do not model travels with the converted plate (#46).
 
 ### API Breaking Changes
+- **Yokogawa `advanced.channels` entries now carry a required `Channel Key` (the `bts:Ch` number)** and
+  override only that channel; the positional, full-length list is no longer accepted, and
+  `Advanced` is `YokogawaAcquisitionOptions` with `YokogawaChannelInfoUI` entries.
 - **CellVoyager acquisitions tagged `bts:ZImageProcessing` now split into one plate per
   algorithm** (`_MIP`/`_MinIP`/`_SIP`), with the same `z_processing` selection as CQ3K;
   the attribute was previously dropped, overlapping the tiles of both plates.
@@ -57,8 +63,8 @@ CustomTiff; Yokogawa plates change in channel labels, plate suffixes and vendor 
 - All converters: strip whitespace from channel labels and wavelength ids — ngio treats
   `"DAPI"` and `"DAPI "` as two distinct channels, so a stray space silently broke
   per-name channel matching downstream.
-- Yokogawa: channel indices are now 0-based, so an `advanced.channels` override maps its
-  first entry to `Ch1` instead of failing (#27).
+- Yokogawa: the tile channel index is now 0-based like the Z and time indices, so an
+  `advanced.channels` override no longer fails with a channel-index validation error (#27).
 - Yokogawa: build one `AcquisitionDetails` per plate rather than per field of view, so
   fields merged into a single image cannot disagree on it.
 - Yokogawa: each well's `bts:TimePoint` values map onto a dense 0-based time axis; the raw

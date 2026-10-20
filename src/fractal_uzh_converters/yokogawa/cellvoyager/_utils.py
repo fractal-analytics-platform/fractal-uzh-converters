@@ -6,13 +6,13 @@ The parsing itself is shared with CQ3K — see `yokogawa/_parse.py`.
 from typing import Literal
 
 from ome_zarr_converters_tools import (
-    AcquisitionOptions,
     ConverterOptions,
     TiledImage,
 )
 from pydantic import Field
 
 from fractal_uzh_converters.common import HCSBaseAcquisitionModel
+from fractal_uzh_converters.yokogawa._channels import YokogawaAcquisitionOptions
 from fractal_uzh_converters.yokogawa._parse import parse_yokogawa_metadata
 from fractal_uzh_converters.yokogawa._z_processing import YokogawaZProcessingSelection
 
@@ -39,7 +39,9 @@ class CellVoyagerAcquisitionModel(HCSBaseAcquisitionModel):
     Which Z-image processing outputs to convert, each written as its own plate.
     Leave unset to convert every one the acquisition contains.
     """
-    advanced: AcquisitionOptions = Field(default_factory=AcquisitionOptions)
+    advanced: YokogawaAcquisitionOptions = Field(
+        default_factory=YokogawaAcquisitionOptions
+    )
     """
     Advanced acquisition options.
     """
