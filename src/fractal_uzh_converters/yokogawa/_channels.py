@@ -380,10 +380,10 @@ class YokogawaChannelInfoUI(UserFacingModel):
     key: int = Field(ge=1, title="Channel Key")
     """
     Number of the instrument channel this entry applies to, counted from 1.
-    To find it, look at the `bts:Ch` attribute next to each channel name in the
-    acquisition's `.mes` file, or at the `bts:Ch` attribute of each image record in
-    the `.mlf` file that lists all the TIFFs, or at the `C` suffix of the TIFF
-    file names (`...C1.tif` or `...C01.tif` is channel 1).
+    To find it, look at the `C` suffix of the TIFF file names (`...C1.tif` or
+    `...C01.tif` is channel 1), at the `bts:Ch` attribute next to each channel
+    name in the acquisition's `.mes` file, or at the `bts:Ch` attribute of each
+    image record in the `.mlf` file that lists all the TIFFs.
     """
     channel_label: str
     """Name of the channel, e.g. `DAPI` or `GFP`."""
