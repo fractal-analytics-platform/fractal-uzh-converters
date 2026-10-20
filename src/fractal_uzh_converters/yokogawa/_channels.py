@@ -1,8 +1,9 @@
 """Channel metadata for the Yokogawa BTS schema, shared by both instruments.
 
 Covers the `.mes` channel list and the naming rules that turn it into `ChannelInfo`,
-the `.mrf` channel-geometry check and the `.mlf` time-index normalisation. The
-`.mlf`/`.mrf` models live in `_records.py`, the parser in `_parse.py`.
+the user-facing `advanced.channels` override models keyed by `bts:Ch`, the `.mrf`
+channel-geometry check and the `.mlf` time-index normalisation. The `.mlf`/`.mrf`
+models live in `_records.py`, the parser in `_parse.py`.
 
 The `.mes` carries the human-readable channel targets the `.mlf`/`.mrf` pair lacks.
 """
@@ -14,11 +15,17 @@ from typing import NamedTuple
 
 import numpy as np
 from ome_zarr_converters_tools import (
+    AcquisitionDetails,
+    AcquisitionOptions,
     ChannelInfo,
-    ChannelInfoUI,
+    UserFacingModel,
     join_url_paths,
 )
-from pydantic import BaseModel, ConfigDict, Field
+
+# `ColorMenu` is the enum behind `ChannelInfoUI.color`; the library does not
+# re-export it, and `YokogawaChannelInfoUI` must declare the same field.
+from ome_zarr_converters_tools.fractal._models import ColorMenu
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from pydantic.alias_generators import to_pascal
 
 from fractal_uzh_converters.common import (
@@ -355,48 +362,175 @@ def resolve_channels(
     ]
 
 
+######################################################################
+#
+# User-facing override models
+#
+######################################################################
+
+
+class YokogawaChannelInfoUI(UserFacingModel):
+    """Override one instrument channel, identified by its `bts:Ch` number.
+
+    Not a subclass of the library's `ChannelInfoUI`: Pydantic keeps inherited
+    fields first, and `key` must render first in the Fractal form. The three
+    fields below are copied from `ChannelInfoUI` verbatim.
+    """
+
+    key: int = Field(ge=1, title="Channel Key")
+    """
+    Number of the instrument channel this entry applies to, counted from 1.
+    To find it, look at the `C` suffix of the TIFF file names (`...C1.tif` or
+    `...C01.tif` is channel 1), at the `bts:Ch` attribute next to each channel
+    name in the acquisition's `.mes` file, or at the `bts:Ch` attribute of each
+    image record in the `.mlf` file that lists all the TIFFs.
+    """
+    channel_label: str
+    """Name of the channel, e.g. `DAPI` or `GFP`."""
+    wavelength_id: str | None = Field(default=None, title="Wavelength ID")
+    """
+    The wavelength ID of the channel.
+    Some tasks can use it instead of the channel name, e.g. to apply
+    illumination correction per wavelength in multiplexed acquisitions.
+    """
+    color: ColorMenu = ColorMenu.Auto
+    """Display color of the channel, e.g. for visualization purposes."""
+
+
+class YokogawaAcquisitionOptions(AcquisitionOptions):
+    """Acquisition options whose channel overrides are keyed by `bts:Ch`."""
+
+    channels: list[YokogawaChannelInfoUI] | None = None
+    """
+    Override the channel metadata read from the `.mes` file. List only the
+    channels you want to change, in any order, each named by `Channel Key`;
+    every other channel keeps the label, wavelength id and color parsed from
+    the `.mes`. Inside an entry, a blank label or wavelength id and the `Auto`
+    color also keep the `.mes` value. If the acquisition has no `.mes`, the
+    defaults are the wavelength ids `A{action}_C{channel}`, so this is where to
+    give such channels readable names.
+    """
+
+    @field_validator("channels")
+    @classmethod
+    def _unique_channel_numbers(
+        cls, channels: list[YokogawaChannelInfoUI] | None
+    ) -> list[YokogawaChannelInfoUI] | None:
+        """Reject a `key` listed twice: the entries would silently overwrite."""
+        if channels is None:
+            return channels
+        numbers = [channel.key for channel in channels]
+        duplicates = sorted({ch for ch in numbers if numbers.count(ch) > 1})
+        if duplicates:
+            raise ValueError(
+                f"`channels` lists bts:Ch {duplicates} more than once; each channel "
+                "number may appear at most once."
+            )
+        return channels
+
+    def update_acquisition_details(
+        self,
+        acquisition_details: AcquisitionDetails,
+    ) -> AcquisitionDetails:
+        """Apply every option; `channels` is merged by `key` rather than replaced.
+
+        The base implementation replaces `channels` wholesale (and flattens an
+        `Auto` colour to a guess), so the merge starts from the *input* details,
+        where the `.mes`-resolved list is still intact.
+        """
+        updated = super().update_acquisition_details(
+            acquisition_details=acquisition_details
+        )
+        if self.channels is None:
+            return updated
+        # Not `if not self.channels`: an empty list made the base class blank the
+        # channels out, and the merge below restores them.
+        resolved = acquisition_details.channels
+        if resolved is None:
+            raise ValueError(
+                "`channels` overrides are matched by channel number, which needs "
+                "the channel list resolved from the acquisition metadata."
+            )
+        updated.channels = apply_channel_overrides(
+            resolved=resolved, overrides=self.channels
+        )
+        return updated
+
+
+def warn_on_unlisted_acquired_channels(
+    *,
+    overrides: list[YokogawaChannelInfoUI] | None,
+    acquired: list[tuple[int, int]],
+) -> None:
+    """Warn when `advanced.channels` leaves an acquired channel without an entry.
+
+    A partial list is allowed — that is the point of keyed entries — but a user
+    who meant to name every channel and forgot one would otherwise only notice
+    in the converted plate, where a `.mes` target or an `A01_C03` placeholder
+    sits next to their own labels. Channels the acquisition never used are not
+    reported: they are pruned from the output anyway.
+
+    Call once per acquisition, with the acquired pairs of the kept plates only,
+    so a plate deselected through `z_processing` does not count.
+
+    Args:
+        overrides: The user's `advanced.channels`, or `None`.
+        acquired: `(action_index, ch)` pairs from the `.mlf` image records.
+    """
+    if not overrides:
+        return
+    listed = {override.key for override in overrides}
+    unlisted = sorted({ch for _, ch in acquired} - listed)
+    if unlisted:
+        names = ", ".join(f"Ch{ch}" for ch in unlisted)
+        warnings.warn(
+            f"`advanced.channels` has no entry for acquired channel(s) {names}; "
+            "they keep the metadata read from the acquisition.",
+            ChannelMetadataWarning,
+            stacklevel=2,
+        )
+
+
 def apply_channel_overrides(
     *,
     resolved: list[ChannelInfo],
-    overrides: list[ChannelInfoUI] | None,
-    max_acquired_ch: int,
+    overrides: list[YokogawaChannelInfoUI] | None,
 ) -> list[ChannelInfo]:
-    """Merge a user `advanced.channels` list onto the resolved channels.
+    """Merge user `advanced.channels` entries onto the resolved channels.
 
-    The override maps **positionally onto the instrument channel range**: element 0
-    is `bts:Ch` 1. A short list overrides its leading slots only, so the result is
-    always as long as `resolved` and `start_c = ch - 1` keeps addressing the right
-    entry.
-
-    Call *after* `AcquisitionOptions.update_acquisition_details`, passing the raw
-    `ChannelInfoUI` list rather than that method's output: it replaces `channels`
-    wholesale and flattens an unset colour to a guess, after which the `.mes`
-    colours are unrecoverable.
+    Each entry's `key` is a `bts:Ch` number and lands on `resolved[key - 1]`;
+    slots without an entry are untouched, so the result is always as long as
+    `resolved` and `start_c = ch - 1` keeps addressing the right entry. An entry
+    for a channel the acquisition never used is accepted: it lands on a slot
+    `reindex_channels` prunes at compute time. Duplicate keys are rejected
+    upstream by `YokogawaAcquisitionOptions`.
 
     Args:
         resolved: Output of `resolve_channels` for this acquisition.
         overrides: The user's `advanced.channels`, or `None`.
-        max_acquired_ch: Highest `bts:Ch` the acquisition actually acquired.
 
     Returns:
         The merged channel list, the same length as `resolved`.
 
     Raises:
-        ValueError: If `overrides` is too short to cover every acquired channel.
+        ValueError: If an entry names a channel outside `1..len(resolved)`.
     """
     if not overrides:
         return list(resolved)
 
-    if len(overrides) < max_acquired_ch:
-        raise ValueError(
-            f"`advanced.channels` has {len(overrides)} entries but this "
-            f"acquisition acquires up to bts:Ch {max_acquired_ch}. Supply at "
-            f"least {max_acquired_ch} entries; element 0 maps to Ch1. Entries "
-            "for channels the acquisition does not use are discarded."
-        )
-
     merged = list(resolved)
-    for index, override in enumerate(overrides[: len(resolved)]):
+    for override in overrides:
+        if override.key > len(resolved):
+            declared = ", ".join(
+                f"Ch{ch} {channel.channel_label!r}"
+                for ch, channel in enumerate(resolved, start=1)
+            )
+            raise ValueError(
+                f"`advanced.channels` key {override.key} names bts:Ch "
+                f"{override.key}, but this acquisition declares "
+                f"Ch1..Ch{len(resolved)}: {declared}."
+            )
+        index = override.key - 1
         fallback = resolved[index]
         # `to_hexstr()` returns None exactly for `ColorMenu.Auto`, i.e. when the
         # user expressed no preference — so the `.mes` colour stands.

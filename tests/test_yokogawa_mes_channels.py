@@ -8,15 +8,19 @@ The resolved list spans the full instrument channel range, not the acquired subs
 per-well expectations simulate it with `[full[ch - 1] for ch in sorted(acquired)]`.
 """
 
+import warnings
 from pathlib import Path
 from xml.parsers.expat import ExpatError
 
 import pytest
-from ome_zarr_converters_tools import ChannelInfo, ChannelInfoUI, join_url_paths
+from ome_zarr_converters_tools import AcquisitionDetails, ChannelInfo, join_url_paths
+from pydantic import ValidationError
 
 from fractal_uzh_converters.common import ChannelMetadataWarning
 from fractal_uzh_converters.yokogawa._channels import (
     MesChannel,
+    YokogawaAcquisitionOptions,
+    YokogawaChannelInfoUI,
     _actions_by_channel,
     _dedup_labels,
     _strip_argb_alpha,
@@ -26,6 +30,7 @@ from fractal_uzh_converters.yokogawa._channels import (
     parse_mes,
     read_mes_channels,
     resolve_channels,
+    warn_on_unlisted_acquired_channels,
 )
 
 from .utils import DATA_DIR
@@ -469,93 +474,216 @@ def _resolved(n: int = 5) -> list[ChannelInfo]:
     )
 
 
+def _ui(key: int, label: str, **kwargs) -> YokogawaChannelInfoUI:
+    return YokogawaChannelInfoUI(key=key, channel_label=label, **kwargs)
+
+
 class TestApplyChannelOverrides:
-    """`advanced.channels` maps positionally onto the instrument range."""
+    """`advanced.channels` entries are keyed by `bts:Ch`."""
 
     def test_no_override_is_the_identity(self):
         resolved = _resolved()
-        assert (
-            apply_channel_overrides(
-                resolved=resolved, overrides=None, max_acquired_ch=4
-            )
-            == resolved
-        )
-        assert (
-            apply_channel_overrides(resolved=resolved, overrides=[], max_acquired_ch=4)
-            == resolved
-        )
+        assert apply_channel_overrides(resolved=resolved, overrides=None) == resolved
+        assert apply_channel_overrides(resolved=resolved, overrides=[]) == resolved
 
-    def test_too_short_raises_a_converter_level_error(self):
-        """The generic `Tile` validator's message is misleading here."""
-        overrides = [ChannelInfoUI(channel_label=f"c{i}") for i in range(2)]
-        with pytest.raises(ValueError, match="at least 4"):
-            apply_channel_overrides(
-                resolved=_resolved(), overrides=overrides, max_acquired_ch=4
-            )
+    def test_entry_lands_on_its_channel_slot(self):
+        """One entry for Ch4 on a five-channel instrument touches index 3 only."""
+        merged = apply_channel_overrides(resolved=_resolved(), overrides=[_ui(4, "c4")])
 
-    def test_short_list_is_padded_from_the_resolved_channels(self):
-        """Four entries on a five-channel instrument: element 0 is Ch1."""
-        overrides = [ChannelInfoUI(channel_label=f"c{i}") for i in range(4)]
+        assert [c.channel_label for c in merged] == ["t1", "t2", "t3", "c4", "t5"]
+
+    def test_entry_order_is_irrelevant(self):
         merged = apply_channel_overrides(
-            resolved=_resolved(), overrides=overrides, max_acquired_ch=4
+            resolved=_resolved(), overrides=[_ui(4, "c4"), _ui(1, "c1")]
         )
 
-        assert [c.channel_label for c in merged] == ["c0", "c1", "c2", "c3", "t5"]
+        assert [c.channel_label for c in merged] == ["c1", "t2", "t3", "c4", "t5"]
 
-    def test_extra_entries_are_discarded(self):
-        overrides = [ChannelInfoUI(channel_label=f"c{i}") for i in range(7)]
-        merged = apply_channel_overrides(
-            resolved=_resolved(), overrides=overrides, max_acquired_ch=4
-        )
-        assert len(merged) == 5
+    def test_never_acquired_channel_is_accepted(self):
+        """Ch3 is declared but never acquired: the entry lands on a pruned slot."""
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            merged = apply_channel_overrides(
+                resolved=_resolved(), overrides=[_ui(3, "c3")]
+            )
+
+        assert merged[2].channel_label == "c3"
+
+    def test_channel_outside_the_instrument_range_raises(self):
+        """The error names the declared range and labels, not a list length."""
+        with pytest.raises(ValueError, match=r"Ch1\.\.Ch5.*'t5'"):
+            apply_channel_overrides(resolved=_resolved(), overrides=[_ui(6, "x")])
+
+        # No partial result: a valid entry does not rescue an invalid one.
+        with pytest.raises(ValueError, match="bts:Ch 6"):
+            apply_channel_overrides(
+                resolved=_resolved(), overrides=[_ui(1, "ok"), _ui(6, "x")]
+            )
 
     def test_unset_wavelength_id_is_reinjected(self):
-        overrides = [ChannelInfoUI(channel_label=f"c{i}") for i in range(4)]
         merged = apply_channel_overrides(
-            resolved=_resolved(), overrides=overrides, max_acquired_ch=4
+            resolved=_resolved(), overrides=[_ui(2, "c2"), _ui(4, "c4")]
         )
-        assert [c.wavelength_id for c in merged[:4]] == [
+        assert [c.wavelength_id for c in merged] == [
             "A00_C01",
             "A01_C02",
             "A00_C03",
             "A02_C04",
+            "A00_C05",
         ]
 
     def test_user_wavelength_id_wins(self):
-        overrides = [ChannelInfoUI(channel_label="c0", wavelength_id="custom")]
-        overrides += [ChannelInfoUI(channel_label=f"c{i}") for i in range(1, 4)]
         merged = apply_channel_overrides(
-            resolved=_resolved(), overrides=overrides, max_acquired_ch=4
+            resolved=_resolved(), overrides=[_ui(1, "c1", wavelength_id="custom")]
         )
         assert merged[0].wavelength_id == "custom"
 
     def test_auto_color_keeps_the_mes_color(self):
         """`ColorMenu.Auto` means "no preference", not "discard the protocol"."""
-        overrides = [ChannelInfoUI(channel_label=f"c{i}") for i in range(4)]
-        merged = apply_channel_overrides(
-            resolved=_resolved(), overrides=overrides, max_acquired_ch=4
-        )
+        merged = apply_channel_overrides(resolved=_resolved(), overrides=[_ui(2, "c2")])
         assert [c.color for c in merged] == ["#0000FF"] * 5
 
     def test_explicit_color_wins(self):
         # `ColorMenu` members are display strings, as picked in the Fractal UI.
-        overrides = [ChannelInfoUI(channel_label="c0", color="Red (#FF0000)")]
-        overrides += [ChannelInfoUI(channel_label=f"c{i}") for i in range(1, 4)]
         merged = apply_channel_overrides(
-            resolved=_resolved(), overrides=overrides, max_acquired_ch=4
+            resolved=_resolved(), overrides=[_ui(1, "c1", color="Red (#FF0000)")]
         )
         assert merged[0].color != "#0000FF"
         assert merged[1].color == "#0000FF"
 
     def test_duplicate_labels_warn_but_are_not_renamed(self):
         """Renaming a label the user typed on purpose would be worse."""
-        overrides = [ChannelInfoUI(channel_label="same") for _ in range(4)]
         with pytest.warns(ChannelMetadataWarning, match="duplicate channel labels"):
             merged = apply_channel_overrides(
-                resolved=_resolved(), overrides=overrides, max_acquired_ch=4
+                resolved=_resolved(), overrides=[_ui(1, "same"), _ui(2, "same")]
             )
 
-        assert [c.channel_label for c in merged[:4]] == ["same"] * 4
+        assert [c.channel_label for c in merged[:2]] == ["same"] * 2
+
+    def test_collision_with_an_untouched_mes_label_warns(self):
+        with pytest.warns(ChannelMetadataWarning, match="duplicate channel labels"):
+            apply_channel_overrides(resolved=_resolved(), overrides=[_ui(1, "t2")])
+
+
+# Ch2 and Ch4 acquired, as in `_resolved()`.
+_ACQUIRED = [(1, 2), (2, 4), (2, 4)]
+
+
+class TestWarnOnUnlistedAcquiredChannels:
+    """A partial list is fine, but a forgotten acquired channel is reported."""
+
+    def test_unlisted_acquired_channel_warns(self):
+        with pytest.warns(ChannelMetadataWarning, match=r"acquired channel\(s\) Ch4;"):
+            warn_on_unlisted_acquired_channels(
+                overrides=[_ui(2, "c2")], acquired=_ACQUIRED
+            )
+
+    def test_every_acquired_channel_listed_is_silent(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            warn_on_unlisted_acquired_channels(
+                overrides=[_ui(4, "c4"), _ui(2, "c2")], acquired=_ACQUIRED
+            )
+
+    def test_never_acquired_channels_are_not_reported(self):
+        """Ch1, Ch3 and Ch5 are declared only; listing Ch2 and Ch4 is complete."""
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            warn_on_unlisted_acquired_channels(
+                overrides=[_ui(2, "c2"), _ui(4, "c4")], acquired=_ACQUIRED
+            )
+
+    def test_no_override_is_silent(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            warn_on_unlisted_acquired_channels(overrides=None, acquired=_ACQUIRED)
+            warn_on_unlisted_acquired_channels(overrides=[], acquired=_ACQUIRED)
+
+    def test_names_every_missing_channel_in_order(self):
+        with pytest.warns(ChannelMetadataWarning, match="Ch2, Ch4"):
+            warn_on_unlisted_acquired_channels(
+                overrides=[_ui(1, "c1")], acquired=_ACQUIRED
+            )
+
+
+class TestYokogawaAcquisitionOptions:
+    """The user-facing model: what Fractal validates before any file is read."""
+
+    def test_channel_number_is_required(self):
+        with pytest.raises(ValidationError, match="key"):
+            YokogawaAcquisitionOptions(channels=[{"channel_label": "DAPI"}])
+
+    def test_channel_number_is_one_based(self):
+        with pytest.raises(ValidationError):
+            YokogawaAcquisitionOptions(channels=[{"key": 0, "channel_label": "DAPI"}])
+
+    def test_duplicate_channel_number_is_rejected(self):
+        with pytest.raises(ValidationError, match="more than once"):
+            YokogawaAcquisitionOptions(
+                channels=[
+                    {"key": 1, "channel_label": "a"},
+                    {"key": 1, "channel_label": "b"},
+                ]
+            )
+
+    def test_unknown_field_is_rejected(self):
+        """`extra="forbid"` is inherited, so a wrong key cannot pass silently."""
+        with pytest.raises(ValidationError):
+            YokogawaAcquisitionOptions(
+                channels=[{"key": 1, "channel_label": "a", "label": "b"}]
+            )
+
+    def test_update_acquisition_details_merges_by_channel_number(self):
+        """The merge starts from the resolved list, and the other options apply."""
+        details = AcquisitionDetails(channels=_resolved())
+        options = YokogawaAcquisitionOptions(
+            channels=[{"key": 4, "channel_label": "c4"}],
+            pixel_info={"xy_pixel_size": 0.5, "z_spacing": 2.0, "t_spacing": 1.0},
+        )
+
+        updated = options.update_acquisition_details(acquisition_details=details)
+
+        assert updated.channels is not None
+        assert [c.channel_label for c in updated.channels] == [
+            "t1",
+            "t2",
+            "t3",
+            "c4",
+            "t5",
+        ]
+        assert updated.xy_pixel_size == 0.5
+        # The input is left alone: `resolve_channels` runs once per acquisition
+        # and its output is shared by every plate.
+        assert [c.channel_label for c in details.channels or []] == [
+            "t1",
+            "t2",
+            "t3",
+            "t4",
+            "t5",
+        ]
+
+    def test_empty_override_list_keeps_the_resolved_channels(self):
+        """`[]` must not blank the channels the way the base class would."""
+        details = AcquisitionDetails(channels=_resolved())
+        updated = YokogawaAcquisitionOptions(channels=[]).update_acquisition_details(
+            acquisition_details=details
+        )
+        assert updated.channels == _resolved()
+
+    def test_unset_override_leaves_details_untouched(self):
+        details = AcquisitionDetails(channels=None)
+        updated = YokogawaAcquisitionOptions().update_acquisition_details(
+            acquisition_details=details
+        )
+        assert updated.channels is None
+
+    def test_override_without_resolved_channels_raises(self):
+        with pytest.raises(ValueError, match="channel number"):
+            YokogawaAcquisitionOptions(
+                channels=[{"key": 1, "channel_label": "a"}]
+            ).update_acquisition_details(
+                acquisition_details=AcquisitionDetails(channels=None)
+            )
 
 
 # ---------------------------------------------------------------------------

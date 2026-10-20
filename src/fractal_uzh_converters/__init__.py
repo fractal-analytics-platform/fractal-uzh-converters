@@ -29,6 +29,8 @@ from fractal_uzh_converters.scanr import (
 from fractal_uzh_converters.yokogawa import (
     CellVoyagerAcquisitionModel,
     CQ3KAcquisitionModel,
+    YokogawaAcquisitionOptions,
+    YokogawaChannelInfoUI,
     convert_cellvoyager,
     convert_cq3k,
 )
@@ -43,6 +45,8 @@ __all__ = [
     "OperettaAcquisitionModel",
     "ScanRAcquisitionModel",
     "SingleTiffAcquisitionModel",
+    "YokogawaAcquisitionOptions",
+    "YokogawaChannelInfoUI",
     # Tasks
     "convert_cellvoyager",
     "convert_cq3k",

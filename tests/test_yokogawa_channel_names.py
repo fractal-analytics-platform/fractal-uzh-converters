@@ -10,17 +10,19 @@ labels survive the conversion, that the acquisition-wide list is pruned per imag
 and that an `advanced.channels` override lands on the right slots.
 """
 
+import warnings
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
 from fractal_uzh_converters.common import ChannelMetadataWarning
 from fractal_uzh_converters.yokogawa.cellvoyager import convert_cellvoyager
-from fractal_uzh_converters.yokogawa.cellvoyager._utils import (
-    CellVoyagerAcquisitionModel,
-    parse_cellvoyager_metadata,
-)
 from fractal_uzh_converters.yokogawa.cq3k import convert_cq3k
+from fractal_uzh_converters.yokogawa.cq3k._utils import (
+    CQ3KAcquisitionModel,
+    parse_cq3k_metadata,
+)
 
 from .utils import DATA_DIR, EXTENDED_DATA_DIR, channel_metadata
 
@@ -35,7 +37,7 @@ _CQ3K_FIXTURE_TARGET = "Ch1_ConfocalFluorescence_405nm/100mW_BP447/60"
 def _convert_cellvoyager(tmp_path: Path, converter_options, name: str, **advanced):
     """Convert an extended CellVoyager acquisition, return its channel metadata."""
     zarr_dir = tmp_path / "output"
-    zarr_dir.mkdir()
+    zarr_dir.mkdir(parents=True)
     image_list_updates = convert_cellvoyager(
         zarr_dir=str(zarr_dir),
         acquisitions=[
@@ -164,57 +166,117 @@ def test_wavelength_ids_carry_the_action_index(tmp_path: Path, converter_options
 
 ######################################################################
 #
-# `advanced.channels` overrides map positionally: element 0 is Ch1
+# `advanced.channels` entries are keyed by `bts:Ch`
 #
 ######################################################################
 
-# `TimelinesPerWellChannels` acquires only Ch1 (well C03) and Ch4 (well C02) of
-# the five channels its `.mrf` declares -- the case where a dense,
-# acquired-channels-only override would silently mislabel both wells.
-_ILL_QC = "hcs_2w2p1c9z1t_TimelinesPerWellChannels"
 
-
-@pytest.mark.extended
-def test_override_shorter_than_the_acquired_range_raises(converter_options):
-    """The converter's own error names the required length.
-
-    The generic `Tile` validator would instead report the offending channel
-    index against the override's length, which reads as an off-by-one.
-    """
-    acquisition_model = CellVoyagerAcquisitionModel(
-        path=str(CELLVOYAGER_EXTENDED_RAW_DIR / _ILL_QC),
+def test_override_for_an_undeclared_channel_raises(converter_options):
+    """The in-repo CQ3K protocol declares Ch1 only; `ch=2` is a typo, not a gap."""
+    acquisition_model = CQ3KAcquisitionModel(
+        path=str(CQ3K_RAW_DIR / "hcs_2w1p1c1z1t_mip"),
         acquisition_id=0,
-        advanced={
-            "channels": [
-                {"channel_label": "first"},
-                {"channel_label": "second"},
-            ]
-        },
+        advanced={"channels": [{"key": 2, "channel_label": "GFP"}]},
     )
 
-    with pytest.raises(ValueError, match="at least 4 entries"):
-        parse_cellvoyager_metadata(
+    with pytest.raises(ValueError, match=r"Ch1\.\.Ch1"):
+        parse_cq3k_metadata(
             acquisition_model=acquisition_model,
             converter_options=converter_options,
         )
 
 
+def test_partial_override_is_applied_and_warns(tmp_path: Path, converter_options):
+    """The in-repo CQ3K fixture acquires Ch1 only, so a colour-only entry for it
+    is complete; the warning fires only when an acquired channel has no entry."""
+    acquisition_model = CQ3KAcquisitionModel(
+        path=str(CQ3K_RAW_DIR / "hcs_2w1p1c1z1t_mip"),
+        acquisition_id=0,
+        advanced={
+            "channels": [{"key": 1, "color": "Red (#FF0000)", "channel_label": ""}]
+        },
+    )
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", ChannelMetadataWarning)
+        tiled_images = parse_cq3k_metadata(
+            acquisition_model=acquisition_model,
+            converter_options=converter_options,
+        )
+
+    channels = tiled_images[0].channels
+    assert [c.channel_label for c in channels] == [_CQ3K_FIXTURE_TARGET]
+    assert [c.color for c in channels] == ["#FF0000"]
+
+
+def test_override_without_a_channel_number_is_rejected():
+    """The positional form is gone: an entry must say which channel it names."""
+    with pytest.raises(ValidationError, match="key"):
+        CQ3KAcquisitionModel(
+            path=str(CQ3K_RAW_DIR / "hcs_2w1p1c1z1t_mip"),
+            advanced={"channels": [{"channel_label": "DAPI"}]},
+        )
+
+
+# `TimelinesPerWellChannels` acquires only Ch1 (well C03) and Ch4 (well C02) of
+# the five channels its `.mrf` declares -- the case where a dense,
+# acquired-channels-only list would silently mislabel both wells, and where a
+# keyed list needs no entry for Ch2, Ch3 and Ch5.
+_ILL_QC = "hcs_2w2p1c9z1t_TimelinesPerWellChannels"
+
+
 @pytest.mark.extended
-def test_override_is_indexed_by_channel_not_by_position(
-    tmp_path: Path, converter_options
-):
-    """A 4-entry override reaches Ch4 through element 3, not element 1."""
+def test_override_is_keyed_by_channel_number(tmp_path: Path, converter_options):
+    """Two entries, in reverse order, reach Ch4 and Ch1 through their `key`."""
     channels = _convert_cellvoyager(
         tmp_path,
         converter_options,
         _ILL_QC,
         channels=[
-            {"channel_label": f"user_ch{i + 1}", "wavelength_id": f"W{i + 1:02d}"}
-            for i in range(4)
+            {"key": 4, "channel_label": "user_ch4", "wavelength_id": "W04"},
+            {"key": 1, "channel_label": "user_ch1", "wavelength_id": "W01"},
         ],
     )
 
     assert channels == {
-        "C/02/0": (["user_ch4"], ["W04"]),  # acquires Ch4 -> element 3
-        "C/03/0": (["user_ch1"], ["W01"]),  # acquires Ch1 -> element 0
+        "C/02/0": (["user_ch4"], ["W04"]),  # acquires Ch4
+        "C/03/0": (["user_ch1"], ["W01"]),  # acquires Ch1
     }
+
+
+@pytest.mark.extended
+def test_partial_override_warns_about_the_unlisted_acquired_channel(
+    tmp_path: Path, converter_options
+):
+    """Naming Ch1 but not Ch4 is accepted, and the warning names Ch4 only."""
+    with pytest.warns(ChannelMetadataWarning, match=r"acquired channel\(s\) Ch4;"):
+        channels = _convert_cellvoyager(
+            tmp_path,
+            converter_options,
+            _ILL_QC,
+            channels=[{"key": 1, "channel_label": "user_ch1"}],
+        )
+
+    assert channels["C/03/0"][0] == ["user_ch1"]
+    assert channels["C/02/0"][0] != ["user_ch1"]
+
+
+@pytest.mark.extended
+def test_override_for_a_never_acquired_channel_is_accepted(
+    tmp_path: Path, converter_options
+):
+    """Ch2 is declared by the `.mrf` but acquired by neither well.
+
+    The entry lands on a slot `reindex_channels` prunes, so the output is the
+    same as without any override; it must not be rejected as a typo.
+    """
+    reference = _convert_cellvoyager(tmp_path / "reference", converter_options, _ILL_QC)
+    overridden = _convert_cellvoyager(
+        tmp_path / "overridden",
+        converter_options,
+        _ILL_QC,
+        channels=[{"key": 2, "channel_label": "unused"}],
+    )
+
+    assert overridden == reference
+    assert all("unused" not in labels for labels, _ in overridden.values())

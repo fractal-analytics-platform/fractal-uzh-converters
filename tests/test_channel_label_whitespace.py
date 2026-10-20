@@ -12,7 +12,7 @@ snapshots and covered here with hand-built inputs instead.
 from types import SimpleNamespace
 
 import pytest
-from ome_zarr_converters_tools import ChannelInfo, ChannelInfoUI
+from ome_zarr_converters_tools import ChannelInfo
 
 from fractal_uzh_converters.common import ChannelMetadataWarning, clean_channel_string
 from fractal_uzh_converters.custom_tiff._utils import (
@@ -28,6 +28,7 @@ from fractal_uzh_converters.operetta._utils import _channel_names
 from fractal_uzh_converters.scanr._utils import _get_channel_names
 from fractal_uzh_converters.yokogawa._channels import (
     MesChannel,
+    YokogawaChannelInfoUI,
     apply_channel_overrides,
     resolve_channels,
 )
@@ -89,9 +90,10 @@ class TestYokogawa:
         merged = apply_channel_overrides(
             resolved=resolved,
             overrides=[
-                ChannelInfoUI(channel_label=" DAPI ", wavelength_id=" A01_C01 ")
+                YokogawaChannelInfoUI(
+                    key=1, channel_label=" DAPI ", wavelength_id=" A01_C01 "
+                )
             ],
-            max_acquired_ch=1,
         )
         assert merged[0].channel_label == "DAPI"
         assert merged[0].wavelength_id == "A01_C01"
@@ -104,8 +106,9 @@ class TestYokogawa:
         )
         merged = apply_channel_overrides(
             resolved=resolved,
-            overrides=[ChannelInfoUI(channel_label="  ", wavelength_id="  ")],
-            max_acquired_ch=1,
+            overrides=[
+                YokogawaChannelInfoUI(key=1, channel_label="  ", wavelength_id="  ")
+            ],
         )
         assert merged[0].channel_label == "405"
         assert merged[0].wavelength_id == "A01_C01"
@@ -124,10 +127,9 @@ class TestYokogawa:
             merged = apply_channel_overrides(
                 resolved=resolved,
                 overrides=[
-                    ChannelInfoUI(channel_label="DAPI"),
-                    ChannelInfoUI(channel_label="DAPI "),
+                    YokogawaChannelInfoUI(key=1, channel_label="DAPI"),
+                    YokogawaChannelInfoUI(key=2, channel_label="DAPI "),
                 ],
-                max_acquired_ch=2,
             )
 
         assert [c.channel_label for c in merged] == ["DAPI", "DAPI"]
