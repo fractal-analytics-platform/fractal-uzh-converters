@@ -1127,6 +1127,9 @@ CustomTiff; Yokogawa plates change in channel labels, plate suffixes and vendor 
   and actual values (<code>ome-zarr-converters-tools</code> 1.1.1).</li>
 <li>Yokogawa (CQ3K, CellVoyager): channel labels, wavelength ids (<code>A{action}_C{channel}</code>) and
   colours are now read from the acquisition's <code>.mes</code> protocol file (#27).</li>
+<li>Yokogawa (CQ3K, CellVoyager): <code>advanced.channels</code> entries carry a <code>Channel Key</code> (the <code>bts:Ch</code>
+  channel number), so channels the protocol declares but the acquisition never used need no
+  placeholder entry; an acquired channel left without an entry is reported as a warning.</li>
 <li>New <code>z_processing</code> acquisition option on CQ3K, CellVoyager and MD ImageXpress, selecting
   which Z-image processing outputs to convert without resorting to a path regex filter.</li>
 <li>Yokogawa (CQ3K, CellVoyager): the acquisition's <code>.mlf</code>, <code>.mrf</code>, <code>.mes</code>, <code>.wpi</code> and <code>.wpp</code>
@@ -1135,6 +1138,9 @@ CustomTiff; Yokogawa plates change in channel labels, plate suffixes and vendor 
 </ul>
 <h3 id="api-breaking-changes">API Breaking Changes</h3>
 <ul>
+<li><strong>Yokogawa <code>advanced.channels</code> entries now carry a required <code>Channel Key</code> (the <code>bts:Ch</code> number)</strong> and
+  override only that channel; the positional, full-length list is no longer accepted, and
+  <code>Advanced</code> is <code>YokogawaAcquisitionOptions</code> with <code>YokogawaChannelInfoUI</code> entries.</li>
 <li><strong>CellVoyager acquisitions tagged <code>bts:ZImageProcessing</code> now split into one plate per
   algorithm</strong> (<code>_MIP</code>/<code>_MinIP</code>/<code>_SIP</code>), with the same <code>z_processing</code> selection as CQ3K;
   the attribute was previously dropped, overlapping the tiles of both plates.</li>
@@ -1170,8 +1176,8 @@ CustomTiff; Yokogawa plates change in channel labels, plate suffixes and vendor 
 <li>All converters: strip whitespace from channel labels and wavelength ids — ngio treats
   <code>"DAPI"</code> and <code>"DAPI "</code> as two distinct channels, so a stray space silently broke
   per-name channel matching downstream.</li>
-<li>Yokogawa: channel indices are now 0-based, so an <code>advanced.channels</code> override maps its
-  first entry to <code>Ch1</code> instead of failing (#27).</li>
+<li>Yokogawa: the tile channel index is now 0-based like the Z and time indices, so an
+  <code>advanced.channels</code> override no longer fails with a channel-index validation error (#27).</li>
 <li>Yokogawa: build one <code>AcquisitionDetails</code> per plate rather than per field of view, so
   fields merged into a single image cannot disagree on it.</li>
 <li>Yokogawa: each well's <code>bts:TimePoint</code> values map onto a dense 0-based time axis; the raw

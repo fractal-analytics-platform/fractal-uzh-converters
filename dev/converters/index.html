@@ -1201,7 +1201,7 @@
 <td><code>Channels</code></td>
 <td><code>list[ChannelInfoUI]</code> or <code>null</code></td>
 <td><code>null</code></td>
-<td>Override channel names, wavelength ids and colors. The list is positional, and how it is indexed depends on the converter — see the <a href="cq3k/#channels">CQ3K</a> and <a href="cellvoyager/#channels">CellVoyager</a> pages, where it is indexed by the instrument channel number rather than by the channels present in the output.</td>
+<td>Override channel names, wavelength ids and colors. The list is positional for most converters; the <a href="cq3k/#channels">CQ3K</a> and <a href="cellvoyager/#channels">CellVoyager</a> converters instead key each entry by instrument channel number, so only the channels to change need an entry.</td>
 </tr>
 <tr>
 <td><code>Pixel Size Information</code></td>

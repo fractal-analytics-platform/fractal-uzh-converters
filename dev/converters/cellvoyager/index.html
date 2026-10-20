@@ -1102,24 +1102,31 @@
 </code></pre></div>
 <h2 id="channels">Channels</h2>
 <p>Channel labels, display colours and wavelength ids come from the acquisition's <code>.mes</code> protocol file, whose filename is recorded in the <code>.mrf</code>. The label is the channel's <code>Target</code> (e.g. <code>405</code>, <code>DAPI</code>), and the wavelength id is <code>A{action}_C{channel}</code> — for example <code>A01_C04</code>. When no <code>.mes</code> is available the label falls back to the wavelength id.</p>
-<p>To override them, fill in <code>Advanced</code> → <code>Channels</code>. <strong>The list is ordered by the instrument's channel number</strong>: element 0 is <code>Ch1</code>, element 1 is <code>Ch2</code>, and so on across the full channel range the protocol declares — it is <em>not</em> a dense list of the channels you can see in the output.</p>
-<p>That distinction matters whenever an acquisition uses a subset of the instrument's channels, which on the CellVoyager includes the case where different wells acquire different channels:</p>
+<p>To override them, fill in <code>Advanced</code> → <code>Channels</code> with one entry per channel you want to change. <strong>Each entry names its channel through <code>Channel Key</code></strong>: the instrument's <code>bts:Ch</code> channel number, which is also the <code>C</code> number of the default wavelength id (<code>4</code> for <code>Ch4</code> / <code>A01_C04</code>). Channels without an entry keep their <code>.mes</code> metadata, so the list is neither positional nor required to be complete — it is <em>not</em> one entry per channel you can see in the output, and it need not cover every channel the protocol declares.</p>
+<p>That matters whenever an acquisition uses a subset of the instrument's channels, which on the CellVoyager includes the case where different wells acquire different channels:</p>
 <blockquote>
-<p>A 5-channel instrument, where one well acquires only <code>Ch1</code> and another only <code>Ch4</code>. The override still needs <strong>four</strong> entries, and it is elements 0 and 3 that end up on the two wells. A 2-entry list — one per channel actually visible — is rejected.</p>
+<p>A 5-channel instrument, where one well acquires only <code>Ch1</code> and another only <code>Ch4</code>. Two entries, with <code>Channel Key</code> <code>1</code> and <code>4</code>, label the two wells. Nothing is needed for <code>Ch2</code>, <code>Ch3</code> and <code>Ch5</code>.</p>
 </blockquote>
-<p>The list must have at least as many entries as the highest channel number the acquisition uses. If it is too short the conversion fails with an error naming the number required, so running once and reading the error is the quickest way to find it. Beyond that:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">advanced</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>    <span class="s2">"channels"</span><span class="p">:</span> <span class="p">[</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>        <span class="p">{</span><span class="s2">"key"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"channel_label"</span><span class="p">:</span> <span class="s2">"DAPI"</span><span class="p">},</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>        <span class="p">{</span><span class="s2">"key"</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">"channel_label"</span><span class="p">:</span> <span class="s2">"GFP"</span><span class="p">,</span> <span class="s2">"wavelength_id"</span><span class="p">:</span> <span class="s2">"488"</span><span class="p">},</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="p">]</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="p">}</span>
+</code></pre></div>
+<p>Beyond that:</p>
 <ul>
-<li>Extra entries are discarded.</li>
-<li>Entries past the end of your list keep their <code>.mes</code> metadata.</li>
+<li>A key the protocol does not declare is an error naming the declared channels and their <code>.mes</code> labels. One it declares but the acquisition never used is accepted and has no effect.</li>
+<li>Each key may appear once. An acquired channel left without an entry keeps its <code>.mes</code> metadata, and a warning names it so a forgotten channel does not go unnoticed.</li>
 <li>Leaving <code>Wavelength ID</code> empty keeps the computed <code>A{action}_C{channel}</code>.</li>
 <li>Leaving the colour on <code>Auto</code> keeps the colour from the <code>.mes</code>.</li>
 </ul>
 <h3 id="with-projection-plates">With projection plates</h3>
-<p>One list covers the <strong>whole acquisition</strong>, every plate included, and it is numbered in the acquisition-wide channel space — not per plate. Because each <a href="#z-image-processing">projection algorithm</a> carries its own channel numbers, the entries are split across plates rather than repeated in each.</p>
+<p>One list covers the <strong>whole acquisition</strong>, every plate included, and its channel numbers are acquisition-wide — not per plate. Because each <a href="#z-image-processing">projection algorithm</a> carries its own channel numbers, an entry surfaces in whichever plate acquires that channel.</p>
 <blockquote>
-<p>An acquisition that min-projects <code>Ch1</code> and max-projects <code>Ch2</code>–<code>Ch5</code> needs one 5-entry list. Element 0 surfaces in <code>MyPlate_MinIP.zarr</code>; elements 1–4 surface in <code>MyPlate_MIP.zarr</code>.</p>
+<p>An acquisition that min-projects <code>Ch1</code> and max-projects <code>Ch2</code>–<code>Ch5</code> takes one list. The entry with <code>Channel Key</code> <code>1</code> surfaces in <code>MyPlate_MinIP.zarr</code>; the entries <code>2</code>–<code>5</code> surface in <code>MyPlate_MIP.zarr</code>.</p>
 </blockquote>
-<p>So do not write a separate list per plate, and do not size the list by the channels visible in one plate. Selecting a single plate with <code>Z Processing</code> does relax the requirement to that plate's own channels.</p>
+<p>So do not write a separate list per plate. Selecting a single plate with <code>Z Processing</code> does not change the channel numbers.</p>
 <h2 id="task-parameters">Task Parameters</h2>
 <p>The CellVoyager init task extends the base acquisition parameters with two additional fields:</p>
 <table>
@@ -1164,28 +1171,28 @@
 </tr>
 <tr>
 <td><code>Advanced</code></td>
-<td><code>AcquisitionOptions</code></td>
+<td><code>YokogawaAcquisitionOptions</code></td>
 <td><code>{}</code></td>
-<td>Advanced options (condition table, <a href="#channels">channel overrides</a>, filters).</td>
+<td>Advanced options (condition table, <a href="#channels">channel overrides</a> keyed by <code>Channel Key</code>, filters).</td>
 </tr>
 </tbody>
 </table>
 <h2 id="python-api">Python API</h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">fractal_uzh_converters</span><span class="w"> </span><span class="kn">import</span> <span class="n">convert_cellvoyager</span><span class="p">,</span> <span class="n">CellVoyagerAcquisitionModel</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">acquisitions</span> <span class="o">=</span> <span class="p">[</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="n">CellVoyagerAcquisitionModel</span><span class="p">(</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>        <span class="n">path</span><span class="o">=</span><span class="s2">"/path/to/cellvoyager/acquisition"</span><span class="p">,</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>        <span class="n">plate_name</span><span class="o">=</span><span class="s2">"my_plate"</span><span class="p">,</span>
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>        <span class="n">acquisition_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>        <span class="n">image_extension</span><span class="o">=</span><span class="s2">".tif"</span><span class="p">,</span>
-<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>    <span class="p">)</span>
-<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="p">]</span>
-<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>
-<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="n">convert_cellvoyager</span><span class="p">(</span>
-<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>    <span class="n">zarr_dir</span><span class="o">=</span><span class="s2">"/output/zarr"</span><span class="p">,</span>
-<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>    <span class="n">acquisitions</span><span class="o">=</span><span class="n">acquisitions</span><span class="p">,</span>
-<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">fractal_uzh_converters</span><span class="w"> </span><span class="kn">import</span> <span class="n">convert_cellvoyager</span><span class="p">,</span> <span class="n">CellVoyagerAcquisitionModel</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">acquisitions</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    <span class="n">CellVoyagerAcquisitionModel</span><span class="p">(</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>        <span class="n">path</span><span class="o">=</span><span class="s2">"/path/to/cellvoyager/acquisition"</span><span class="p">,</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>        <span class="n">plate_name</span><span class="o">=</span><span class="s2">"my_plate"</span><span class="p">,</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>        <span class="n">acquisition_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>        <span class="n">image_extension</span><span class="o">=</span><span class="s2">".tif"</span><span class="p">,</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>    <span class="p">)</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="p">]</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="n">convert_cellvoyager</span><span class="p">(</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>    <span class="n">zarr_dir</span><span class="o">=</span><span class="s2">"/output/zarr"</span><span class="p">,</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>    <span class="n">acquisitions</span><span class="o">=</span><span class="n">acquisitions</span><span class="p">,</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="p">)</span>
 </code></pre></div>
 <p>See <a href="../../how_to_run_the_converters/">How to Run the Converters</a> for all common parameters and execution details.</p>
 
