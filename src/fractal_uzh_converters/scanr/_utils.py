@@ -1,5 +1,6 @@
 """Utility functions for Evident ScanR data."""
 
+import os
 import re
 import warnings
 from typing import Literal, NamedTuple
@@ -77,10 +78,12 @@ class ScanRAcquisitionModel(HCSBaseAcquisitionModel):
         Allow:
          - path/to/acquisition/data
          - path/to/acquisition/
+
+        Separators follow the host OS via `os.path` (on Windows both "\\" and "/").
         """
-        v = v.rstrip("/")
-        if v.endswith("/data"):
-            return v[: -len("/data")]
+        v = v.rstrip(os.sep + (os.altsep or ""))
+        if os.path.basename(v) == "data":
+            return os.path.dirname(v)
         return v
 
 
