@@ -17,9 +17,11 @@ from ome_zarr_converters_tools import (
     ImageInPlate,
     Tile,
     TiledImage,
+    basename_url,
     default_axes_builder,
     filesystem_for_url,
     join_url_paths,
+    parent_url,
     tiles_aggregation_pipeline,
 )
 from pydantic import BaseModel, Field, field_validator
@@ -63,10 +65,13 @@ class OperettaAcquisitionModel(HCSBaseAcquisitionModel):
         Allow:
          - path/to/acquisition/Images
          - path/to/acquisition/
+
+        Separators are normalised to "/" on every host, so Windows paths and
+        `s3://` URLs are handled alike.
         """
-        v = v.rstrip("/")
-        if v.endswith("/Images"):
-            return v[: -len("/Images")]
+        v = v.replace("\\", "/").rstrip("/")
+        if basename_url(v) == "Images":
+            return parent_url(v)
         return v
 
 
