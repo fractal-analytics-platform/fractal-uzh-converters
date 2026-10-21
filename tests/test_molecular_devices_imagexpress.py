@@ -4,6 +4,9 @@ import pytest
 from ome_zarr_converters_tools.testing import run_converter_test
 
 from fractal_uzh_converters.imagexpress_hcs import convert_imagexpress_hcs
+from fractal_uzh_converters.imagexpress_hcs._utils import (
+    MDImageXpressHCSaiAcquisitionModel,
+)
 
 from .utils import DATA_DIR
 
@@ -42,3 +45,23 @@ def test_imagexpress_hcs(
         update_snapshots=update_snapshots,
         converter_options=converter_options,
     )
+
+
+@pytest.mark.parametrize(
+    "path, expected",
+    [
+        ("/some/acq", "/some/acq"),
+        ("/some/acq/", "/some/acq"),
+        ("/some/acq/protocol.mxprotocol", "/some/acq"),
+        # S3: `pathlib` would collapse the `//` after the scheme
+        ("s3://bucket/acq/protocol.mxprotocol", "s3://bucket/acq"),
+        ("s3://bucket/acq/", "s3://bucket/acq"),
+        # Windows paths are handled the same on every host
+        ("C:\\some\\acq\\protocol.mxprotocol", "C:/some/acq"),
+        ("C:\\some\\acq\\", "C:/some/acq"),
+        ("\\\\server\\share\\acq\\protocol.mxprotocol", "//server/share/acq"),
+    ],
+)
+def test_acquisition_model_path_validator(path: str, expected: str):
+    model = MDImageXpressHCSaiAcquisitionModel(path=path, acquisition_id=0)
+    assert model.path == expected

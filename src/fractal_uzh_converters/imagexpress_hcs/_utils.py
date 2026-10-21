@@ -19,6 +19,7 @@ from ome_zarr_converters_tools import (
     default_axes_builder,
     filesystem_for_url,
     join_url_paths,
+    parent_url,
     tiles_aggregation_pipeline,
 )
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -80,11 +81,14 @@ class MDImageXpressHCSaiAcquisitionModel(HCSBaseAcquisitionModel):
         Allow:
          - path/to/acquisition/{protocol}.mxprotocol
          - path/to/acquisition/
+
+        Separators are normalised to "/" on every host, so Windows paths and
+        `s3://` URLs are handled alike (`pathlib` would mangle the latter).
         """
-        v = v.rstrip("/")
+        v = v.replace("\\", "/").rstrip("/")
         if v.endswith(".mxprotocol"):
             # Strip the filename to get the directory
-            return str(Path(v).parent)
+            return parent_url(v)
         return v
 
 
