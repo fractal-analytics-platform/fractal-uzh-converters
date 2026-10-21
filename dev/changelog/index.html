@@ -1188,6 +1188,10 @@ CustomTiff; Yokogawa plates change in channel labels, plate suffixes and vendor 
   1's geometry is applied to all of them.</li>
 <li>CQ3K: a single-record <code>.mlf</code> now converts, and unknown <code>bts:</code> attributes are ignored
   rather than rejected. Both already held on CellVoyager.</li>
+<li>ScanR, Operetta: <code>path</code> accepts a Windows-style <code>...\data</code> / <code>...\Images</code> directory;
+  the trailing component is stripped the same way on every host (#58).</li>
+<li>ImageXpress: <code>path</code> given as the <code>.mxprotocol</code> file now works for <code>s3://</code> URLs and
+  Windows paths — the old <code>pathlib</code> strip mangled both.</li>
 <li>Bug in extended testing using the wrong api</li>
 <li>Fix typo in the conversion log message (<code>Successfully</code>).</li>
 </ul>
