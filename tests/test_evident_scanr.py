@@ -1,8 +1,8 @@
-import sys
 from pathlib import Path
 
 import pytest
 from ome_zarr_converters_tools.testing import run_converter_test
+from pydantic import ValidationError
 
 from fractal_uzh_converters.scanr import convert_scanr
 from fractal_uzh_converters.scanr._utils import ScanRAcquisitionModel
@@ -46,13 +46,29 @@ def test_scanr(
     )
 
 
-def test_ScanRAcquisitionModel_field_validator():
-    x = ScanRAcquisitionModel(path="/some/path/data")
-    assert x.path == "/some/path"
+@pytest.mark.parametrize(
+    "path, expected",
+    [
+        ("/some/path", "/some/path"),
+        ("/some/path/", "/some/path"),
+        ("/some/path/data", "/some/path"),
+        ("/some/path/data/", "/some/path"),
+        # Only the trailing `data` component is stripped
+        ("/some/data/hcs_123/data", "/some/data/hcs_123"),
+        ("/some/path/data_x", "/some/path/data_x"),
+        ("s3://bucket/acq/data", "s3://bucket/acq"),
+        # Windows paths are handled the same on every host
+        ("C:\\some\\path\\data\\hcs_123\\data", "C:/some/path/data/hcs_123"),
+        ("C:\\some\\path\\data\\", "C:/some/path"),
+        ("\\\\server\\share\\acq\\data", "//server/share/acq"),
+    ],
+)
+def test_acquisition_model_path_validator(path: str, expected: str):
+    model = ScanRAcquisitionModel(path=path, acquisition_id=0)
+    assert model.path == expected
 
-    x = ScanRAcquisitionModel(path="C:\\some\\path\\data\\hcs_123\\data")
-    if sys.platform == "win32":
-        assert x.path == "C:\\some\\path\\data\\hcs_123"
-    else:
-        # Outside Windows "\" is not a separator, so the path is left untouched
-        assert x.path == "C:\\some\\path\\data\\hcs_123\\data"
+
+def test_acquisition_model_path_validator_bare_data_raises():
+    # A bare `data` has no parent to fall back to
+    with pytest.raises(ValidationError, match="No parent directory"):
+        ScanRAcquisitionModel(path="data", acquisition_id=0)
