@@ -1,9 +1,11 @@
+import sys
 from pathlib import Path
 
 import pytest
 from ome_zarr_converters_tools.testing import run_converter_test
 
 from fractal_uzh_converters.scanr import convert_scanr
+from fractal_uzh_converters.scanr._utils import ScanRAcquisitionModel
 
 from .utils import DATA_DIR
 
@@ -42,3 +44,15 @@ def test_scanr(
         update_snapshots=update_snapshots,
         converter_options=converter_options,
     )
+
+
+def test_ScanRAcquisitionModel_field_validator():
+    x = ScanRAcquisitionModel(path="/some/path/data")
+    assert x.path == "/some/path"
+
+    x = ScanRAcquisitionModel(path="C:\\some\\path\\data\\hcs_123\\data")
+    if sys.platform == "win32":
+        assert x.path == "C:\\some\\path\\data\\hcs_123"
+    else:
+        # Outside Windows "\" is not a separator, so the path is left untouched
+        assert x.path == "C:\\some\\path\\data\\hcs_123\\data"
