@@ -2,8 +2,10 @@ from pathlib import Path
 
 import pytest
 from ome_zarr_converters_tools.testing import run_converter_test
+from pydantic import ValidationError
 
 from fractal_uzh_converters.scanr import convert_scanr
+from fractal_uzh_converters.scanr._utils import ScanRAcquisitionModel
 
 from .utils import DATA_DIR
 
@@ -42,3 +44,31 @@ def test_scanr(
         update_snapshots=update_snapshots,
         converter_options=converter_options,
     )
+
+
+@pytest.mark.parametrize(
+    "path, expected",
+    [
+        ("/some/path", "/some/path"),
+        ("/some/path/", "/some/path"),
+        ("/some/path/data", "/some/path"),
+        ("/some/path/data/", "/some/path"),
+        # Only the trailing `data` component is stripped
+        ("/some/data/hcs_123/data", "/some/data/hcs_123"),
+        ("/some/path/data_x", "/some/path/data_x"),
+        ("s3://bucket/acq/data", "s3://bucket/acq"),
+        # Windows paths are handled the same on every host
+        ("C:\\some\\path\\data\\hcs_123\\data", "C:/some/path/data/hcs_123"),
+        ("C:\\some\\path\\data\\", "C:/some/path"),
+        ("\\\\server\\share\\acq\\data", "//server/share/acq"),
+    ],
+)
+def test_acquisition_model_path_validator(path: str, expected: str):
+    model = ScanRAcquisitionModel(path=path, acquisition_id=0)
+    assert model.path == expected
+
+
+def test_acquisition_model_path_validator_bare_data_raises():
+    # A bare `data` has no parent to fall back to
+    with pytest.raises(ValidationError, match="No parent directory"):
+        ScanRAcquisitionModel(path="data", acquisition_id=0)

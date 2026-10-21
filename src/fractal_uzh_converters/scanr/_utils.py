@@ -16,9 +16,11 @@ from ome_zarr_converters_tools import (
     ImageInPlate,
     Tile,
     TiledImage,
+    basename_url,
     default_axes_builder,
     filesystem_for_url,
     join_url_paths,
+    parent_url,
     tiles_aggregation_pipeline,
 )
 from pydantic import Field, field_validator
@@ -77,10 +79,13 @@ class ScanRAcquisitionModel(HCSBaseAcquisitionModel):
         Allow:
          - path/to/acquisition/data
          - path/to/acquisition/
+
+        Separators are normalised to "/" on every host, so Windows paths and
+        `s3://` URLs are handled alike.
         """
-        v = v.rstrip("/")
-        if v.endswith("/data"):
-            return v[: -len("/data")]
+        v = v.replace("\\", "/").rstrip("/")
+        if basename_url(v) == "data":
+            return parent_url(v)
         return v
 
 

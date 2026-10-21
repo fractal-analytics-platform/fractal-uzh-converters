@@ -4,6 +4,7 @@ import pytest
 from ome_zarr_converters_tools.testing import run_converter_test
 
 from fractal_uzh_converters.operetta import convert_operetta
+from fractal_uzh_converters.operetta._utils import OperettaAcquisitionModel
 
 from .utils import DATA_DIR
 
@@ -58,3 +59,24 @@ def test_operetta(
         update_snapshots=update_snapshots,
         converter_options=converter_options,
     )
+
+
+@pytest.mark.parametrize(
+    "path, expected",
+    [
+        ("/some/acq", "/some/acq"),
+        ("/some/acq/", "/some/acq"),
+        ("/some/acq/Images", "/some/acq"),
+        ("/some/acq/Images/", "/some/acq"),
+        # Only a whole trailing `Images` component is stripped
+        ("/some/acq/MyImages", "/some/acq/MyImages"),
+        ("s3://bucket/acq/Images", "s3://bucket/acq"),
+        # Windows paths are handled the same on every host
+        ("C:\\some\\acq\\Images", "C:/some/acq"),
+        ("C:\\some\\acq\\Images\\", "C:/some/acq"),
+        ("\\\\server\\share\\acq\\Images", "//server/share/acq"),
+    ],
+)
+def test_acquisition_model_path_validator(path: str, expected: str):
+    model = OperettaAcquisitionModel(path=path, acquisition_id=0)
+    assert model.path == expected
