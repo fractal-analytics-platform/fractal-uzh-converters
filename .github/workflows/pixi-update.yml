@@ -39,7 +39,7 @@ jobs:
           git checkout stash -- .
           git add pixi.lock
           git commit -m 'Update pixi.lock'
-          git push
+          git push --set-upstream origin update-pixi-lock
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
