@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
-        persist-credentials: true  # Needed for committing on the update-pixi-lock branch
+          persist-credentials: true  # Needed for committing on the update-pixi-lock branch
       - uses: prefix-dev/setup-pixi@92815284c57faa15cd896c4d5cfb2d59f32dc43d # v0.8.3
         with:
           run-install: false
