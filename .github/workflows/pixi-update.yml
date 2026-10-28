@@ -32,7 +32,7 @@ jobs:
       - run: cat diff.md
       - run: |
           git config user.email "pixi-update-lock@example.org"
-          git config user.name "pixi-update.yaml GHA"
+          git config user.name "pixi-update-lock bot"
           git fetch --all
           git stash
           git switch -c update-pixi-lock
