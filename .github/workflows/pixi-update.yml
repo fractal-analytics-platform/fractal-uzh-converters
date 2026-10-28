@@ -43,6 +43,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: gh pr create --title "Update pixi.lock" --body-file diff.md --base main --head update-pixi-lock
+      - run: gh pr create --title "Update pixi.lock" --body-file diff.md --base main --head update-pixi-lock --label pixi --draft
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
