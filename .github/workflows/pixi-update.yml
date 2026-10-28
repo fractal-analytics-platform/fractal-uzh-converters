@@ -4,6 +4,12 @@ permissions: {}
 
 
 on:
+  on:
+    push:
+      branches:
+        - main
+      tags:
+        - "v*"
   workflow_dispatch:
   schedule:
     - cron: 0 5 1 * * 
@@ -38,7 +44,7 @@ jobs:
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - run: gh pr create --title "Update pixi.lock" --body-file diff.md --base main --head update-pixi-lock
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
