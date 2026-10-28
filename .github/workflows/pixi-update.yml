@@ -33,9 +33,9 @@ jobs:
       - run: |
           git config user.email "pixi-update-lock@example.org"
           git config user.name "pixi-update.yaml GHA"
-          git fetch origin update-pixi-lock
+          git fetch --all
           git stash
-          git switch update-pixi-lock
+          git switch -c update-pixi-lock
           git checkout stash -- .
           git add pixi.lock
           git commit -m 'Update pixi.lock'
